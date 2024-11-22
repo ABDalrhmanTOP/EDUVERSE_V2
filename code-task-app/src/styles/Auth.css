@@ -1,0 +1,102 @@
+/* Importing the Roboto font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(rgba(0, 0, 50, 0.9), rgba(0, 0, 50, 0.9)),
+    url('https://images.unsplash.com/photo-1535223289827-42f1e9919769?fit=crop&w=1500&q=80') 
+    center center/cover no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.auth-container {
+  background-color: rgba(10, 10, 40, 0.85);
+  padding: 50px;
+  border-radius: 15px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7);
+  text-align: center;
+}
+
+.branding h1 {
+  color: #00aaff;
+  font-size: 32px;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.branding p {
+  color: #e0e0e0;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.form-section h2 {
+  color: #00aaff;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.form-section form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-section input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  font-size: 16px;
+  background-color: #222;
+  color: #e0e0e0;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-section input:focus {
+  border-color: #00aaff;
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 170, 255, 0.5);
+}
+
+.form-section button {
+  padding: 12px;
+  border: none;
+  background-color: #00aaff;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.form-section button:hover {
+  background-color: #008fcc;
+  transform: scale(1.05);
+}
+
+.auth-footer {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+}
+
+.auth-footer span {
+  color: #00aaff;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.auth-footer span:hover {
+  color: #008fcc;
+}

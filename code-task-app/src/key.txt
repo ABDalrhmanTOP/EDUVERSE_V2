@@ -1,0 +1,19 @@
+2a40e6be0dmsh298678b28384f8fp11bcf0jsnb4b072de9050
+
+b805f336fbmsh6db5a407ee430acp109515jsn0b63a4ae1676
+
+
+x1 = input("insert your first number")
+x2 = input("insert your second number")
+x3 = x1 + x2
+print(x3)
+
+
+    #include<iostream>
+    using namespace std;
+    int main(){
+        int a = 5;
+        int b = 10;
+        cout << a + b;
+        
+    }

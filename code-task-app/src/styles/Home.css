@@ -1,0 +1,41 @@
+/* src/styles/Home.css */
+
+.dashboard-container {
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  .dashboard-container h2 {
+    font-size: 28px;
+    color: #333;
+  }
+  
+  .dashboard-container p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .video-button, .logout-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .video-button {
+    background-color: #4CAF50;
+    color: #fff;
+  }
+  
+  .logout-button {
+    background-color: #f44336;
+    color: #fff;
+  }
+  

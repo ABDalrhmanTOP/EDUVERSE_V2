@@ -1,0 +1,62 @@
+.youtube-layout-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+}
+
+.youtube-main-content {
+  flex: 3;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.playlist-sidebar {
+  flex: 1;
+  background: #f9fafb;
+  border: 1px solid #ddd;
+  padding: 15px;
+}
+
+.playlist-item {
+  padding: 10px;
+  margin: 5px 0;
+}
+
+.playlist-item.active {
+  background-color: #4f46e5;
+  color: #fff;
+}
+.code-task-container {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.feedback {
+  margin-top: 10px;
+  font-weight: bold;
+  color: red;
+}
+.youtube-player.hidden {
+  display: none;
+}
