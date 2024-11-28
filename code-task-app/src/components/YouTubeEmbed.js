@@ -1,188 +1,239 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import CodeTask from "./CodeTask";
 import axios from "../api/axios";
-
-// Helper: Convert timestamps (e.g., "01:43:00") to seconds
+import "../App.css"
 const convertTimestampToSeconds = (timestamp) => {
+    if (!timestamp) return 0;
     const [hours, minutes, seconds] = timestamp.split(":").map(Number);
-    return hours * 3600 + minutes * 60 + seconds;
+    return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
 };
 
-const YouTubeEmbed = ({ videoId, playlistId }) => {
+const convertSecondsToTimestamp = (seconds) => {
+    const hrs = Math.floor(seconds / 3600).toString().padStart(2, "0");
+    const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+    const secs = Math.floor(seconds % 60).toString().padStart(2, "0");
+    return `${hrs}:${mins}:${secs}`;
+};
+
+const YouTubeEmbed = ({ playlistId }) => {
     const [tasks, setTasks] = useState([]);
-    const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
-    const [isTaskActive, setIsTaskActive] = useState(false);
     const [completedTasks, setCompletedTasks] = useState([]);
-    const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState(0);
+    const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
+    const [playerReady, setPlayerReady] = useState(false);
+    const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState(null);
+    const [playerVideoId, setPlayerVideoId] = useState(null); // Added playerVideoId state
     const playerRef = useRef(null);
-    const [player, setPlayer] = useState(null);
+    const playerInstanceRef = useRef(null);
+    const taskTriggeredRef = useRef(false);
 
-    // Fetch tasks and progress
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const tasksRes = await axios.get(`/tasks/${playlistId}`);
-                const progressRes = await axios.get(`/user-progress?video_id=${videoId}`);
-
-                setTasks(tasksRes.data || []);
-                setCompletedTasks(progressRes.data?.completed_tasks || []);
-
-                // Convert saved timestamp from hh:mm:ss to seconds
-                const savedTimestamp = progressRes.data?.last_timestamp;
-                const [hours, minutes, seconds] = savedTimestamp.split(":").map(Number);
-                const lastWatchedInSeconds = hours * 3600 + minutes * 60 + seconds;
-                setLastWatchedTimestamp(lastWatchedInSeconds);
-
-                console.log("Fetched Tasks:", tasksRes.data);
-                console.log("Fetched Progress:", progressRes.data);
-            } 
-            catch (error) {
-                console.error("Error fetching tasks or progress:", error);
-            }
-};
-
-
-        fetchData();
-    }, [playlistId, videoId]);
-
-    // Save progress
-    const saveProgress = useCallback(
-        async (timestamp) => {
-            try {
-                await axios.post("/user-progress", {
-                    video_id: videoId,
+    const saveProgress = useCallback(async (seconds) => {
+        try {
+            const timestamp = convertSecondsToTimestamp(seconds);
+            const token = localStorage.getItem("authToken");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            await axios.post(
+                "/user-progress",
+                {
+                    video_id: playerVideoId,
                     last_timestamp: timestamp,
-                });
-                setLastWatchedTimestamp(timestamp);
-                console.log("Progress saved:", timestamp);
-            } catch (error) {
+                    playlist_id: playlistId,
+                },
+                { headers }
+            );
+            console.log("Progress saved:", timestamp);
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                console.error("Unauthorized: Redirecting to login.");
+                window.location.href = "/login";
+            } else {
                 console.error("Error saving progress:", error);
             }
-        },
-        [videoId]
-    );
-    
-    // Mark task as completed
-    const markTaskAsCompleted = useCallback(async (taskId) => {
-        try {
-            const response = await axios.post("/user-progress/tasks", { task_id: taskId });
-            console.log("Task Completion Response:", response.data); // Debugging
-            setCompletedTasks((prev) => [...prev, taskId]);
-        } catch (error) {
-            console.error("Error marking task as completed:", error);
         }
-    }, []);
+    }, [playerVideoId, playlistId]);
 
-    // Save progress every second
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (player && !isTaskActive && typeof player.getCurrentTime === "function") {
-                const currentTime = Math.floor(player.getCurrentTime());
-                saveProgress(currentTime);
-            }
-        }, 1000);
+        const fetchTasksAndProgress = async () => {
+            try {
+                console.log("Fetching tasks and user progress...");
+                const token = localStorage.getItem("authToken");
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                
+                const playlistResponse = await axios.get(`/playlists/${playlistId}`, { headers });
+                const videoId = playlistResponse.data.video_id;
 
-        return () => clearInterval(interval);
-    }, [player, isTaskActive, saveProgress]);
+                const [tasksResponse, progressResponse] = await Promise.all([
+                    axios.get(`/tasks/${playlistId}`, { headers }),
+                    axios.get(`/user-progress`, {
+                        params: { video_id: videoId },
+                        headers,
+                    }),
+                ]);
 
-    // Prevent skipping over unsolved tasks
-    useEffect(() => {
-        const preventSkipping = () => {
-            if (player && isTaskActive) {
-                const taskTimestamp = convertTimestampToSeconds(tasks[currentTaskIndex]?.timestamp || 0);
-                player.seekTo(taskTimestamp, true);
-                console.log("Preventing skip to task timestamp:", taskTimestamp);
+                console.log("Tasks fetched:", tasksResponse.data);
+                console.log("User progress fetched:", progressResponse.data);
+
+                setTasks(tasksResponse.data || []);
+                setCompletedTasks(progressResponse.data?.completed_tasks || []);
+                setLastWatchedTimestamp(progressResponse.data?.last_timestamp || "00:00:00");
+                setPlayerVideoId(videoId); 
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    console.error("Unauthorized: Redirecting to login.");
+                    window.location.href = "/login";
+                } else {
+                    console.error("Error fetching tasks or progress:", error);
+                }
             }
         };
 
-        const interval = setInterval(preventSkipping, 500);
-        return () => clearInterval(interval);
-    }, [player, isTaskActive, tasks, currentTaskIndex]);
+        fetchTasksAndProgress();
+    }, [playlistId]);
 
-    // Check if tasks should appear
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (player && typeof player.getCurrentTime === "function" && !isTaskActive) {
-                const currentTime = Math.floor(player.getCurrentTime());
-                const taskIndex = tasks.findIndex(
-                    (task) =>
-                        Math.abs(currentTime - convertTimestampToSeconds(task.timestamp)) <= 1 &&
-                        !completedTasks.includes(task.id)
-                );
+        if (!lastWatchedTimestamp || !playerVideoId) return;
 
-                if (taskIndex !== -1) {
-                    setCurrentTaskIndex(taskIndex);
-                    setIsTaskActive(true);
-                    player.pauseVideo();
-                    console.log("Task activated:", tasks[taskIndex]);
-                }
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [player, tasks, completedTasks, isTaskActive]);
-
-    const handleTaskComplete = async () => {
-        const currentTask = tasks[currentTaskIndex];
-        if (currentTask) {
-            await markTaskAsCompleted(currentTask.id);
-        }
-    
-        setIsTaskActive(false);
-        setCurrentTaskIndex(null);
-    
-        if (player) {
-            const taskTimestamp = convertTimestampToSeconds(currentTask?.timestamp || "00:00:00");
-            player.seekTo(taskTimestamp + 1, true);
-            player.playVideo();
-            console.log("Resuming video from:", taskTimestamp + 1);
-        }
-    };
-    
-
-    // Initialize YouTube Player API
-    useEffect(() => {
         const loadYouTubeAPI = () => {
             if (!window.YT) {
+                console.log("Loading YouTube iframe API script...");
                 const script = document.createElement("script");
                 script.src = "https://www.youtube.com/iframe_api";
                 script.async = true;
                 document.body.appendChild(script);
+                window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+            } else {
+                onYouTubeIframeAPIReady();
             }
         };
 
-        loadYouTubeAPI();
+        const onYouTubeIframeAPIReady = () => {
+            if (playerInstanceRef.current) return; 
 
-        window.onYouTubeIframeAPIReady = () => {
-            const newPlayer = new window.YT.Player(playerRef.current, {
-                videoId,
+            if (!playerRef.current) {
+                console.warn("Player ref is not available.");
+                return;
+            }
+
+            console.log("Initializing YouTube Player...");
+            playerInstanceRef.current = new window.YT.Player(playerRef.current, {
+                videoId: playerVideoId,
                 events: {
                     onReady: (event) => {
-                        console.log("YouTube Player Initialized");
-                        setPlayer(event.target);
-                        if (lastWatchedTimestamp > 0) {
-                            event.target.seekTo(lastWatchedTimestamp, true);
+                        console.log("YouTube Player is ready.");
+                        setPlayerReady(true);
+                        if (lastWatchedTimestamp && lastWatchedTimestamp !== "00:00:00") {
+                            const lastTimestampInSeconds = convertTimestampToSeconds(lastWatchedTimestamp);
+                            event.target.seekTo(lastTimestampInSeconds, true);
+                            console.log("Seeking to last watched timestamp:", lastWatchedTimestamp);
                         }
                     },
+                    onStateChange: handlePlayerStateChange,
                 },
                 playerVars: {
                     autoplay: 0,
                     controls: 1,
+                    enablejsapi: 1,
                 },
             });
-            setPlayer(newPlayer);
         };
-    }, [videoId, lastWatchedTimestamp]);
+
+        loadYouTubeAPI();
+    }, [lastWatchedTimestamp, playerVideoId]);
+
+    const handlePlayerStateChange = useCallback((event) => {
+        if (event.data === window.YT.PlayerState.PLAYING) {
+            if (currentTaskIndex === null) {
+                taskTriggeredRef.current = false;
+            }
+            if (currentTaskIndex !== null) {
+                console.log("Pausing video for current task.");
+                event.target.pauseVideo();
+            }
+        }
+    }, [currentTaskIndex]);
+
+    const handleTaskComplete = useCallback(() => {
+        if (currentTaskIndex !== null) {
+            console.log("Task completed:", tasks[currentTaskIndex].id);
+            setCompletedTasks((prev) => [...prev, tasks[currentTaskIndex].id]);
+            setCurrentTaskIndex(null);
+            if (playerReady && playerInstanceRef.current) {
+                console.log("Resuming video after task completion.");
+                playerInstanceRef.current.playVideo();
+            }
+        }
+    }, [currentTaskIndex, tasks, playerReady]);
+
+    useEffect(() => {
+        if (!playerInstanceRef.current || !tasks.length || !playerReady) return;
+
+        const interval = setInterval(() => {
+            if (typeof playerInstanceRef.current.getCurrentTime !== "function") return;
+
+            try {
+                const currentTime = Math.floor(playerInstanceRef.current.getCurrentTime());
+
+                if (taskTriggeredRef.current) return;
+
+                const nextTaskIndex = tasks.findIndex(
+                    (task) =>
+                        currentTime >= convertTimestampToSeconds(task.timestamp) &&
+                        !completedTasks.includes(task.id)
+                );
+
+                if (nextTaskIndex !== -1 && nextTaskIndex !== currentTaskIndex) {
+                    console.log("Triggering task at timestamp:", tasks[nextTaskIndex].timestamp);
+                    setCurrentTaskIndex(nextTaskIndex);
+                    playerInstanceRef.current.pauseVideo();
+                    taskTriggeredRef.current = true; 
+                }
+            } catch (error) {
+                console.warn("Error during task checking:", error);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [tasks, completedTasks, currentTaskIndex, playerReady]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (playerInstanceRef.current && playerReady && typeof playerInstanceRef.current.getCurrentTime === "function") {
+                try {
+                    const currentTime = Math.floor(playerInstanceRef.current.getCurrentTime());
+                    if (currentTime > 0) {
+                        saveProgress(currentTime);
+                    }
+                } catch (error) {
+                    console.warn("Error saving progress:", error);
+                }
+            }
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [playerReady, saveProgress]);
 
     return (
         <div className="youtube-layout-container">
-            {isTaskActive ? (
-                <CodeTask task={tasks[currentTaskIndex]} onTaskComplete={handleTaskComplete} />
-            ) : (
-                <div className="youtube-player">
-                    <div ref={playerRef} id="player"></div>
+            <div className={`youtube-player ${currentTaskIndex === null ? "" : "hidden"}`}>
+                <div ref={playerRef} id="player"></div>
+            </div>
+            {tasks.length > 0 && currentTaskIndex !== null && (
+                <div className="code-task-container">
+                    <CodeTask task={tasks[currentTaskIndex]} onTaskComplete={handleTaskComplete} />
                 </div>
             )}
+            <div className="playlist-sidebar">
+                <h3>Playlist</h3>
+                <ul>
+                    {tasks.map((task) => (
+                        <li
+                            key={task.id}
+                            className={`playlist-item ${completedTasks.includes(task.id) ? "active" : ""}`}
+                        >
+                            {task.title}
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 };

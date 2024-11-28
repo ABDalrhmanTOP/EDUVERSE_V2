@@ -5,6 +5,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import VideoPage from "./pages/VideoPage";
+import './App.css';
+
 const App = () => {
   return (
     <Router>

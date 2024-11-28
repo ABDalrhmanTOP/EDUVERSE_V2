@@ -1,4 +1,3 @@
-//CodeTask.js
 import React, { useState } from "react";
 import AceEditor from "react-ace";
 import axios from "axios";
@@ -12,7 +11,6 @@ const CodeTask = ({ task, onTaskComplete }) => {
     const [feedback, setFeedback] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // Submit code to Judge0 API
     const handleTestCode = async () => {
         if (!code.trim()) {
             setFeedback("Please enter code to test.");
@@ -27,8 +25,8 @@ const CodeTask = ({ task, onTaskComplete }) => {
                 `${API_BASE_URL}/submissions?base64_encoded=false&wait=true`,
                 {
                     source_code: code,
-                    language_id: 54, // C++ language ID
-                    stdin: "", 
+                    language_id: 54,
+                    stdin: "",
                 },
                 {
                     headers: {
@@ -41,18 +39,14 @@ const CodeTask = ({ task, onTaskComplete }) => {
 
             const output = response.data.stdout?.trim() || response.data.stderr;
 
-            // Validate output
-            if (output !== task.expected_output) {
+            if (output === task.expected_output) {
+                setFeedback("Correct! Returning to video...");
+                setTimeout(onTaskComplete, 2000);
+            } else {
                 setFeedback(`Incorrect output. Expected "${task.expected_output}", got "${output}".`);
-                return;
             }
-
-            // Success: Mark task as completed
-            setFeedback("Correct! Returning to video...");
-            setTimeout(onTaskComplete, 3000);
         } catch (error) {
-            console.error("Error with code submission:", error);
-            setFeedback(`Error: ${error.message}`);
+            setFeedback("Error submitting code.");
         } finally {
             setIsLoading(false);
         }

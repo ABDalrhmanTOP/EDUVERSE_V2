@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('user_progress', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('video_id');
-            $table->integer('last_timestamp')->default(0);
-            $table->json('completed_tasks')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Link to users table
+            $table->foreignId('playlist_id')->nullable()->constrained()->onDelete('cascade'); // Changed from task_id to playlist_id
+            $table->string('video_id'); // Assuming this remains relevant
+            $table->string('last_timestamp')->default('00:00:00');
+            $table->json('completed_tasks')->nullable(); // If tasks are tracked, store them here
             $table->timestamps();
         });
     }

@@ -10,13 +10,12 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('playlist_id')->constrained()->onDelete('cascade');
-            $table->string('video_id');
+            $table->foreignId('playlist_id')->constrained()->onDelete('cascade'); // Link to playlists table
             $table->string('title');
             $table->text('prompt');
             $table->string('expected_output')->nullable();
             $table->string('syntax_hint')->nullable();
-            $table->string('timestamp')->nullable(); 
+            $table->string('timestamp'); // Timestamp of when the task should appear in the video
             $table->timestamps();
         });
     }

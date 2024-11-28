@@ -1,22 +1,30 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreatePlaylistsTable extends Migration
 {
-    public function up(): void
+    /**
+     * Run the migrations.
+     */
+    public function up()
     {
         Schema::create('playlists', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); 
+            $table->string('video_id')->nullable(); // Corrected syntax for adding `video_id`
+            $table->string('name');
+            $table->string('description')->nullable();
             $table->timestamps();
-            
         });
     }
 
-    public function down(): void
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
     {
         Schema::dropIfExists('playlists');
     }
-};
+}

@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import "../styles/dashboard_styles.css"; 
 
 const Dashboard = () => {
     const navigate = useNavigate();
 
-    // Handle logout
     const handleLogout = async () => {
         try {
             await axios.post("/logout");
@@ -21,10 +21,12 @@ const Dashboard = () => {
     };
 
     return (
-        <div>
-            <h1>Dashboard</h1>
-            <button onClick={goToVideoPage}>Go to Video Page</button>
-            <button onClick={handleLogout}>Logout</button>
+        <div className="dashboard-container">
+            <h1 className="dashboard-header">Dashboard</h1>
+            <div className="dashboard-content">
+                <button className="dashboard-button" onClick={goToVideoPage}>Go to Video Page</button>
+                <button className="dashboard-button logout-button" onClick={handleLogout}>Logout</button>
+            </div>
         </div>
     );
 };
