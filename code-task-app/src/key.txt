@@ -12,10 +12,11 @@ print(x3)
     #include<iostream>
     using namespace std;
     int main(){
-        int a = 5;
-        int b = 10;
-        cout <<"Hello, World!";
+       
+        cout <<"Hello, World!"
     }
+
+    
     #include<iostream>
     using namespace std;
     int main(){
@@ -26,3 +27,6 @@ print(x3)
     }
 
     
+
+
+    axios.defaults.baseURL = "http://127.0.0.1:8000/api";

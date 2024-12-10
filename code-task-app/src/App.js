@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import VideoPage from "./pages/VideoPage";
 import './App.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const App = () => {
   return (
