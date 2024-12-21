@@ -1,0 +1,42 @@
+.playlist-sidebar {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.playlist-item {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.playlist-item {
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.playlist-item.active {
+    background-color: #f0f8ff;
+    font-weight: bold;
+    transform: scale(1.05);
+}
+
+.playlist-item.completed-success {
+    background-color: #d4edda;
+    color: #28a745;
+}
+
+.playlist-item.completed-error {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+.task-status {
+    margin-left: 10px;
+    font-size: 1.2rem;
+}
+
+
