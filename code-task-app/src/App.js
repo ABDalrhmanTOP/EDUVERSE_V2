@@ -6,11 +6,12 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import VideoPage from "./pages/VideoPage";
 import './App.css';
-
+import Form_Test from "./pages/form_test";
 const App = () => {
   return (
     <Router>
       <Routes>
+      <Route path="/Form_Test" element={<Form_Test/>} />
         {/* Redirect Default Route to /login */}
         <Route path="/" element={<Navigate to="/login" />} />
 

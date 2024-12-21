@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserProgressController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TestController;
 use App\Http\Controllers\PlaylistController;
 use Illuminate\Http\Request;
 
@@ -31,3 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/test', function (Request $request) {
     return response()->json(['message' => 'It works!', 'data' => $request->all()]);
 });
+
+
+
+// test lavel
+Route:: middleware('auth:sanctum')->get('/showTest/{levelId}', [TestController::class, 'showTest']);
+Route::middleware('auth:sanctum')->post('/submitTest/{levelId}', [TestController::class, 'submitTest']);

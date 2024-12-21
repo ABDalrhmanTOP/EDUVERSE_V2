@@ -52,4 +52,16 @@ class User extends Authenticatable
     {
         return $this->morphMany(PersonalAccessToken::class, 'tokenable');
     }
+
+    public function Result()
+    {
+        return $this->hasMany(Result::class);
+    }
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
+
+
+
 }
