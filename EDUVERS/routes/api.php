@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserProgressController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\ResultTest;
 use App\Http\Controllers\PlaylistController;
 use Illuminate\Http\Request;
 
@@ -38,3 +39,5 @@ Route::post('/test', function (Request $request) {
 // test lavel
 Route:: middleware('auth:sanctum')->get('/showTest/{levelId}', [TestController::class, 'showTest']);
 Route::middleware('auth:sanctum')->post('/submitTest/{levelId}', [TestController::class, 'submitTest']);
+Route::middleware('auth:sanctum')->get('/checkTestTaken', [ResultTest::class, 'checkTestTaken']);
+Route::post('/submitTest/{level}', [ResultTest::class, 'submitTest']);

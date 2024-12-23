@@ -11,7 +11,6 @@ const App = () => {
   return (
     <Router>
       <Routes>
-      <Route path="/Form_Test" element={<Form_Test/>} />
         {/* Redirect Default Route to /login */}
         <Route path="/" element={<Navigate to="/login" />} />
 
@@ -20,7 +19,9 @@ const App = () => {
         <Route path="/register" element={<Register />} />
 
         {/* Protected Route */}
+        <Route path="/Form_Test" element={<Form_Test/>} />
         <Route
+        
           path="/dashboard"
           element={
             <ProtectedRoute>

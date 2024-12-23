@@ -35,10 +35,9 @@ class TestController extends Controller
     return response()->json(['questions' => $questions], 200);
 }
 
-
-
 public function submitTest(Request $request, $levelId)
 {
+
     $validator = Validator::make($request->all(), [
         'answers' => 'required|array',
         'answers.*.question_id' => 'required|exists:questions,id',
@@ -67,34 +66,41 @@ public function submitTest(Request $request, $levelId)
     foreach ($request->answers as $answer) {
         $question = Question::find($answer['question_id']);
         $isCorrect = $answer['student_answer'] == $question->correct_answer;
-
-
         if ($isCorrect) {
             $score++;
             $correctAnswers[] = $question->id;
         }
     }
-    //تخزين نتيجة الاختبار
-    if (Auth::check()) {
-        $test = Result::create([
-            'user_id' => Auth::id(),
-            'level_id' => $levelId,
-            'score' => $score,
-        ]);
-    } else {
-        return response()->json(['error' => 'User not authenticated'], 401);
-    }
-
-
+    $test=null;
     // منطق رفع المستوى (إذا كانت الدرجة 4 أو أكثر)
-    $nextLevel = null;
-    if ($score >= 4) {
+    if ($score >= 1) {
         $nextLevel = Level::where('id', '>', $levelId)->first();
+        $nextID =$nextLevel->id;
+      if ($nextID > 3){
+        $nextLevel =Level::find($nextID);
+        if (Auth::check()) {
+            $test = Result::create([
+                'user_id' => Auth::id(),
+                'level_id' => $levelId,
+                'score' => $score,
+            ]);
+        } else {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+      }
+    }else{
+        $nextLevel =Level::find($levelId);
+        if (Auth::check()) {
+            $test = Result::create([
+                'user_id' => Auth::id(),
+                'level_id' => $levelId,
+                'score' => $score,
+            ]);
+        } else {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
     }
-    if($nextLevel->id == 3) {
-      $nextLevel="You have skipped the videos, go to the project";
 
-     }
     // إرجاع النتيجة مع المستوى التالي
     return response()->json([
         'test' => $test,
@@ -103,5 +109,4 @@ public function submitTest(Request $request, $levelId)
         'next_level' => $nextLevel
     ], 200);
 }
-
 }

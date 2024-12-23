@@ -8,7 +8,7 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-  
+
     public function register(Request $request)
     {
         $request->validate([
@@ -72,7 +72,7 @@ class AuthController extends Controller
         ]);
     }
 
-    
+
     public function user(Request $request)
     {
         return response()->json($request->user());
