@@ -14,6 +14,12 @@ class TestController extends Controller
     public function showTest(Request $request, $levelId)
 {
     $user = User::find(Auth::id());
+    if ( $user->test_taken) {
+        return response()->json([
+            'test_token' => $user->test_taken,
+            'Level_id' => $levelId,
+        ], 200);
+    }else{
 
     if (!$user || $user->id !== Auth::id()) {
         return response()->json(['error' => 'Unauthorized'], 403);
@@ -32,7 +38,12 @@ class TestController extends Controller
         return response()->json(['error' => 'No questions available for this level'], 404);
     }
 
-    return response()->json(['questions' => $questions], 200);
+    return response()->json([
+        'questions' => $questions,
+       'test_token' => $user->test_taken,
+    ],
+    200);
+}
 }
 
 public function submitTest(Request $request, $levelId)
@@ -73,7 +84,7 @@ public function submitTest(Request $request, $levelId)
     }
     $test=null;
     // منطق رفع المستوى (إذا كانت الدرجة 4 أو أكثر)
-    if ($score >= 1) {
+    if ($score >= 3) {
         $nextLevel = Level::where('id', '>', $levelId)->first();
         $nextID =$nextLevel->id;
       if ($nextID > 3){
@@ -84,6 +95,8 @@ public function submitTest(Request $request, $levelId)
                 'level_id' => $levelId,
                 'score' => $score,
             ]);
+            $user->test_taken = true;
+            $user->save();
         } else {
             return response()->json(['error' => 'User not authenticated'], 401);
         }
@@ -96,6 +109,8 @@ public function submitTest(Request $request, $levelId)
                 'level_id' => $levelId,
                 'score' => $score,
             ]);
+            $user->test_taken = true;
+            $user->save();
         } else {
             return response()->json(['error' => 'User not authenticated'], 401);
         }
@@ -108,5 +123,6 @@ public function submitTest(Request $request, $levelId)
         'correct_answers' => $correctAnswers,
         'next_level' => $nextLevel
     ], 200);
+
 }
 }

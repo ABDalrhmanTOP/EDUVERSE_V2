@@ -14,8 +14,9 @@ const Login = () => {
     try {
       const response = await axios.post("/login", { email, password });
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("email", response.data.email);
       axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
-      navigate("/dashboard"); 
+      navigate("/navbar"); 
     } catch (error) {
       console.error("Login error:", error);
       setMessage("Login failed. Please check your credentials.");

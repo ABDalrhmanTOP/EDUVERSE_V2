@@ -111,7 +111,6 @@ class UserProgressController extends Controller
         Log::warning('Unauthenticated user attempted to mark a task as completed.');
         return response()->json(['message' => 'User not authenticated'], 401);
     }
-
     try {
         $progress = UserProgress::where('user_id', $userId)
             ->where('video_id', $validated['video_id'])

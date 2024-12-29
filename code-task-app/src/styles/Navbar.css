@@ -1,0 +1,77 @@
+/* الشريط الرئيسي */
+.nav_container{
+    background-Color: #424055; 
+    border-radius: 20px;
+    margin-top: 20px;
+    padding: 10px 20px ;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    max-width: 1200px;
+    margin: 20px auto ;
+}
+
+.custom-link {
+    font-size: 18px;
+    text-decoration: none; /* إزالة الخط السفلي */
+    font-weight: bold; /* جعل النص عريضًا */
+    padding: 15px 30px; /* إضافة مسافة داخلية */
+    border-radius: 5px; /* زوايا دائرية */
+    transition: all 0.3s ease; /* تأثير عند التمرير */
+    margin: auto; 
+    margin-left: 5px;
+}
+  
+ .custom-link:hover {
+    color: white; /* تغيير لون النص عند التمرير */
+     background-color: #AD998A; /*خلفية عند التمرير */
+    text-decoration: underline; /*إضافة خط سفلي */
+   } 
+  
+
+
+/* الشعار */
+.navbar-logo {
+  border-radius: 50%; /* شكل دائري */
+}
+
+/* زر التبديل */
+.navbar-toggler {
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+.custom-icon {
+  font-size: 24px; /* حجم أيقونة التبديل */
+  color: #fff;
+  transition: transform 0.3s ease-in-out;
+}
+
+.custom-icon.fa-times {
+  transform: rotate(180deg); /* تدوير أيقونة الإغلاق */
+}
+
+/* أزرار تسجيل الدخول */
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  transform: scale(1.1); /* تأثير التكبير */
+  opacity: 0.9;
+}
+.collapse {
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+

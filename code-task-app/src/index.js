@@ -3,6 +3,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client'; // React 18
 import App from './App';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 
 // Render the application
 const root = ReactDOM.createRoot(document.getElementById('root'));

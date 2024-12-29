@@ -22,6 +22,7 @@ class User extends Authenticatable
         'level',
         'last_task_completed',
         'profile_photo_path',
+        'test_taken'
     ];
 
     /**
