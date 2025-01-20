@@ -8,6 +8,8 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\ResultTest;
 use App\Http\Controllers\PlaylistController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EmailVerificationController;
 
 // Authentication Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,7 +39,18 @@ Route::post('/test', function (Request $request) {
 
 
 // test lavel
-Route:: middleware('auth:sanctum')->get('/showTest/{levelId}', [TestController::class, 'showTest']);
+Route::middleware('auth:sanctum')->get('/showTest/{levelId}', [TestController::class, 'showTest']);
 Route::middleware('auth:sanctum')->post('/submitTest/{levelId}', [TestController::class, 'submitTest']);
 Route::middleware('auth:sanctum')->get('/checkTestTaken', [ResultTest::class, 'checkTestTaken']);
 Route::post('/submitTest/{level}', [ResultTest::class, 'submitTest']);
+
+// You likely have routes wrapped in a middleware like 'auth:sanctum' or 'auth:api'
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+});
+
+
+
+Route::post('/send-verification-code', [EmailVerificationController::class, 'sendVerificationCode']);
+Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);

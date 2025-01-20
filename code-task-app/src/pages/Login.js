@@ -1,30 +1,30 @@
+// src/pages/Login.js
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; 
-import axios from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import "../styles/Auth.css";
 
-const Login = () => {
+const Login = ({ onFinished, onSwitchToRegister }) => {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); 
 
   const handleLogin = async (e) => {
-    e.preventDefault(); 
-    try {
-      const response = await axios.post("/login", { email, password });
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("email", response.data.email);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
-      navigate("/navbar"); 
-    } catch (error) {
-      console.error("Login error:", error);
+    e.preventDefault();
+    setIsLoading(true);
+    const success = await login({ email, password });
+    setIsLoading(false);
+
+    if (!success) {
       setMessage("Login failed. Please check your credentials.");
+    } else {
+      if (onFinished) onFinished();
     }
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-container animated-form">
       <div className="branding">
         <h1>Login</h1>
         <p>Access your account to continue learning.</p>
@@ -43,12 +43,16 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit">Login</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
           {message && <p className="feedback">{message}</p>}
         </form>
+        {/* Footer Link to switch to Register */}
         <div className="auth-footer">
           <p>
-            Don't have an account? <Link to="/register"><span>Register here</span></Link>.
+            No account yet?{" "}
+            <span onClick={onSwitchToRegister}>Register here</span>
           </p>
         </div>
       </div>
