@@ -165,4 +165,7 @@ body {
     width: 100%;
     max-width: 100%;
   }
+  .vi {
+    background-color: #424055;
+  }
 }

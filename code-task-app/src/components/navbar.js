@@ -1,30 +1,28 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "../styles/Navbar.css"; 
-import { FaUserCircle } from "react-icons/fa"; 
+import "../styles/Navbar.css";
+import { FaUserCircle } from "react-icons/fa";
 
 const Navbar = ({ onNavigate, isFormOpen }) => {
   const { isAuthenticated, logout, user } = useAuth();
-  const [isNavbarOpen, setIsNavbarOpen] = useState(false);
+  const [isNavbarOpen, setIsNavbarOpen] = useState(false)
+   const [user1, setUser] = useState(null); ;
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
   const navigate = useNavigate();
-
   // Burger toggler
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    console.log(storedUser)
+    if (storedUser) {
+      setUser(JSON.parse(storedUser)); // تحويل النص إلى كائن
+    }
+  }, []);
   const toggleNavbar = () => {
     setIsNavbarOpen(!isNavbarOpen);
   };
-
-  // If user not logged in, open login form; else navigate
-  const handleCourses = () => {
-    if (!isAuthenticated) {
-      onNavigate("login");
-    } else {
-      navigate("/form_test");
-    }
-  };
-
   // Additional button for EduBot
   const handleEduBot = () => {
     if (!isAuthenticated) {
@@ -59,6 +57,7 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
   // Logout from the dropdown
   const handleLogout = () => {
     logout();
+    localStorage.removeItem("user");
     setShowProfileMenu(false);
     navigate("/");
   };
@@ -70,6 +69,12 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     isFormOpen ? "navbar-transparent" : "",
   ].join(" ");
 
+  const handleDashboard = () => {
+    navigate("/AdminDashboard");
+  };
+  const handleHomeVideo= () => {
+    navigate("/homevideo");
+  };
   return (
     <nav className={navbarClasses}>
       {/* Left Section: Logo, Courses, EduBot */}
@@ -80,13 +85,20 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
           className="navbar-logo"
           onClick={handleLogoClick}
         />
-        <button className="nav-link custom-link" onClick={handleCourses}>
+        <button className="nav-link custom-link" onClick={handleHomeVideo}>
           Courses
         </button>
         <button className="nav-link custom-link" onClick={handleEduBot}>
           EduBot
         </button>
+        {user1?.role === 'admin' && (
+          <button className="nav-link custom-link" onClick={handleDashboard}>
+            Admin
+          </button>
+        )}
+        
       </div>
+
 
       {/* Burger toggler (mobile) */}
       <button
@@ -111,7 +123,7 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
                 <button
                   className="profile-dropdown-link"
                   onClick={() => {
-                    navigate("/profile");
+                    navigate("/Profile");
                     setShowProfileMenu(false);
                   }}
                 >

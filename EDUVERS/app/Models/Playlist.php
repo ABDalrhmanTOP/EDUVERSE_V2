@@ -10,10 +10,11 @@ class Playlist extends Model
     use HasFactory;
 
     protected $fillable = [
+        'video_id',
         'name',
         'description',
     ];
-  
+
     public function tasks()
     {
         return $this->hasMany(Task::class);

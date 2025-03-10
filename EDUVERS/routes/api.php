@@ -10,6 +10,9 @@ use App\Http\Controllers\PlaylistController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\UserDetailController;
 
 // Authentication Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -54,3 +57,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/send-verification-code', [EmailVerificationController::class, 'sendVerificationCode']);
 Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);
+
+Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
+    // تعريف المسارات هنا
+
+//Route::middleware('auth:api')->group(function() {
+    // إدارة المستخدمين
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::get('/user-progress/user/{user_id}', [UserDetailController::class, 'getAllByUserId']);
+    //  إدارة الكورسات
+    Route::get('/courses', [CourseController::class, 'index']);
+    Route::post('/courses', [CourseController::class, 'store']);
+    Route::put('/courses/{id}', [CourseController::class, 'update']);
+    Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+});

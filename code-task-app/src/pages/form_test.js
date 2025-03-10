@@ -84,7 +84,7 @@ function Form_Test() {
 
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif"}}>
             <h1>test true or false</h1>
 
             {loading ? (

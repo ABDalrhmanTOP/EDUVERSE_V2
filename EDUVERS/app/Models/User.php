@@ -22,7 +22,8 @@ class User extends Authenticatable
         'level',
         'last_task_completed',
         'profile_photo_path',
-        'test_taken'
+        'test_taken',
+        'role'
     ];
 
     /**
@@ -40,6 +41,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'last_task_completed' => 'array',
     ];
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 
     /**
      * Relationships

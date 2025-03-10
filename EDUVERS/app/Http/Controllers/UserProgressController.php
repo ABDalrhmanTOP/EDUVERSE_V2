@@ -73,7 +73,7 @@ class UserProgressController extends Controller
             'video_id' => $validated['video_id']
         ]);
 
-        return response()->json([
+    return response()->json([
             'id' => null,
             'user_id' => $userId,
             'video_id' => $validated['video_id'],

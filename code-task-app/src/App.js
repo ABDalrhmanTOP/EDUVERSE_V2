@@ -8,13 +8,19 @@ import {
   useNavigate
 } from "react-router-dom";
 import { useAuth, AuthProvider } from "./context/AuthContext";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar";
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import FormTest from "./pages/Form_Test";
+import FormTest from "./pages/form_test";
 import VideoPage from "./pages/VideoPage";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import CoursesList from "./components/admin/CoursesList";
+import UsersList from "./components/admin/UsersList";
+import UserDetail from "./components/admin/UserDetial";
+import HomeVideo from "./pages/HomeVideo"
 import "./App.css";
+import Profile from "./pages/Profile";
 
 // The main App that uses AuthContext
 const App = () => {
@@ -38,6 +44,8 @@ const App = () => {
         onNavigate={handleSplitScreen}
         isFormOpen={!!(formType === "login" || formType === "register")}
       />
+  
+       
       <Routes>
         <Route
           path="/"
@@ -53,6 +61,10 @@ const App = () => {
         {/* Optionally, direct routes to login/register if you want to allow that */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile/>} />
+        <Route path="/homevideo" element={<HomeVideo/>} />
+
+
 
         {/* Protected routes */}
         <Route
@@ -65,7 +77,15 @@ const App = () => {
         />
 
         <Route path="*" element={<Navigate to="/" />} />
+
+        {/* 📌 "/dashboard" */}
+          <Route path="/AdminDashboard" element={<AdminDashboard />}>
+          <Route path="users" element={<UsersList />} />
+          <Route path="courses" element={<CoursesList />} />
+          <Route path="userdetail/:user_id" element={<UserDetail />} />
+        </Route>
       </Routes>
+       
     </>
   );
 };

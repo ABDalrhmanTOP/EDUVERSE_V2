@@ -1,6 +1,6 @@
 <?php
-
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
@@ -8,6 +8,7 @@ use App\Models\Level;
 use App\Models\Question;
 use App\Models\Result;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class TestController extends Controller
 {

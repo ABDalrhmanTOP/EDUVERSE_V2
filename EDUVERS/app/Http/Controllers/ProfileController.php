@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class ProfileController extends Controller
@@ -14,7 +15,9 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         // Return just the user’s info, or omit sensitive data if desired
-        return response()->json($request->user());
+        return response()->json([
+            'user' => Auth::user()
+        ]);
     }
 
     /**
@@ -24,7 +27,7 @@ class ProfileController extends Controller
     {
         $user = $request->user(); // Authenticated user from the token/session
 
-        // Validate incoming data. 
+        // Validate incoming data.
         // We exclude the current user ID for uniqueness checks, so user can keep same email/username.
         $validated = $request->validate([
             'name' => 'required|string|max:255',
