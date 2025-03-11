@@ -14,29 +14,43 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\UserDetailController;
 
-// Authentication Routes
+use Illuminate\Support\Facades\Log;
+
+
+// Public Routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 
-// Task Routes (Public)
-Route::get('/tasks/{playlistId}', [TaskController::class, 'getTasks']);
-
-// Playlist Route (Public)
-Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
-
-// Routes Protected by Sanctum
+// Protected Routes (Authentication Required)
 Route::middleware('auth:sanctum')->group(function () {
-    // User Progress Routes
+    // Authentication
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+
+    // User Progress
     Route::post('/user-progress', [UserProgressController::class, 'saveProgress'])->name('user-progress.save');
     Route::get('/user-progress', [UserProgressController::class, 'getProgress'])->name('user-progress.get');
     Route::post('/user-progress/tasks', [UserProgressController::class, 'completeTask'])->name('user-progress.completeTask');
-});
 
-// Debugging Route (Optional)
-Route::post('/test', function (Request $request) {
-    return response()->json(['message' => 'It works!', 'data' => $request->all()]);
+    // Task Code Evaluation
+});
+Route::post('/evaluate-code', [TaskController::class, 'evaluateCode']);
+
+// Unprotected Routes
+Route::get('/tasks/{playlistId}', [TaskController::class, 'getTasks']);
+Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
+
+// Debugging Route (Only for local/testing environments)
+if (app()->environment('local', 'testing')) {
+    Route::post('/test', function (Request $request) {
+        return response()->json(['message' => 'It works!', 'data' => $request->all()]);
+    });
+}
+
+// Fallback Route for Undefined Endpoints
+Route::fallback(function () {
+    Log::warning('API Route not found', ['url' => request()->url()]);
+    return response()->json(['message' => 'API Route not found.'], 404);
 });
 
 

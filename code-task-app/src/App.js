@@ -21,6 +21,8 @@ import UserDetail from "./components/admin/UserDetial";
 import HomeVideo from "./pages/HomeVideo"
 import "./App.css";
 import Profile from "./pages/Profile";
+import './App.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // The main App that uses AuthContext
 const App = () => {

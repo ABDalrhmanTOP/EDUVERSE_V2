@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import CodeTask from "./CodeTask";
 import axios from "../api/axios";
-import "../App.css"
+import "../App.css";
+import { debounce } from "lodash";
+
+// Utility Functions
 const convertTimestampToSeconds = (timestamp) => {
     if (!timestamp) return 0;
     const [hours, minutes, seconds] = timestamp.split(":").map(Number);
@@ -21,12 +24,13 @@ const YouTubeEmbed = ({ playlistId }) => {
     const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
     const [playerReady, setPlayerReady] = useState(false);
     const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState(null);
-    const [playerVideoId, setPlayerVideoId] = useState(null); // Added playerVideoId state
+    const [playerVideoId, setPlayerVideoId] = useState(null);
     const playerRef = useRef(null);
     const playerInstanceRef = useRef(null);
     const taskTriggeredRef = useRef(false);
 
-    const saveProgress = useCallback(async (seconds) => {
+    // Debounced save progress function to prevent excessive API calls
+    const debouncedSaveProgress = useCallback(debounce(async (seconds) => {
         try {
             const timestamp = convertSecondsToTimestamp(seconds);
             const token = localStorage.getItem("authToken");
@@ -49,15 +53,16 @@ const YouTubeEmbed = ({ playlistId }) => {
                 console.error("Error saving progress:", error);
             }
         }
-    }, [playerVideoId, playlistId]);
+    }, 10000), [playerVideoId, playlistId]); // 10-second debounce delay
 
+    // Fetch tasks and user progress
     useEffect(() => {
         const fetchTasksAndProgress = async () => {
             try {
                 console.log("Fetching tasks and user progress...");
                 const token = localStorage.getItem("authToken");
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                
+
                 const playlistResponse = await axios.get(`/playlists/${playlistId}`, { headers });
                 const videoId = playlistResponse.data.video_id;
 
@@ -75,7 +80,7 @@ const YouTubeEmbed = ({ playlistId }) => {
                 setTasks(tasksResponse.data || []);
                 setCompletedTasks(progressResponse.data?.completed_tasks || []);
                 setLastWatchedTimestamp(progressResponse.data?.last_timestamp || "00:00:00");
-                setPlayerVideoId(videoId); 
+                setPlayerVideoId(videoId);
             } catch (error) {
                 if (error.response && error.response.status === 401) {
                     console.error("Unauthorized: Redirecting to login.");
@@ -89,6 +94,7 @@ const YouTubeEmbed = ({ playlistId }) => {
         fetchTasksAndProgress();
     }, [playlistId]);
 
+    // Load YouTube Iframe API and initialize player
     useEffect(() => {
         if (!lastWatchedTimestamp || !playerVideoId) return;
 
@@ -106,7 +112,7 @@ const YouTubeEmbed = ({ playlistId }) => {
         };
 
         const onYouTubeIframeAPIReady = () => {
-            if (playerInstanceRef.current) return; 
+            if (playerInstanceRef.current) return;
 
             if (!playerRef.current) {
                 console.warn("Player ref is not available.");
@@ -139,6 +145,7 @@ const YouTubeEmbed = ({ playlistId }) => {
         loadYouTubeAPI();
     }, [lastWatchedTimestamp, playerVideoId]);
 
+    // Handle player state changes
     const handlePlayerStateChange = useCallback((event) => {
         if (event.data === window.YT.PlayerState.PLAYING) {
             if (currentTaskIndex === null) {
@@ -151,6 +158,7 @@ const YouTubeEmbed = ({ playlistId }) => {
         }
     }, [currentTaskIndex]);
 
+    // Handle completion of a task
     const handleTaskComplete = useCallback(() => {
         if (currentTaskIndex !== null) {
             console.log("Task completed:", tasks[currentTaskIndex].id);
@@ -163,6 +171,7 @@ const YouTubeEmbed = ({ playlistId }) => {
         }
     }, [currentTaskIndex, tasks, playerReady]);
 
+    // Check for tasks based on video progress
     useEffect(() => {
         if (!playerInstanceRef.current || !tasks.length || !playerReady) return;
 
@@ -184,7 +193,7 @@ const YouTubeEmbed = ({ playlistId }) => {
                     console.log("Triggering task at timestamp:", tasks[nextTaskIndex].timestamp);
                     setCurrentTaskIndex(nextTaskIndex);
                     playerInstanceRef.current.pauseVideo();
-                    taskTriggeredRef.current = true; 
+                    taskTriggeredRef.current = true;
                 }
             } catch (error) {
                 console.warn("Error during task checking:", error);
@@ -194,13 +203,14 @@ const YouTubeEmbed = ({ playlistId }) => {
         return () => clearInterval(interval);
     }, [tasks, completedTasks, currentTaskIndex, playerReady]);
 
+    // Save video progress periodically
     useEffect(() => {
         const interval = setInterval(() => {
             if (playerInstanceRef.current && playerReady && typeof playerInstanceRef.current.getCurrentTime === "function") {
                 try {
                     const currentTime = Math.floor(playerInstanceRef.current.getCurrentTime());
                     if (currentTime > 0) {
-                        saveProgress(currentTime);
+                        debouncedSaveProgress(currentTime);
                     }
                 } catch (error) {
                     console.warn("Error saving progress:", error);
@@ -209,7 +219,7 @@ const YouTubeEmbed = ({ playlistId }) => {
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [playerReady, saveProgress]);
+    }, [playerReady, debouncedSaveProgress]);
 
     return (
         <div className="youtube-layout-container">

@@ -1629,16 +1629,17 @@
         },
         {
             "name": "laravel/sanctum",
-            "version": "v4.0.8",
+
+            "version": "v4.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/sanctum.git",
-                "reference": "ec1dd9ddb2ab370f79dfe724a101856e0963f43c"
+                "reference": "fe361b9a63407a228f884eb78d7217f680b50140"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/sanctum/zipball/ec1dd9ddb2ab370f79dfe724a101856e0963f43c",
-                "reference": "ec1dd9ddb2ab370f79dfe724a101856e0963f43c",
+                "url": "https://api.github.com/repos/laravel/sanctum/zipball/fe361b9a63407a228f884eb78d7217f680b50140",
+                "reference": "fe361b9a63407a228f884eb78d7217f680b50140",
                 "shasum": ""
             },
             "require": {
