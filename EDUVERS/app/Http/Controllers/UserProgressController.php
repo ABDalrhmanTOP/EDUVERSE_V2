@@ -89,10 +89,14 @@ class UserProgressController extends Controller
             ], 200);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Progress retrieved successfully',
-            'data' => $progress,
+    return response()->json([
+            'id' => null,
+            'user_id' => $userId,
+            'video_id' => $validated['video_id'],
+            'last_timestamp' => '00:00:00', // Always return a valid timestamp
+            'playlist_id' => null,
+            'completed_tasks' => [],
+
         ], 200);
     }
 
@@ -103,16 +107,16 @@ class UserProgressController extends Controller
     {
         Log::info('Complete Task Request:', $request->all());
 
-        $validated = $request->validate([
-            'task_id' => 'required|integer',
-            'video_id' => 'required|string',
-        ]);
+    $userId = Auth::id();
+    if (!$userId) {
+        Log::warning('Unauthenticated user attempted to mark a task as completed.');
+        return response()->json(['message' => 'User not authenticated'], 401);
+    }
+    try {
+        $progress = UserProgress::where('user_id', $userId)
+            ->where('video_id', $validated['video_id'])
+            ->first();
 
-        $userId = Auth::id();
-        if (!$userId) {
-            Log::warning('Unauthenticated user attempted to mark a task as completed.');
-            return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
-        }
 
         try {
             $progress = UserProgress::where('user_id', $userId)

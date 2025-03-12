@@ -6,7 +6,7 @@ const VideoPage = () => {
     const playlistId = 1; 
 
     return (
-        <div>
+        <div className="vi">
             <h1>Video Page</h1>
             <YouTubeEmbed videoId={videoId} playlistId={playlistId} />
         </div>

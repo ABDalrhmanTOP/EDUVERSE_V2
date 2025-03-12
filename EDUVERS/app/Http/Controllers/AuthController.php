@@ -8,7 +8,7 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-  
+
     public function register(Request $request)
     {
         $request->validate([
@@ -16,6 +16,7 @@ class AuthController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|string|max:255'
         ]);
 
         $user = User::create([
@@ -23,6 +24,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => bcrypt($request->password),
+            'role' => $request->role ?? 'user',
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -38,7 +40,7 @@ class AuthController extends Controller
 {
     $request->validate([
         'email' => 'required|email',
-        'password' => 'required',
+        'password' => 'required'
     ]);
 
     if (!Auth::attempt($request->only('email', 'password'))) {
@@ -61,6 +63,7 @@ class AuthController extends Controller
         'message' => 'Login successful',
         'user' => $user,
         'token' => $token,
+
     ]);
 }
     public function logout(Request $request)
@@ -72,7 +75,7 @@ class AuthController extends Controller
         ]);
     }
 
-    
+
     public function user(Request $request)
     {
         return response()->json($request->user());

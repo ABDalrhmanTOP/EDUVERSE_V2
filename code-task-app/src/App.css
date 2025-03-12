@@ -1,3 +1,58 @@
+/* General Styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background-color: #f5f5f5; /* Light background for the app */
+  color: #333; /* Default text color */
+}
+
+/* Main content area */
+.main-content {
+  padding: 20px;
+  margin-top: 80px; /* Add margin to avoid overlap with the fixed navbar */
+}
+
+/* Footer Styles */
+.footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #424055; /* Matching footer color */
+  color: white;
+  margin-top: auto; /* Push footer to the bottom */
+}
+
+/* Button Styles */
+.button {
+  background-color: #AD998A;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.button:hover {
+  background-color: #778794;
+  transform: translateY(-3px);
+}
+
+.button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Feedback Messages */
+.feedback {
+  margin-top: 10px;
+  font-weight: bold;
+  color: red;
+}
+
+/* YouTube Layout Styles */
 .youtube-layout-container {
   display: flex;
   flex-direction: row;
@@ -13,14 +68,13 @@
   flex: 2;
   background: #D9D5D1;
   border-radius: 40px;
-  padding:200px;
+  padding: 20px; /* Reduced padding */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   max-width: 1400px;
 }
 
-
 .playlist-sidebar {
-  flex: 1; 
+  flex: 1;
   background: #778794;
   border-radius: 20px;
   padding: 20px;
@@ -57,7 +111,7 @@
 .code-task-container {
   background-color: #D9D5D1;
   border-radius: 20px;
-  padding: 50px;
+  padding: 20px; /* Reduced padding */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   margin-top: 20px;
   width: 100%;
@@ -78,34 +132,6 @@
   color: #333;
 }
 
-button {
-  background-color: #AD998A;
-  color: #ffffff;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin-top: 20px;
-}
-
-button:hover {
-  background-color: #778794;
-  transform: translateY(-3px);
-}
-
-button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.feedback {
-  margin-top: 10px;
-  font-weight: bold;
-  color: red;
-}
 .youtube-player {
   width: 100%;
   height: 450px;
@@ -113,14 +139,37 @@ button:active {
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
-.youtube-player.hidden {
-  display: none;
-}
 
 .hidden {
   display: none;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 10px;
+    margin-top: 60px; /* Adjust margin for smaller screens */
+  }
+
+  .button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .youtube-layout-container {
+    flex-direction: column;
+  }
+
+  .youtube-main-content,
+  .playlist-sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+  .vi {
+    background-color: #424055;
+  }
+}
+=======
 /* Navbar Styles */
 .navbar {
   position: fixed;

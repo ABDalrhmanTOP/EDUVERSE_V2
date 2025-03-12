@@ -22,6 +22,8 @@ class User extends Authenticatable
         'level',
         'last_task_completed',
         'profile_photo_path',
+        'test_taken',
+        'role'
     ];
 
     /**
@@ -40,6 +42,11 @@ class User extends Authenticatable
         'last_task_completed' => 'array',
     ];
 
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
     /**
      * Relationships
      */
@@ -52,4 +59,12 @@ class User extends Authenticatable
     {
         return $this->morphMany(PersonalAccessToken::class, 'tokenable');
     }
+
+    public function Result()
+    {
+        return $this->hasMany(Result::class);
+    }
+
+
+
 }

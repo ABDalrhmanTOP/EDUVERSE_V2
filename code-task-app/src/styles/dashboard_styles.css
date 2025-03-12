@@ -1,5 +1,4 @@
-
-.welcome-container {
+.dashboard-container {
   background: linear-gradient(rgba(66, 64, 85, 0.9), rgba(66, 64, 85, 0.9)), url('https://images.unsplash.com/photo-1535223289827-42f1e9919769?fit=crop&w=1500&q=80') center center/cover no-repeat;
   border-radius: 20px;
   padding: 80px;
@@ -10,19 +9,19 @@
   margin: 60px auto;
 }
 
-.welcome-container h1 {
+.dashboard-container h1 {
   font-size: 40px;
   color: #AD998A;
   margin-bottom: 20px;
   font-weight: 700;
 }
 
-.welcome-container p {
+.dashboard-container p {
   font-size: 18px;
   color: #D9D5D1;
 }
 
-.welcome-container .button {
+.dashboard-container .dashboard-button {
   background-color: #AD998A;
   color: #ffffff;
   padding: 15px 30px;
@@ -36,12 +35,12 @@
   margin-top: 30px;
 }
 
-.welcome-container .button:hover {
+.dashboard-container .dashboard-button:hover {
   background-color: #778794;
   transform: translateY(-5px);
 }
 
-.welcome-container .button:active {
+.dashboard-container .dashboard-button:active {
   transform: translateY(2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }

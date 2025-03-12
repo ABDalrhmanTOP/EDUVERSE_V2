@@ -1,0 +1,203 @@
+.nav_container {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 95%;
+  max-width: 1200px;
+  height: 60px;
+  padding: 8px 16px;
+  margin: 10px auto;
+  border-radius: 10px;
+  background-color: #424055;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+  transition: background-color 0.5s ease; /* Smooth color transition */
+}
+
+/* Transparent variant when forms are open */
+.navbar-transparent {
+  background-color: rgba(66, 64, 85, 0.8); 
+}
+
+/* Left Section: Logo, Courses, EduBot */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Logo */
+.navbar-logo {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
+.navbar-logo:hover {
+  transform: rotate(10deg) scale(1.1);
+}
+
+/* Buttons: Courses, EduBot */
+.nav-link.custom-link {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 15px;
+  background-color: #6a5c7e;
+  color: white;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+.nav-link.custom-link:hover {
+  background-color: #d2b6b6;
+  transform: scale(1.05);
+}
+
+/* Burger toggler (mobile) */
+.navbar-toggler {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+}
+.navbar-toggler-icon {
+  width: 24px;
+  height: 2px;
+  background-color: white;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.navbar-toggler-icon::before,
+.navbar-toggler-icon::after {
+  content: "";
+  width: 24px;
+  height: 2px;
+  background-color: white;
+  position: absolute;
+  transition: all 0.3s ease;
+}
+.navbar-toggler-icon::before {
+  top: -6px;
+}
+.navbar-toggler-icon::after {
+  top: 6px;
+}
+.navbar-toggler.open .navbar-toggler-icon {
+  background-color: transparent;
+}
+.navbar-toggler.open .navbar-toggler-icon::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+.navbar-toggler.open .navbar-toggler-icon::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+/* Right Section */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Profile Container with Dropdown */
+.profile-container {
+  position: relative; /* for absolute-positioned dropdown */
+}
+.profile-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: white;
+  transition: color 0.3s ease;
+}
+.profile-icon:hover {
+  color: #d2b6b6;
+}
+.profile-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: #424055;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  padding: 8px;
+  gap: 4px;
+}
+.profile-dropdown-link {
+  border: none;
+  background: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+.profile-dropdown-link:hover {
+  background-color: #6a5c7e;
+}
+
+/* Login/Register Buttons */
+.btn-login,
+.btn-register {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  color: white;
+}
+.btn-login {
+  background-color: #6a5c7e;
+}
+.btn-register {
+  background-color: #ad998a;
+}
+.btn-login:hover,
+.btn-register:hover {
+  background-color: #d2b6b6;
+  transform: scale(1.05);
+}
+
+/* Media Query for smaller screens: show burger, hide .navbar-right by default */
+@media (max-width: 992px) {
+  .navbar-toggler {
+    display: block;
+  }
+  .navbar-right {
+    display: none;
+    flex-direction: column;
+    background-color: #424055;
+    border-radius: 10px;
+    margin-top: 50px;
+    padding: 10px;
+    position: absolute;
+    right: 16px;
+    top: 60px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+    width: 150px;
+  }
+  .navbar-right.show {
+    display: flex;
+  }
+}
