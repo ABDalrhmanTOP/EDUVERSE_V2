@@ -3,26 +3,25 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
-
+  z-index: 1100;
+  
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  width: 95%;
-  max-width: 1200px;
-  height: 60px;
-  padding: 8px 16px;
-  margin: 10px auto;
-  border-radius: 10px;
+  
+  width: 85%;         /* Decreased width */
+  max-width: 1000px;  /* Reduced maximum width */
+  height: 70px;       /* Increased height */
+  padding: 6px 16px;  /* Adjusted padding for new height */
+  border-radius: 0 0 20px 20px;
   background-color: #424055;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
-  transition: background-color 0.5s ease; /* Smooth color transition */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  transition: background-color 0.5s ease, border-radius 0.5s ease;
 }
 
 /* Transparent variant when forms are open */
 .navbar-transparent {
-  background-color: rgba(66, 64, 85, 0.8); 
+  background-color: rgba(66, 64, 85, 0.8);
 }
 
 /* Left Section: Logo, Courses, EduBot */
@@ -30,6 +29,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-left: 16px; /* Added padding to shift items from the left edge */
+  position: relative;
+  z-index: 1200; /* Ensure the logo appears above other elements */
 }
 
 /* Logo */
@@ -38,6 +40,7 @@
   width: 40px;
   height: 40px;
   transition: transform 0.3s ease;
+  z-index: 1200;
 }
 .navbar-logo:hover {
   transform: rotate(10deg) scale(1.1);
@@ -109,11 +112,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-right: 16px; /* Added padding to shift items from the right edge */
 }
+
 
 /* Profile Container with Dropdown */
 .profile-container {
-  position: relative; /* for absolute-positioned dropdown */
+  position: relative;
 }
 .profile-icon {
   display: flex;
@@ -132,7 +137,7 @@
   right: 0;
   background-color: #424055;
   border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   width: 120px;
@@ -193,7 +198,7 @@
     padding: 10px;
     position: absolute;
     right: 16px;
-    top: 60px;
+    top: 70px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
     width: 150px;
   }
