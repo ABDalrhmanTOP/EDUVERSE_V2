@@ -90,7 +90,7 @@ const UsersList = () => {
                     <td>{user.email}</td>
                     <td>{user.test_taken ? "True" : "False"}</td>
                     <td>
-                      <button className="btn btn-sm btn-info mx-1" onClick={() => navigate(`/AdminDashboard/userdetail/${user.id}`)}>View</button>
+                      <button className="btn btn-sm btn-primary-400 mx-1" onClick={() => navigate(`/AdminDashboard/userdetail/${user.id}`)}>View</button>
                       <button className="btn btn-sm btn-primary mx-1" onClick={() => handleEdit(user)}>Edit</button>
                       <button className="btn btn-sm btn-danger mx-1" onClick={() => handleDelete(user.id)}>Delete</button>
                     </td>

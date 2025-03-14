@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Slider from "react-slick";
 import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPlaylists = async () => {
@@ -15,25 +19,52 @@ const Playlists = () => {
         setPlaylists(response.data);
       } catch (err) {
         console.error("Error fetching playlists:", err);
-        setError("فشل تحميل الدورات، يرجى المحاولة لاحقًا.");
+        setError("Failed to load courses, please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchPlaylists();
   }, []);
 
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 2,
+    slidesToScroll: 1,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 1 } },
+      { breakpoint: 768, settings: { slidesToShow: 1 } },
+    ],
+  };
+
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        الدورات المتاحة
+        Available Courses
       </h2>
-      {error && <p className="text-red-500 text-center">{error}</p>}
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
-      {/* جعل العرض أفقيًا مع التمرير */}
-      <div className="flex gap-8 overflow-x-auto p-4 scrollbar-hide">
-        {playlists.map((playlist) => (
-          <PlaylistCard key={playlist.id} playlist={playlist} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center h-72">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600"></div>
+        </div>
+      ) : (
+        <Slider {...settings} className="w-full max-w-screen-lg mx-auto">
+          {playlists.length > 0 ? (
+            playlists.map((playlist) => (
+              <div key={playlist.id} className="px-2">
+                <PlaylistCard playlist={playlist} />
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 w-full">
+              No courses available at the moment.
+            </p>
+          )}
+        </Slider>
+      )}
     </div>
   );
 };
@@ -51,30 +82,40 @@ const PlaylistCard = ({ playlist }) => {
   };
 
   return (
-    <motion.div
-      className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-2xl transition duration-300 min-w-[280px]"
-      whileHover={{ scale: 1.05 }}
-    >
-      <div className="relative">
-        <img
-          src={playlist.thumbnail || `https://img.youtube.com/vi/${playlist.video_id}/hqdefault.jpg`}
-          alt={playlist.name}
-          className="w-full h-48 object-cover"
-        />
-      </div>
-      <div className="p-4 text-center">
-        <h3 className="text-lg font-semibold mb-2 text-gray-900">
-          {playlist.name}
-        </h3>
-        <p className="text-gray-500">{playlist.description}</p>
-        <button
+
+        <motion.div
+          className="relative group cursor-pointer"
+          whileHover={{ scale: 1.05 }} // تكبير البطاقة عند التمرير
           onClick={handleCourses}
-          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-full shadow-md hover:bg-blue-700 transition"
         >
-         Watch the course
-        </button>
-      </div>
-    </motion.div>
+          <img
+            src={
+              playlist.thumbnail ||
+              `https://img.youtube.com/vi/${playlist.video_id}/hqdefault.jpg`
+            }
+            alt={playlist.name}
+            className="w-full h-[500px] object-cover"
+          />
+          <div className="absolute inset-0 z-10 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6">
+            <h3 className="text-white text-2xl font-bold mb-3 text-center">
+              {playlist.name}
+            </h3>
+            <p className="text-white text-md mb-4 text-center max-w-md">
+              {playlist.description}
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCourses();
+              }}
+              className="bg-blue-600 text-white py-3 px-6 rounded-full shadow hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              Watch the Course
+            </button>
+          </div>
+        </motion.div>
+ 
+    
   );
 };
 
