@@ -10,15 +10,12 @@ const Login = ({ onFinished, onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const success = await login({ email, password });
-    const data = await success.json();
-    console.log(data);
-    if (success) {
-      localStorage.setItem("user", JSON.stringify({ token: data.access_token, role: data.role }));
-    }
+
     setIsLoading(false);
     if (!success) {
       setMessage("Login failed. Please check your credentials.");

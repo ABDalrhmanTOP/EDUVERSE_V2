@@ -76,15 +76,19 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     // تعريف المسارات هنا
 
 //Route::middleware('auth:api')->group(function() {
-    // إدارة المستخدمين
+    // Mangement Users
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::get('/user-progress/user/{user_id}', [UserDetailController::class, 'getAllByUserId']);
-    //  إدارة الكورسات
-    Route::get('/courses', [CourseController::class, 'index']);
+    //  Mangment Corses
     Route::post('/courses', [CourseController::class, 'store']);
     Route::put('/courses/{id}', [CourseController::class, 'update']);
     Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+});
+//show corses in home page
+Route::middleware('auth:api')->group(function() {
+      Route::get('/courses', [CourseController::class, 'index']);
+
 });

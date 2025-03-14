@@ -5,20 +5,19 @@ import "../styles/Navbar.css";
 import { FaUserCircle } from "react-icons/fa";
 
 const Navbar = ({ onNavigate, isFormOpen }) => {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, login } = useAuth();
   const [isNavbarOpen, setIsNavbarOpen] = useState(false)
-   const [user1, setUser] = useState(null); ;
+   const [user, setUser] = useState(null); ;
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
   const navigate = useNavigate();
   // Burger toggler
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    console.log(storedUser)
-    if (storedUser) {
-      setUser(JSON.parse(storedUser)); // تحويل النص إلى كائن
-    }
+    const role = localStorage.getItem("role");
+    console.log(role)
+      setUser(role);
+      console.log(user)
   }, []);
   const toggleNavbar = () => {
     setIsNavbarOpen(!isNavbarOpen);
@@ -92,7 +91,7 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
         <button className="nav-link custom-link" onClick={handleEduBot}>
           EduBot
         </button>
-        {user1?.role === 'admin' && (
+        {user === 'admin' && (
           <button className="nav-link custom-link" onClick={handleDashboard}>
             Admin
           </button>

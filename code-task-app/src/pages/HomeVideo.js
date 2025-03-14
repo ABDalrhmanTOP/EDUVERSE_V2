@@ -46,7 +46,7 @@ const PlaylistCard = ({ playlist }) => {
     if (!isAuthenticated) {
       navigate("/login");
     } else {
-      navigate("/formtest");
+      navigate("/foem_test");
     }
   };
 

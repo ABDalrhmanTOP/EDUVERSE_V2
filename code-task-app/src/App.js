@@ -61,6 +61,17 @@ const App = () => {
   <Route path="/profile" element={<Profile />} />
   <Route path="/homevideo" element={<HomeVideo />} />
 
+  {/* ✅ Protected Routes */}
+  <Route
+  path="/foem_test"
+  element={isAuthenticated ? <FormTest/>: <navigate to="/"/>}
+  />
+  <Route
+  path="/video"
+  element={isAuthenticated ? <VideoPage/>: <navigate to="/"/>}
+  />
+
+
   {/* ✅ Admin Routes */}
   <Route path="/AdminDashboard" element={<AdminDashboard />}>
     <Route path="users" element={<UsersList />} />
