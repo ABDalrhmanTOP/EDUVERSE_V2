@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'adminEdu',
             'username'=> 'adminedu',
             'email' => 'ert44039@gmail.com',
-            'password'=>'20250315',
+            'password'=>'$2y$12$azrTFlr8dHKvxWLy5eiHTO7LTiTjE4dt2k/dXr3gF8oGdKBBbtuTm',
             'role'=>'admin'
         ]);
     }

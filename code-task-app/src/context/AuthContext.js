@@ -44,12 +44,8 @@ import React, {
     const registerUser = async (data) => {
       try {
         const response = await axios.post("/register", data);
-       // Store the role
-       const role = response.data.user.role;
-       localStorage.setItem("role", role);
-      
+       
         const { token } = response.data;
-  
         localStorage.setItem("token", token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         setIsAuthenticated(true);

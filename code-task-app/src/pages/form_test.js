@@ -1,156 +1,149 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-function Form_Test() {
-    const [questions, setQuestions] = useState([]); // 
-    const [answers, setAnswers] = useState([]); //
-    const [loading, setLoading] = useState(true); // 
-    const [submitted, setSubmitted] = useState(false); //
-    const [inputlevel, setInputLevel] = useState(1); //
+function FormTest() {
+    const [questions, setQuestions] = useState([]);
+    const [answers, setAnswers] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [submitted, setSubmitted] = useState(false);
+    const [inputLevel, setInputLevel] = useState(1);
     const [message, setMessage] = useState("");
-    const [data , setData]=useState(null);
+    const [data, setData] = useState(null);
     const navigate = useNavigate();
-    // جلب الأسئلة من API عند تحميل الصفحة
+
     useEffect(() => {
         const fetchQuestions = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get(`/showTest/${inputlevel}`);
-                console.log (inputlevel);
+                const response = await axios.get(`/showTest/${inputLevel}`);
                 localStorage.setItem("test_token", response.data.test_token);
-                if (!response.data.test_token) {
-                    if (inputlevel <= 3) {
-                        setQuestions(response.data.questions);
-                        console.log(questions);
-                        setLoading(false); // إذا كانت الأسئلة موجودة، قم بتعيينها
-                    } else {
-                        console.log("enter else")
-                        setQuestions([]); // تعيين قائمة فارغة إذا لم تكن هناك أسئلة
-                        alert("go to project");
-                        setSubmitted(true);
-                        navigate("")
-                        setLoading(false);
-                    }
-                } else {
-                    setQuestions([]); // تعيين قائمة فارغة إذا لم تكن هناك أسئلة
+                
+                if (response.data.test_token) {
                     setSubmitted(true);
-                    setLoading(false);
-                    navigate("");
                     navigate("/Video");
-
+                } else if (inputLevel <= 3) {
+                    setQuestions(response.data.questions || []);
+                } else {
+                    alert("Go to project");
+                    setSubmitted(true);
+                    navigate("/");
                 }
             } catch (error) {
                 console.error("Error fetching questions:", error);
+            } finally {
                 setLoading(false);
             }
-        }
+        };
         fetchQuestions();
-    }, [inputlevel]);
+    }, [inputLevel, navigate]);
 
-    // تحديث الإجابة عند اختيار المستخدم
-    const handleAnswer = async (questionId, answer) => {
-        const updatedAnswers = ({ ...answers, [questionId]: answer });
-        setAnswers(updatedAnswers);
-        console.log(answers);
+    const handleAnswer = (questionId, answer) => {
+        setAnswers((prevAnswers) => ({ ...prevAnswers, [questionId]: answer }));
     };
-    // إرسال الإجابات إلى API
+
     const handleSubmit = async () => {
-        const allAnswered = questions.every((q) => answers[q.id] !== undefined);
-        if (!allAnswered) {
+        if (questions.some((q) => answers[q.id] === undefined)) {
             alert("Please answer all questions before submitting.");
             return;
         }
+
         const formattedAnswers = Object.entries(answers).map(([questionId, studentAnswer]) => ({
             question_id: parseInt(questionId),
             student_answer: studentAnswer,
         }));
 
         try {
-            const response = await axios.post(`/submitTest/${inputlevel}`, { answers: formattedAnswers });
-            console.log(response.data)
-            console.log(response.data.next_level.id)
+            const response = await axios.post(`/submitTest/${inputLevel}`, { answers: formattedAnswers });
             setAnswers({});
-            if (response.data.next_level.id >= 1) {
-                setInputLevel(response.data.next_level.id); // تحديث المستوى إلى المستوى الجديد
-                setMessage("Level up")
+            if (response.data.next_level?.id) {
+                setInputLevel(response.data.next_level.id);
+                setMessage("Level up!");
             }
+            setData(response.data); // تخزين البيانات لعرضها في المودال
+            setSubmitted(true);
         } catch (error) {
             setMessage("Error sending answers");
             console.error(error?.response?.data || error.message);
         }
-
-
     };
 
-
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif"}}>
-            <h1>test true or false</h1>
+        <div className="container mt-5">
+            <h1 className="text-center mb-4">True or False Test</h1>
 
             {loading ? (
-                <p>loading..</p>
-            ) : submitted ? (
-                    <div>
-                        <h1>نتائج الاختبار</h1>
-                        {data && (
-                            <ul>
-                                <li>اسم الاختبار: {data.test}</li>
-                                <li>الدرجة: {data.score}</li>
-                                <li>الإجابات الصحيحة: {data.correct_answers}</li>
-                                <li>المستوى التالي: {data.next_level}</li>
-                            </ul>
-                        )}
-                        <p>submitTest... 🎉</p> 
-                        </div>
+                <div className="text-center">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             ) : (
-                <div>
+                <div className="test-container">
                     {questions.map((question, index) => (
-                        <div key={question.id} style={{ marginBottom: "15px" }}>
-                            <p>
-                                <strong>question {index + 1}:</strong> {question.question}
+                        <div key={question.id} className="card p-3 mb-3 shadow-sm">
+                            <p className="mb-2">
+                                <strong>Question {index + 1}:</strong> {question.question}
                             </p>
-                            <button
-                                onClick={() => handleAnswer(question.id, "true")}
-                                style={{
-                                    marginRight: "10px",
-                                    backgroundColor:
-                                        answers[question.id] === "true" ? "#4CAF50" : "#f0f0f0",
-                                }}
-                            >
-                                true
-                            </button>
-                            <button
-                                onClick={() => handleAnswer(question.id, "false")}
-                                style={{
-                                    backgroundColor:
-                                        answers[question.id] === "false" ? "#FF5733" : "#f0f0f0",
-                                }}
-                            >
-                                false
-                            </button>
+                            <div className="d-flex gap-2">
+                                <button
+                                    onClick={() => handleAnswer(question.id, "true")}
+                                    className={`btn ${answers[question.id] === "true" ? "btn-success" : "btn-outline-success"}`}
+                                >
+                                    True
+                                </button>
+                                <button
+                                    onClick={() => handleAnswer(question.id, "false")}
+                                    className={`btn ${answers[question.id] === "false" ? "btn-danger" : "btn-outline-danger"}`}
+                                >
+                                    False
+                                </button>
+                            </div>
                         </div>
                     ))}
-                    <button
-                        onClick={handleSubmit}
-                        style={{
-                            marginTop: "20px",
-                            padding: "10px 20px",
-                            backgroundColor: "#008CBA",
-                            color: "white",
-                            border: "none",
-                            cursor: "pointer",
-                        }}
+                    <button 
+                        onClick={handleSubmit} 
+                        className="btn btn-primary w-100 mt-3" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#resultModal"
                     >
-                        submit
+                        Submit
                     </button>
-
-
                 </div>
-            )
-            }
-            {message && <p style={{ color: "green" }}>{message}</p>}
-        </div>
+            )}
 
-    )
+            {/* نافذة النتائج (Modal) */}
+            <div className="modal fade" id="resultModal" tabIndex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="resultModalLabel">Test Results</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            {submitted && data ? (
+                                <ul className="list-group">
+                                    <li className="list-group-item"><strong>Test Name:</strong> {data.test}</li>
+                                    <li className="list-group-item"><strong>Score:</strong> {data.score}</li>
+                                    <li className="list-group-item"><strong>Correct Answers:</strong> {data.correct_answers}</li>
+                                    <li className="list-group-item"><strong>Next Level:</strong> {data.next_level?.level_name || "N/A"}</li>
+
+                                </ul>
+                            ) : (
+                                <p>Test Submitted! 🎉</p>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {message && <div className="alert alert-info mt-3">{message}</div>}
+        </div>
+    );
 }
-export default Form_Test;
+
+export default FormTest;

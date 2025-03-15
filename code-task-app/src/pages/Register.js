@@ -42,6 +42,7 @@ const Register = ({ onFinished, onSwitchToLogin }) => {
     <div className="auth-container animated-form">
       <div className="branding">
         <h1>Register</h1>
+        {message && <p className="feedback">{message}</p>}
         <p>Create an account to start your learning journey.</p>
       </div>
       <div className="form-section">
