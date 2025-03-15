@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Auth.css";
+import { useNavigate } from "react-router-dom";
 
 const Login = ({ onFinished, onSwitchToRegister }) => {
   const { login } = useAuth();
@@ -9,13 +10,13 @@ const Login = ({ onFinished, onSwitchToRegister }) => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
-
+ const navigate = useNavigate();
   
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const success = await login({ email, password });
-
+    navigate(0);
     setIsLoading(false);
     if (!success) {
       setMessage("Login failed. Please check your credentials.");

@@ -59,6 +59,7 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     logout();
     localStorage.removeItem("user");
     setShowProfileMenu(false);
+    navigate(0);
     navigate("/");
   };
 
