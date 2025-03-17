@@ -25,10 +25,14 @@ class UserProgressController extends Controller
         $userId = Auth::id();
         if (!$userId) {
             Log::warning('User not authenticated.');
-            return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ], 401);
         }
 
         try {
+            // Update or create progress record without overwriting completed_tasks
             $progress = UserProgress::updateOrCreate(
                 [
                     'user_id' => $userId,
@@ -40,14 +44,27 @@ class UserProgressController extends Controller
                 ]
             );
 
+            // Ensure completed_tasks is an array
+            if (!is_array($progress->completed_tasks)) {
+                $progress->completed_tasks = [];
+                $progress->save();
+            }
+
             Log::info('Progress Saved Successfully:', ['progress' => $progress]);
-            return response()->json(['status' => 'success', 'message' => 'Progress saved', 'data' => $progress], 200);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Progress saved',
+                'data' => $progress
+            ], 200);
         } catch (\Exception $e) {
             Log::error('Error Saving Progress:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['status' => 'error', 'message' => 'Error saving progress'], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error saving progress'
+            ], 500);
         }
     }
 
@@ -62,7 +79,10 @@ class UserProgressController extends Controller
 
         $userId = Auth::id();
         if (!$userId) {
-            return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ], 401);
         }
 
         $progress = UserProgress::where('user_id', $userId)
@@ -89,7 +109,11 @@ class UserProgressController extends Controller
             ], 200);
         }
 
-        // Return the found progress
+        // Ensure completed_tasks is an array
+        if (!is_array($progress->completed_tasks)) {
+            $progress->completed_tasks = [];
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Progress retrieved',
@@ -104,7 +128,6 @@ class UserProgressController extends Controller
     {
         Log::info('Complete Task Request:', $request->all());
 
-        // Validate the request parameters
         $validated = $request->validate([
             'video_id' => 'required|string',
             'task_id' => 'required|string',
@@ -113,7 +136,10 @@ class UserProgressController extends Controller
         $userId = Auth::id();
         if (!$userId) {
             Log::warning('Unauthenticated user attempted to mark a task as completed.');
-            return response()->json(['message' => 'User not authenticated'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ], 401);
         }
 
         try {
@@ -126,15 +152,21 @@ class UserProgressController extends Controller
                     'user_id' => $userId,
                     'video_id' => $validated['video_id']
                 ]);
-                return response()->json(['status' => 'error', 'message' => 'No progress found'], 404);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No progress found'
+                ], 404);
             }
 
-            $completedTasks = $progress->completed_tasks ?: [];
+            // Ensure completed_tasks is an array
+            $completedTasks = is_array($progress->completed_tasks) ? $progress->completed_tasks : [];
+
             if (!in_array($validated['task_id'], $completedTasks)) {
                 $completedTasks[] = $validated['task_id'];
             }
 
-            $progress->update(['completed_tasks' => $completedTasks]);
+            $progress->completed_tasks = $completedTasks;
+            $progress->save();
 
             Log::info('Task marked as completed successfully:', [
                 'task_id' => $validated['task_id'],
@@ -144,14 +176,17 @@ class UserProgressController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Task marked as completed',
-                'data' => $completedTasks,
+                'data' => $progress,
             ], 200);
         } catch (\Exception $e) {
             Log::error('Error marking task as completed:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['status' => 'error', 'message' => 'Error marking task as completed'], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error marking task as completed'
+            ], 500);
         }
     }
 }

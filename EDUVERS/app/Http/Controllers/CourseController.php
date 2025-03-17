@@ -11,7 +11,7 @@ class CourseController extends Controller
     // جلب جميع الكورسات
     public function index()
     {
-        $Playlists = playlist::all();
+        $Playlists = Playlist::all();
         return response()->json($Playlists);
     }
 
@@ -19,7 +19,7 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'video_id' =>'required|string|max:255',
+            'video_id' => 'required|string|max:255',
             'name'       => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
@@ -33,7 +33,7 @@ class CourseController extends Controller
     {
         $Playlist = Playlist::findOrFail($id);
         $validated = $request->validate([
-            'video_id' =>'required|string|max:255',
+            'video_id' => 'required|string|max:255',
             'name'       => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
@@ -49,5 +49,3 @@ class CourseController extends Controller
         return response()->json(['message' => 'Course deleted successfully']);
     }
 }
-
-

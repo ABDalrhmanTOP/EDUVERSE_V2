@@ -1,38 +1,29 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Navbar.css";
 import { FaUserCircle } from "react-icons/fa";
 
 const Navbar = ({ onNavigate, isFormOpen }) => {
-  const { isAuthenticated, logout, login } = useAuth();
-  const [isNavbarOpen, setIsNavbarOpen] = useState(false)
-   const [user, setUser] = useState(null); ;
+  const { isAuthenticated, logout } = useAuth();
+  const [user, setUser] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
   const navigate = useNavigate();
-  // Burger toggler
 
   useEffect(() => {
     const role = localStorage.getItem("role");
-    console.log(role)
-      setUser(role);
-      console.log(user)
+    setUser(role);
   }, []);
-  const toggleNavbar = () => {
-    setIsNavbarOpen(!isNavbarOpen);
-  };
-  // Additional button for EduBot
+
   const handleEduBot = () => {
     if (!isAuthenticated) {
-      navigate("/login");  // Redirect to login if not authenticated
+      navigate("/login");
     } else {
-      navigate("/chat");  // Redirect to chat page
+      navigate("/chat");
     }
   };
-  
 
-  // Toggle login/register forms
   const handleAuthButtonClick = (formType) => {
     if (activeForm === formType) {
       setActiveForm(null);
@@ -49,21 +40,17 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     navigate("/");
   };
 
-  // Toggle the small dropdown under profile icon
   const toggleProfileMenu = () => {
     setShowProfileMenu((prev) => !prev);
   };
 
-  // Logout from the dropdown
   const handleLogout = () => {
     logout();
     localStorage.removeItem("user");
     setShowProfileMenu(false);
-    navigate(0);
     navigate("/");
   };
 
-  // Condition for navbar transparency if a form is open
   const navbarClasses = [
     "navbar",
     "nav_container",
@@ -73,9 +60,11 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
   const handleDashboard = () => {
     navigate("/AdminDashboard");
   };
-  const handleHomeVideo= () => {
+
+  const handleHomeVideo = () => {
     navigate("/homevideo");
   };
+
   return (
     <nav className={navbarClasses}>
       {/* Left Section: Logo, Courses, EduBot */}
@@ -92,31 +81,19 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
         <button className="nav-link custom-link" onClick={handleEduBot}>
           EduBot
         </button>
-        {user === 'admin' && (
+        {user === "admin" && (
           <button className="nav-link custom-link" onClick={handleDashboard}>
             Admin
           </button>
         )}
-        
       </div>
 
-
-      {/* Burger toggler (mobile) */}
-      <button
-        className={`navbar-toggler ${isNavbarOpen ? "open" : ""}`}
-        type="button"
-        onClick={toggleNavbar}
-        aria-label="Toggle navigation"
-      >
-        <span className="navbar-toggler-icon"></span>
-      </button>
-
-      {/* Right Section: either form buttons or profile */}
-      <div className={`navbar-right ${isNavbarOpen ? "show" : ""}`}>
+      {/* Right Section: Profile and Auth Buttons */}
+      <div className="navbar-right">
         {isAuthenticated ? (
           <div className="profile-container">
             <div className="profile-icon" onClick={toggleProfileMenu}>
-              <FaUserCircle size={32} /> {/* Increased size from 24 to 32 */}
+              <FaUserCircle size={32} />
             </div>
             {showProfileMenu && (
               <div className="profile-dropdown">

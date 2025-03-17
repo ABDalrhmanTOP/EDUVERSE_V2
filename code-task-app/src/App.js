@@ -23,7 +23,6 @@ import "./App.css";
 import Profile from "./pages/Profile";
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
-import ChatPage from "./pages/ChatPage"; // Import ChatPage
 import ChatApp from "./pages/ChatApp";
 
 // The main App that uses AuthContext

@@ -13,6 +13,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\UserDetailController;
+use App\Http\Controllers\ChatController;
 
 use Illuminate\Support\Facades\Log;
 
@@ -75,7 +76,7 @@ Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);
 Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
     // تعريف المسارات هنا
 
-//Route::middleware('auth:api')->group(function() {
+    //Route::middleware('auth:api')->group(function() {
     // Mangement Users
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);
@@ -88,7 +89,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 });
 //show corses in home page
-Route::middleware('auth:api')->group(function() {
-      Route::get('/courses', [CourseController::class, 'index']);
-
+Route::middleware('auth:api')->group(function () {
+    Route::get('/courses', [CourseController::class, 'index']);
 });
+
+
+Route::get('/chat', [ChatController::class, 'index']);

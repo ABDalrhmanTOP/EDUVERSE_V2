@@ -1,215 +1,303 @@
-/* General Styles */
-body {
+/* ============================================
+   Global Reset & Base Styles
+============================================ */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   font-family: 'Poppins', sans-serif;
-  background-color: #f5f5f5; /* Light background for the app */
-  color: #333; /* Default text color */
-}
-
-/* Main content area */
-.main-content {
-  padding: 20px;
-  margin-top: 80px; /* Add margin to avoid overlap with the fixed navbar */
-}
-
-/* Footer Styles */
-.footer {
-  text-align: center;
-  padding: 20px;
-  background-color: #424055; /* Matching footer color */
-  color: white;
-  margin-top: auto; /* Push footer to the bottom */
-}
-
-/* Button Styles */
-.button {
-  background-color: #AD998A;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.button:hover {
-  background-color: #778794;
-  transform: translateY(-3px);
-}
-
-.button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Feedback Messages */
-.feedback {
-  margin-top: 10px;
-  font-weight: bold;
-  color: red;
-}
-
-/* YouTube Layout Styles */
-.youtube-layout-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px;
-  background-color: #D9D5D1;
-  min-height: 100vh;
-}
-
-.youtube-main-content {
-  flex: 2;
-  background: #D9D5D1;
-  border-radius: 40px;
-  padding: 20px; /* Reduced padding */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  max-width: 1400px;
-}
-
-.playlist-sidebar {
-  flex: 1;
-  background: #778794;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  color: #fff;
-  position: sticky;
-  top: 20px;
-  font-family: 'Poppins', sans-serif;
-}
-
-.playlist-item {
-  padding: 15px;
-  margin: 10px 0;
-  background-color: #545D74;
-  color: #D9D5D1;
-  border-radius: 12px;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  font-family: 'Poppins', sans-serif;
-}
-
-.playlist-item:hover {
-  background-color: #AD998A;
-  transform: scale(1.05);
-}
-
-.playlist-item.active {
-  background-color: #424055;
-  color: #fff;
-  border: 2px solid #AD998A;
-}
-
-.code-task-container {
-  background-color: #D9D5D1;
-  border-radius: 20px;
-  padding: 20px; /* Reduced padding */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  margin-top: 20px;
-  width: 100%;
-  max-width: 1400px;
-  position: relative;
-}
-
-.code-task-container textarea {
-  width: 100%;
-  height: 400px;
-  border-radius: 20px;
-  padding: 15px;
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  resize: vertical;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 16px;
+  background-color: #f5f5f5;
   color: #333;
 }
 
+/* ============================================
+   Two-Column Layout for Course Page
+============================================ */
+.youtube-layout-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background-color: #D9D5D1; /* Background for the course page */
+  min-height: calc(100vh - 100px);
+}
+
+/* ============================================
+   Left Column: Video, Progress Bar, & Code Task
+============================================ */
+.left-column {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Container for Video and Progress Bar */
+.video-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Video Container styled like a card */
+.video-container {
+  background-color: #faf8f5;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* YouTube Player Element */
 .youtube-player {
   width: 100%;
   height: 450px;
-  border-radius: 20px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  background-color: #000;
 }
 
+/* Hide video when a task is active */
 .hidden {
   display: none;
 }
 
-/* Responsive Design */
+/* Progress Bar Styling */
+.course-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background-color: #e0e0de;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.course-progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #d4af7f, #AD998A);
+  width: 0%; /* Controlled dynamically via inline style */
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.progress-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* ============================================
+   Code Task Container (Increased Size)
+============================================ */
+.code-task-container {
+  background-color: #faf8f5;
+  border-radius: 20px;
+  padding: 40px;            /* Increased padding */
+  min-height: 600px;         /* Increased minimum height */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.code-task-container textarea {
+  width: 100%;
+  height: 500px;            /* Increased height */
+  border: none;
+  border-radius: 20px;
+  padding: 20px;
+  font-size: 16px;
+  resize: vertical;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   Feedback Modal (Centered Immediately)
+============================================ */
+.feedback-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050; /* Above most content */
+  padding: 20px 30px;
+  background: #fff;
+  border: 2px solid #AD998A;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: none; /* No animation from bottom-right */
+}
+
+.modal-feedback {
+  text-align: center;
+}
+
+/* Feedback message styling */
+.feedback-message {
+  margin-top: 10px;
+  white-space: pre-line;
+}
+
+/* ===== Try Again Button for Wrong Answer ===== */
+.try-again-button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #AD998A, #d4af7f);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.try-again-button:hover {
+  background: linear-gradient(45deg, #d4af7f, #AD998A);
+  transform: scale(1.05);
+}
+
+/* ============================================
+   Submit Button Container (Centered)
+============================================ */
+.submit-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Previous design colors for the Submit Button */
+.submit-button {
+  display: block;
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #AD998A;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #d4af7f;
+  transform: scale(1.05);
+}
+
+/* ============================================
+   True/False Buttons (Dynamic, with icons)
+============================================ */
+.btn-true,
+.btn-false {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.btn-true {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.btn-false {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.btn-true:hover,
+.btn-false:hover {
+  transform: scale(1.05);
+}
+
+/* Button Group for True/False Buttons */
+.button-group {
+  display: flex;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+/* ============================================
+   Right Column: Scrollable Playlist Sidebar
+============================================ */
+.playlist-sidebar {
+  flex: 1;
+  background-color: #f7f1e1; /* Warm beige */
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  color: #5c4033;
+  min-width: 350px;
+  max-height: calc(100vh - 140px); /* Fixed height with room for header/footer */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.playlist-sidebar h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #5c4033;
+}
+
+.playlist-sidebar ul {
+  list-style: none;
+}
+
+.playlist-item {
+  padding: 20px;
+  margin: 15px 0;
+  background-color: #fff;
+  color: #5c4033;
+  border-radius: 12px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.playlist-item:hover {
+  background-color: #f0e6d6;
+}
+
+.playlist-item.active {
+  background-color: #AD998A;
+  color: #fff;
+  font-weight: bold;
+}
+
+.playlist-item.completed {
+  border-left: 5px solid #AD998A;
+}
+
+.playlist-item .checkmark {
+  margin-left: 10px;
+  font-size: 1.2em;
+}
+
+/* ============================================
+   Responsive Adjustments
+============================================ */
 @media (max-width: 768px) {
-  .main-content {
-    padding: 10px;
-    margin-top: 60px; /* Adjust margin for smaller screens */
-  }
-
-  .button {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-
   .youtube-layout-container {
     flex-direction: column;
   }
-
-  .youtube-main-content,
   .playlist-sidebar {
+    min-width: auto;
     width: 100%;
-    max-width: 100%;
   }
-  .vi {
-    background-color: #424055;
+  .youtube-player {
+    height: 300px;
   }
 }
-=======
-/* Navbar Styles */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-color: #545D74;
-  padding: 20px 30px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 1000;
-}
-
-.navbar h1 {
-  color: #D9D5D1;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 26px;
-  margin: 0;
-}
-
-.navbar .nav-links {
-  display: flex;
-  gap: 20px;
-}
-
-.navbar .nav-links a {
-  color: #D9D5D1;
-  text-decoration: none;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.navbar .nav-links a:hover {
-  color: #AD998A;
-}
-
-

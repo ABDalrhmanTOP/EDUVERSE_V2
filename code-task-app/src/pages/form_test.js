@@ -124,16 +124,23 @@ function FormTest() {
                         <div className="modal-body">
                             {submitted && data ? (
                                 <ul className="list-group">
-                                    <li className="list-group-item"><strong>Test Name:</strong> {data.test}</li>
-                                    <li className="list-group-item"><strong>Score:</strong> {data.score}</li>
-                                    <li className="list-group-item"><strong>Correct Answers:</strong> {data.correct_answers}</li>
-                                    <li className="list-group-item"><strong>Next Level:</strong> {data.next_level?.level_name || "N/A"}</li>
-
+                                <li className="list-group-item">
+                                    <strong>Test Name:</strong> {data.test.name /* Assuming test has a name property */}
+                                </li>
+                                <li className="list-group-item">
+                                    <strong>Score:</strong> {data.score}
+                                </li>
+                                <li className="list-group-item">
+                                    <strong>Correct Answers:</strong> {data.correct_answers}
+                                </li>
+                                <li className="list-group-item">
+                                    <strong>Next Level:</strong> {data.next_level?.level_name || "N/A"}
+                                </li>
                                 </ul>
                             ) : (
                                 <p>Test Submitted! 🎉</p>
                             )}
-                        </div>
+                            </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
