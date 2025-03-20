@@ -19,8 +19,9 @@ function FormTest() {
             try {
                 const response = await axios.get(`/showTest/${inputLevel}`);
                 localStorage.setItem("test_token", response.data.test_token);
-                
+
                 if (response.data.test_token) {
+                    // If test_token is present, it means the user already took this test.
                     setSubmitted(true);
                     navigate("/Video");
                 } else if (inputLevel <= 3) {
@@ -44,6 +45,7 @@ function FormTest() {
     };
 
     const handleSubmit = async () => {
+        // Ensure all questions have answers
         if (questions.some((q) => answers[q.id] === undefined)) {
             alert("Please answer all questions before submitting.");
             return;
@@ -61,7 +63,7 @@ function FormTest() {
                 setInputLevel(response.data.next_level.id);
                 setMessage("Level up!");
             }
-            setData(response.data); // تخزين البيانات لعرضها في المودال
+            setData(response.data); 
             setSubmitted(true);
         } catch (error) {
             setMessage("Error sending answers");
@@ -89,23 +91,27 @@ function FormTest() {
                             <div className="d-flex gap-2">
                                 <button
                                     onClick={() => handleAnswer(question.id, "true")}
-                                    className={`btn ${answers[question.id] === "true" ? "btn-success" : "btn-outline-success"}`}
+                                    className={`btn ${
+                                        answers[question.id] === "true" ? "btn-success" : "btn-outline-success"
+                                    }`}
                                 >
                                     True
                                 </button>
                                 <button
                                     onClick={() => handleAnswer(question.id, "false")}
-                                    className={`btn ${answers[question.id] === "false" ? "btn-danger" : "btn-outline-danger"}`}
+                                    className={`btn ${
+                                        answers[question.id] === "false" ? "btn-danger" : "btn-outline-danger"
+                                    }`}
                                 >
                                     False
                                 </button>
                             </div>
                         </div>
                     ))}
-                    <button 
-                        onClick={handleSubmit} 
-                        className="btn btn-primary w-100 mt-3" 
-                        data-bs-toggle="modal" 
+                    <button
+                        onClick={handleSubmit}
+                        className="btn btn-primary w-100 mt-3"
+                        data-bs-toggle="modal"
                         data-bs-target="#resultModal"
                     >
                         Submit
@@ -113,36 +119,59 @@ function FormTest() {
                 </div>
             )}
 
-            {/* نافذة النتائج (Modal) */}
-            <div className="modal fade" id="resultModal" tabIndex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+            {/* Modal for test results */}
+            <div
+                className="modal fade"
+                id="resultModal"
+                tabIndex="-1"
+                aria-labelledby="resultModalLabel"
+                aria-hidden="true"
+            >
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title" id="resultModalLabel">Test Results</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h5 className="modal-title" id="resultModalLabel">
+                                Test Results
+                            </h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                            ></button>
                         </div>
                         <div className="modal-body">
                             {submitted && data ? (
                                 <ul className="list-group">
-                                <li className="list-group-item">
-                                    <strong>Test Name:</strong> {data.test.name /* Assuming test has a name property */}
-                                </li>
-                                <li className="list-group-item">
-                                    <strong>Score:</strong> {data.score}
-                                </li>
-                                <li className="list-group-item">
-                                    <strong>Correct Answers:</strong> {data.correct_answers}
-                                </li>
-                                <li className="list-group-item">
-                                    <strong>Next Level:</strong> {data.next_level?.level_name || "N/A"}
-                                </li>
+                                    <li className="list-group-item">
+                                        <strong>Test Name:</strong>{" "}
+                                        {data?.test?.name ?? "N/A"}
+                                    </li>
+                                    <li className="list-group-item">
+                                        <strong>Score:</strong>{" "}
+                                        {data?.score ?? "N/A"}
+                                    </li>
+                                    <li className="list-group-item">
+                                        <strong>Correct Answers:</strong>{" "}
+                                        {data?.correct_answers ?? "N/A"}
+                                    </li>
+                                    <li className="list-group-item">
+                                        <strong>Next Level:</strong>{" "}
+                                        {data?.next_level?.level_name ?? "N/A"}
+                                    </li>
                                 </ul>
                             ) : (
                                 <p>Test Submitted! 🎉</p>
                             )}
-                            </div>
+                        </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                data-bs-dismiss="modal"
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>
