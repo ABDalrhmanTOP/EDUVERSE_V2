@@ -10,17 +10,20 @@ const Login = ({ onFinished, onSwitchToRegister }) => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
- const navigate = useNavigate();
-  
+  const navigate = useNavigate();
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
     const success = await login({ email, password });
-    navigate(0);
     setIsLoading(false);
+
     if (!success) {
       setMessage("Login failed. Please check your credentials.");
     } else {
+      // Refresh or navigate if needed
+      navigate(0);
       if (onFinished) onFinished();
     }
   };
@@ -50,7 +53,6 @@ const Login = ({ onFinished, onSwitchToRegister }) => {
           </button>
           {message && <p className="feedback">{message}</p>}
         </form>
-        {/* Footer Link to switch to Register */}
         <div className="auth-footer">
           <p>
             No account yet?{" "}

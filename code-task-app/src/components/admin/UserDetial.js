@@ -3,7 +3,7 @@ import axios from "../../api/axios";
 import { useParams, useNavigate, Outlet } from "react-router-dom";
 import { ProgressBar } from "react-bootstrap";  // مكون شريط التقدم من Bootstrap
 
-const VIDEO_DURATION = 14400; // مدة الفيديو بالثواني (4 ساعات)
+const VIDEO_DURATION = 108000; // مدة الفيديو بالثواني (4 ساعات)
 
 const UserProgressTable = () => {
   const { user_id } = useParams();
@@ -52,7 +52,7 @@ const UserProgressTable = () => {
   
     if (!seconds || seconds <= 0) return 0;
     
-    const percentage = 100-((seconds / VIDEO_DURATION) * 100);
+    const percentage = (((seconds * 100)) / VIDEO_DURATION);
     return percentage.toFixed(2); // تقريب النسبة لرقمين عشريين
   };
   

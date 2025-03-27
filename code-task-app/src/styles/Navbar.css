@@ -1,6 +1,4 @@
-/* ============================================
-   Global Reset & Base Styles
-============================================ */
+/* Global Reset & Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -13,20 +11,16 @@ body {
   color: #333;
 }
 
-/* ============================================
-   Navbar Container
-============================================ */
+/* Navbar Container */
 .nav_container {
-  position: fixed;
-  top: 0;
-  left: 50%;
+  position: fixed;              /* Fixed positioning */
+  top: 0;                       /* Always at the top */
+  left: 50%;                    /* Center horizontally */
   transform: translateX(-50%);
-  z-index: 1100;
-  
+  z-index: 9999;                /* High z-index to ensure it's above other content */
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Ensure left and right sections are at opposite ends */
-  
+  justify-content: space-between;
   width: 85%;
   max-width: 1000px;
   height: 70px;
@@ -37,12 +31,12 @@ body {
   transition: background-color 0.5s ease, border-radius 0.5s ease;
 }
 
-/* Transparent variant */
+/* Transparent variant (if needed) */
 .navbar-transparent {
   background-color: rgba(66, 64, 85, 0.8);
 }
 
-/* Left Section */
+/* Navbar Left Section */
 .navbar-left {
   display: flex;
   align-items: center;
@@ -52,7 +46,7 @@ body {
   z-index: 1200;
 }
 
-/* Logo */
+/* Navbar Logo */
 .navbar-logo {
   cursor: pointer;
   width: 40px;
@@ -73,33 +67,31 @@ body {
   border-radius: 15px;
   background-color: #6a5c7e;
   color: white;
-  text-decoration: none;
   border: none;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 .nav-link.custom-link:hover {
   background-color: #d2b6b6;
   transform: scale(1.05);
 }
 
-/* Right Section */
+/* Navbar Right Section */
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 10px;
   padding-right: 16px;
-  /* Force it to remain in the same row */
   flex-shrink: 0;
 }
 
 /* Profile Container & Icon */
 .profile-container {
   position: relative;
-}
-.profile-icon {
   display: flex;
   align-items: center;
+}
+.profile-icon {
   cursor: pointer;
   color: white;
   transition: color 0.3s ease;
@@ -107,9 +99,15 @@ body {
 .profile-icon:hover {
   color: #d2b6b6;
 }
+.username-display {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin-right: 8px;
+}
 .profile-dropdown {
   position: absolute;
-  top: 70px; /* Position it below the navbar */
+  top: 70px;
   right: 0;
   background-color: #424055;
   border-radius: 8px;
@@ -127,7 +125,6 @@ body {
   color: white;
   cursor: pointer;
   font-size: 14px;
-  text-align: left;
   padding: 8px;
   border-radius: 6px;
   transition: background-color 0.2s ease;
@@ -136,37 +133,35 @@ body {
   background-color: #6a5c7e;
 }
 
-/* Login/Register Buttons */
-.btn-login,
-.btn-register {
+/* Navbar Buttons (for Login/Register) */
+.navbar .navbar-btn {
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   padding: 8px 16px;
   border-radius: 15px;
-  transition: all 0.3s ease;
   border: none;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   color: white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-left: 8px;
 }
-.btn-login {
+.navbar .btn-login {
   background-color: #6a5c7e;
 }
-.btn-register {
+.navbar .btn-register {
   background-color: #ad998a;
 }
-.btn-login:hover,
-.btn-register:hover {
+.navbar .navbar-btn:hover {
   background-color: #d2b6b6;
   transform: scale(1.05);
 }
 
-/* Mobile Overrides */
+/* Media Queries for responsiveness */
 @media (max-width: 992px) {
   .nav_container {
     flex-direction: row;
   }
-  /* For mobile, ensure left and right sections are still spaced */
   .navbar-left {
     flex: 1;
   }
