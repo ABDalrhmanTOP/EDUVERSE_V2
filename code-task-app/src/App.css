@@ -95,102 +95,33 @@ body {
 /* ============================================
    Code Task Container (Increased Size)
 ============================================ */
-.code-task-container {
-  background-color: #faf8f5;
-  border-radius: 20px;
-  padding: 40px;            /* Increased padding */
-  min-height: 600px;         /* Increased minimum height */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
 
-.code-task-container textarea {
-  width: 100%;
-  height: 500px;            /* Increased height */
-  border: none;
-  border-radius: 20px;
-  padding: 20px;
-  font-size: 16px;
-  resize: vertical;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
+
 
 /* ============================================
    Feedback Modal (Centered Immediately)
 ============================================ */
-.feedback-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1050; /* Above most content */
-  padding: 20px 30px;
-  background: #fff;
-  border: 2px solid #AD998A;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  transition: none; /* No animation from bottom-right */
-}
 
-.modal-feedback {
-  text-align: center;
-}
 
-/* Feedback message styling */
-.feedback-message {
-  margin-top: 10px;
-  white-space: pre-line;
-}
+
 
 /* ===== Try Again Button for Wrong Answer ===== */
-.try-again-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background: linear-gradient(45deg, #AD998A, #d4af7f);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transition: background-color 0.3s ease, transform 0.3s ease;
-}
 
-.try-again-button:hover {
-  background: linear-gradient(45deg, #d4af7f, #AD998A);
-  transform: scale(1.05);
-}
+
+
 
 /* ============================================
    Submit Button Container (Centered)
 ============================================ */
-.submit-button-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
+
 
 /* Previous design colors for the Submit Button */
-.submit-button {
-  display: block;
-  padding: 10px 20px;
-  font-size: 18px;
-  background-color: #AD998A;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-}
 
-.submit-button:hover {
+
+/*.submit-button:hover {
   background-color: #d4af7f;
   transform: scale(1.05);
-}
+}*/
 
 /* ============================================
    True/False Buttons (Dynamic, with icons)
@@ -286,9 +217,6 @@ body {
   font-size: 1.2em;
 }
 
-/* ============================================
-   Responsive Adjustments
-============================================ */
 @media (max-width: 768px) {
   .youtube-layout-container {
     flex-direction: column;

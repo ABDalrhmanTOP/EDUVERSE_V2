@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import { useParams, useNavigate, Outlet } from "react-router-dom";
-import { ProgressBar } from "react-bootstrap";  // مكون شريط التقدم من Bootstrap
+import { ProgressBar } from "react-bootstrap";  // Bootstrap ProgressBar component
 
-const VIDEO_DURATION = 108000; // مدة الفيديو بالثواني (4 ساعات)
+const VIDEO_DURATION = 112049; // Total duration in seconds (1:07:07:29)
 
 const UserProgressTable = () => {
   const { user_id } = useParams();
@@ -26,36 +26,32 @@ const UserProgressTable = () => {
       .finally(() => setLoading(false));
   }, [user_id]);
 
-
+  // Converts a timestamp string to total seconds.
+  // Supports 4-part format: d:hh:mm:ss, 3-part: hh:mm:ss, 2-part: mm:ss, 1-part: ss.
   const convertToSeconds = (timeString) => {
     if (!timeString) return 0;
-  
     const parts = timeString.split(":").map(Number);
-    let seconds = 0;
-  
-    if (parts.length === 3) {
-      // hh:mm:ss
-      seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 4) {
+      const [days, hours, minutes, seconds] = parts;
+      return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+    } else if (parts.length === 3) {
+      const [hours, minutes, seconds] = parts;
+      return hours * 3600 + minutes * 60 + seconds;
     } else if (parts.length === 2) {
-      // mm:ss
-      seconds = parts[0] * 60 + parts[1];
+      const [minutes, seconds] = parts;
+      return minutes * 60 + seconds;
     } else {
-      // ss فقط
-      seconds = parts[0];
+      return Number(parts[0]);
     }
-  
-    return seconds;
   };
-  
+
+  // Calculate progress percentage based on the last timestamp.
   const calculateProgress = (timestamp) => {
-    const seconds = convertToSeconds(timestamp); // تحويل الطابع الزمني إلى ثوانٍ
-  
+    const seconds = convertToSeconds(timestamp);
     if (!seconds || seconds <= 0) return 0;
-    
-    const percentage = (((seconds * 100)) / VIDEO_DURATION);
-    return percentage.toFixed(2); // تقريب النسبة لرقمين عشريين
+    const percentage = (seconds * 100) / VIDEO_DURATION;
+    return percentage.toFixed(2); // Round to two decimal places
   };
-  
 
   return (
     <div className="container my-4 p-4 bg-white rounded shadow">
@@ -90,7 +86,7 @@ const UserProgressTable = () => {
                     <tr key={index}>
                       <td>{user.user_id}</td>
                       <td>{user.video_id}</td>
-                      <td>{user.last_timestamp} </td>
+                      <td>{user.last_timestamp}</td>
                       <td>
                         <div className="d-flex flex-column align-items-center">
                           <span className="fw-bold">{progress}%</span>
@@ -112,7 +108,9 @@ const UserProgressTable = () => {
       )}
 
       <div className="text-center mt-4">
-        <button className="btn btn-secondary px-4 py-2" onClick={() => navigate(`/AdminDashboard/users`)}>Back to Users</button>
+        <button className="btn btn-secondary px-4 py-2" onClick={() => navigate(`/AdminDashboard/users`)}>
+          Back to Users
+        </button>
       </div>
     </div>
   );

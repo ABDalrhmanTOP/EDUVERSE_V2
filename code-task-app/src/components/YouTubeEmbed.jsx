@@ -4,12 +4,26 @@ import axios from "../api/axios";
 import "../App.css";
 import { debounce } from "lodash";
 
+// Converts a timestamp string to total seconds.
+// Supports formats: d:hh:mm:ss, hh:mm:ss, mm:ss, ss.
 const convertTimestampToSeconds = (timestamp) => {
   if (!timestamp) return 0;
-  const [hours, minutes, seconds] = timestamp.split(":").map(Number);
-  return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+  const parts = timestamp.split(":").map(Number);
+  if (parts.length === 4) {
+    const [days, hours, minutes, seconds] = parts;
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+  } else if (parts.length === 3) {
+    const [hours, minutes, seconds] = parts;
+    return hours * 3600 + minutes * 60 + seconds;
+  } else if (parts.length === 2) {
+    const [minutes, seconds] = parts;
+    return minutes * 60 + seconds;
+  } else {
+    return Number(parts[0]);
+  }
 };
 
+// Converts seconds into a hh:mm:ss formatted string.
 const convertSecondsToTimestamp = (seconds) => {
   const hrs = Math.floor(seconds / 3600).toString().padStart(2, "0");
   const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
@@ -23,24 +37,23 @@ const YouTubeEmbed = ({ playlistId }) => {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState("00:00:00");
+  const [maxTimeReached, setMaxTimeReached] = useState(0);
   const [playerVideoId, setPlayerVideoId] = useState(null);
+  const [videoProgress, setVideoProgress] = useState(0); // in percentage
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
   const taskTriggeredRef = useRef(false);
 
-  // Calculate progress percentage
-  const progressPercentage =
-    tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
-
-  // Load saved timestamp from localStorage on mount
+  // Load saved timestamp on mount.
   useEffect(() => {
     const storedTimestamp = localStorage.getItem("lastWatchedTimestamp");
     if (storedTimestamp) {
       setLastWatchedTimestamp(storedTimestamp);
+      setMaxTimeReached(convertTimestampToSeconds(storedTimestamp));
     }
   }, []);
 
-  // Debounced save progress function (10-second delay)
+  // Debounced function to save progress every 10 seconds.
   const debouncedSaveProgress = useCallback(
     debounce(async (seconds) => {
       try {
@@ -69,13 +82,17 @@ const YouTubeEmbed = ({ playlistId }) => {
     [playerVideoId, playlistId]
   );
 
-  // Helper: Re-fetch progress from backend after a task is completed
+  // Helper to re-fetch progress from backend.
   const fetchProgress = async (videoId) => {
     try {
       const token = localStorage.getItem("authToken");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const response = await axios.get("/user-progress", { params: { video_id: String(videoId) }, headers });
+      const response = await axios.get("/user-progress", {
+        params: { video_id: String(videoId) },
+        headers,
+      });
       if (response.data && response.data.data) {
+        // Corrected: using response instead of an undefined variable.
         setCompletedTasks(response.data.data.completed_tasks || []);
         setLastWatchedTimestamp(response.data.data.last_timestamp || "00:00:00");
       }
@@ -84,7 +101,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     }
   };
 
-  // Fetch tasks and progress on mount / when playlistId changes
+  // Fetch tasks and progress when component mounts or playlistId changes.
   useEffect(() => {
     const fetchTasksAndProgress = async () => {
       try {
@@ -97,13 +114,15 @@ const YouTubeEmbed = ({ playlistId }) => {
           axios.get("/user-progress", { params: { video_id: videoId }, headers }),
         ]);
 
-        // Sort tasks by timestamp so they trigger in order
         const tasksData = tasksResponse.data || [];
-        tasksData.sort((a, b) => convertTimestampToSeconds(a.timestamp) - convertTimestampToSeconds(b.timestamp));
+        tasksData.sort(
+          (a, b) =>
+            convertTimestampToSeconds(a.timestamp) - convertTimestampToSeconds(b.timestamp)
+        );
         setTasks(tasksData);
 
-        // Update progress from backend if available
         if (progressResponse.data && progressResponse.data.data) {
+          // Corrected: use progressResponse instead of response.
           setCompletedTasks(progressResponse.data.data.completed_tasks || []);
           setLastWatchedTimestamp(progressResponse.data.data.last_timestamp || "00:00:00");
         } else {
@@ -123,7 +142,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     fetchTasksAndProgress();
   }, [playlistId]);
 
-  // Load YouTube Iframe API and initialize player
+  // Load YouTube Iframe API and initialize player.
   useEffect(() => {
     if (!lastWatchedTimestamp || !playerVideoId) return;
     const loadYouTubeAPI = () => {
@@ -158,21 +177,57 @@ const YouTubeEmbed = ({ playlistId }) => {
           autoplay: 0,
           controls: 1,
           enablejsapi: 1,
-        },
+          rel: 0, // Only show related videos from the same channel at the end
+          modestbranding: 1, // Remove YouTube logo from the control bar
+        }
       });
     };
 
     loadYouTubeAPI();
   }, [lastWatchedTimestamp, playerVideoId]);
 
-  // Ensure video is paused when a task is active
+  // Update video progress and maxTimeReached.
+  useEffect(() => {
+    const progressInterval = setInterval(() => {
+      if (
+        playerInstanceRef.current &&
+        playerReady &&
+        typeof playerInstanceRef.current.getCurrentTime === "function"
+      ) {
+        const currentTime = playerInstanceRef.current.getCurrentTime();
+        setMaxTimeReached((prevMax) => {
+          const newMax = currentTime > prevMax ? currentTime : prevMax;
+          const VIDEO_DURATION = 112049; // Total duration in seconds
+          setVideoProgress(Math.round((newMax * 100) / VIDEO_DURATION));
+          return newMax;
+        });
+      }
+    }, 1000);
+    return () => clearInterval(progressInterval);
+  }, [playerReady]);
+
+  // Save progress periodically using maxTimeReached.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (
+        playerInstanceRef.current &&
+        playerReady &&
+        typeof playerInstanceRef.current.getCurrentTime === "function"
+      ) {
+        debouncedSaveProgress(maxTimeReached);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [playerReady, maxTimeReached, debouncedSaveProgress]);
+
+  // Pause video when a task is active.
   useEffect(() => {
     if (currentTaskIndex !== null && playerInstanceRef.current) {
       playerInstanceRef.current.pauseVideo();
     }
   }, [currentTaskIndex]);
 
-  // Pause video when playing if a task is active (fallback)
+  // Pause video if playing and a task is active (fallback).
   const handlePlayerStateChange = useCallback(
     (event) => {
       if (event.data === window.YT.PlayerState.PLAYING) {
@@ -186,7 +241,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     [currentTaskIndex]
   );
 
-  // Mark task as completed, update backend, and refresh progress state
+  // Mark task as completed and update backend.
   const handleTaskComplete = useCallback(async () => {
     if (currentTaskIndex !== null) {
       const currentTask = tasks[currentTaskIndex];
@@ -207,6 +262,7 @@ const YouTubeEmbed = ({ playlistId }) => {
       } catch (error) {
         console.error("Error completing task:", error);
       }
+      // Exit coding area and resume video.
       setCurrentTaskIndex(null);
       if (playerReady && playerInstanceRef.current) {
         playerInstanceRef.current.playVideo();
@@ -214,7 +270,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     }
   }, [currentTaskIndex, tasks, playerVideoId, playerReady]);
 
-  // Check for upcoming tasks based on current video time (skip those already completed)
+  // Check for upcoming tasks based on video time.
   useEffect(() => {
     if (!playerInstanceRef.current || !tasks.length || !playerReady) return;
     const interval = setInterval(() => {
@@ -238,28 +294,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     return () => clearInterval(interval);
   }, [tasks, completedTasks, currentTaskIndex, playerReady]);
 
-  // Save video progress periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (
-        playerInstanceRef.current &&
-        playerReady &&
-        typeof playerInstanceRef.current.getCurrentTime === "function"
-      ) {
-        try {
-          const currentTime = Math.floor(playerInstanceRef.current.getCurrentTime());
-          if (currentTime > 0) {
-            debouncedSaveProgress(currentTime);
-          }
-        } catch (error) {
-          console.warn("Error saving progress:", error);
-        }
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [playerReady, debouncedSaveProgress]);
-
-  // Auto-scroll the playlist sidebar to the active task
+  // Auto-scroll playlist sidebar to the active task.
   useEffect(() => {
     if (currentTaskIndex !== null && tasks.length > 0) {
       const activeTaskId = tasks[currentTaskIndex].id;
@@ -272,15 +307,15 @@ const YouTubeEmbed = ({ playlistId }) => {
 
   return (
     <div className="youtube-layout-container">
-      {/* Left Column: Video (with progress bar) and Code Task */}
+      {/* Left Column: Video and Coding Area */}
       <div className="left-column">
         <div className="video-progress-container">
           <div className={`video-container ${currentTaskIndex === null ? "" : "hidden"}`}>
             <div className="youtube-player" ref={playerRef} id="player"></div>
           </div>
           <div className="course-progress-bar">
-            <div className="course-progress-bar-inner" style={{ width: progressPercentage + "%" }}>
-              <span className="progress-percent">{progressPercentage}%</span>
+            <div className="course-progress-bar-inner" style={{ width: videoProgress + "%" }}>
+              <span className="progress-percent">{videoProgress}%</span>
             </div>
           </div>
         </div>
@@ -290,18 +325,34 @@ const YouTubeEmbed = ({ playlistId }) => {
           </div>
         )}
       </div>
-      {/* Right Column: Scrollable Playlist Sidebar */}
+      {/* Right Column: Playlist Sidebar */}
       <div className="playlist-sidebar">
         <h3>Playlist</h3>
         <ul>
           {tasks.map((task) => {
-            const isActive = currentTaskIndex !== null && tasks[currentTaskIndex].id === task.id;
+            const isActive =
+              currentTaskIndex !== null && tasks[currentTaskIndex].id === task.id;
             const isCompleted = completedTasks.includes(String(task.id));
             return (
               <li
                 key={task.id}
                 id={`playlist-item-${task.id}`}
-                className={`playlist-item ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
+                className={`playlist-item ${isActive ? "active" : ""} ${
+                  isCompleted ? "completed" : ""
+                }`}
+                onClick={() => {
+                  // If the task is completed and coding area is active, exit coding area
+                  if (isCompleted && playerInstanceRef.current) {
+                    const taskTimeSec = convertTimestampToSeconds(task.timestamp);
+                    let targetTime = taskTimeSec - 30;
+                    if (targetTime < 0) targetTime = 0;
+                    playerInstanceRef.current.seekTo(targetTime, true);
+                    if (currentTaskIndex !== null) {
+                      setCurrentTaskIndex(null);
+                      playerInstanceRef.current.playVideo();
+                    }
+                  }
+                }}
               >
                 {task.title}
                 {isCompleted && <span className="checkmark"> ✔️</span>}

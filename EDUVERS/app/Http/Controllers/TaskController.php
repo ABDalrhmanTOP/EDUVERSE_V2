@@ -41,11 +41,11 @@ class TaskController extends Controller
                 'X-RapidAPI-Host' => 'judge0-ce.p.rapidapi.com',
                 'X-RapidAPI-Key' => env('JUDGE0_API_KEY'),
             ])->withOptions(['verify' => false])
-            ->post('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=true', [
-                'source_code' => $encodedCode,
-                'language_id' => $request->language_id,
-                'stdin' => '',
-            ]);
+                ->post('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=true', [
+                    'source_code' => $encodedCode,
+                    'language_id' => $request->language_id,
+                    'stdin' => '',
+                ]);
 
             Log::info('Judge0 API Response', ['response' => $response->json()]);
             $responseData = $response->json();

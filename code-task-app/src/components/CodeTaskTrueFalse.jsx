@@ -9,11 +9,20 @@ const CodeTaskTrueFalse = ({ task, onTaskComplete }) => {
   const [feedback, setFeedback] = useState({ type: "", message: "" });
 
   const handleAnswer = (answer) => {
-    if (String(answer).toLowerCase() === String(task.correctAnswer).toLowerCase()) {
-      setFeedback({ type: "success", message: "✅ Correct! Returning to the course..." });
+    if (
+      String(answer).toLowerCase() ===
+      String(task.correctAnswer).toLowerCase()
+    ) {
+      setFeedback({
+        type: "success",
+        message: "✅ Correct! Returning to the course...",
+      });
       setTimeout(() => onTaskComplete(), 2000);
     } else {
-      setFeedback({ type: "error", message: "❌ Incorrect answer, please try again." });
+      setFeedback({
+        type: "error",
+        message: "❌ Incorrect answer, please try again.",
+      });
     }
   };
 
@@ -30,7 +39,8 @@ const CodeTaskTrueFalse = ({ task, onTaskComplete }) => {
         </button>
       </div>
       {feedback.message && (
-        <div className="feedback-modal">
+        <div className="feedback-overlay">
+          <div className="feedback-modal">
           {feedback.type === "success" ? (
             <Lottie animationData={successAnimation} style={{ width: 200, height: 200 }} />
           ) : (
@@ -45,8 +55,9 @@ const CodeTaskTrueFalse = ({ task, onTaskComplete }) => {
             </button>
           )}
         </div>
+        </div>
       )}
-    </div>
+      </div>
   );
 };
 
