@@ -95,3 +95,7 @@ Route::middleware('auth:api')->group(function () {
 
 
 Route::get('/chat', [ChatController::class, 'index']);
+
+
+Route::post('/final-project', [App\Http\Controllers\FinalProjectController::class, 'submitFinalProject'])
+    ->middleware('auth:api');

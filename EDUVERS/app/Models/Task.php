@@ -17,5 +17,7 @@ class Task extends Model
         'prompt',
         'expected_output',
         'syntax_hint',
+        'type',
+        'options',
     ];
 }

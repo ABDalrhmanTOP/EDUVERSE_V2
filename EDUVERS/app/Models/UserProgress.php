@@ -11,38 +11,32 @@ class UserProgress extends Model
 
     protected $table = 'user_progress';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'user_id',
         'video_id',
+        'playlist_id',    // Make sure this column exists in `user_progress` table
         'last_timestamp',
         'completed_tasks',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'completed_tasks' => 'array',
     ];
 
-    /**
-     * Relationships
-     */
+    // Relationship to user
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // If needed, relationship to playlist
     public function playlist()
     {
         return $this->belongsTo(Playlist::class);
     }
 
     /**
-     * Mutators
+     * Accessor/Mutator for completed_tasks
      */
     public function getCompletedTasksAttribute($value)
     {

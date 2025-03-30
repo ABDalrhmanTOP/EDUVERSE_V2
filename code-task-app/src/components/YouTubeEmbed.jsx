@@ -1,11 +1,12 @@
+// src/components/YouTubeEmbed.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import CodeTask from "./CodeTask";
 import axios from "../api/axios";
 import "../App.css";
 import { debounce } from "lodash";
+import { useNavigate } from "react-router-dom";  // Updated import
 
-// Converts a timestamp string to total seconds.
-// Supports formats: d:hh:mm:ss, hh:mm:ss, mm:ss, ss.
+// Helper conversions
 const convertTimestampToSeconds = (timestamp) => {
   if (!timestamp) return 0;
   const parts = timestamp.split(":").map(Number);
@@ -23,7 +24,6 @@ const convertTimestampToSeconds = (timestamp) => {
   }
 };
 
-// Converts seconds into a hh:mm:ss formatted string.
 const convertSecondsToTimestamp = (seconds) => {
   const hrs = Math.floor(seconds / 3600).toString().padStart(2, "0");
   const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
@@ -32,6 +32,7 @@ const convertSecondsToTimestamp = (seconds) => {
 };
 
 const YouTubeEmbed = ({ playlistId }) => {
+  const navigate = useNavigate(); // useNavigate replaces useHistory
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
@@ -39,26 +40,17 @@ const YouTubeEmbed = ({ playlistId }) => {
   const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState("00:00:00");
   const [maxTimeReached, setMaxTimeReached] = useState(0);
   const [playerVideoId, setPlayerVideoId] = useState(null);
-  const [videoProgress, setVideoProgress] = useState(0); // in percentage
+  const [videoProgress, setVideoProgress] = useState(0);
+
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
   const taskTriggeredRef = useRef(false);
 
-  // Load saved timestamp on mount.
-  useEffect(() => {
-    const storedTimestamp = localStorage.getItem("lastWatchedTimestamp");
-    if (storedTimestamp) {
-      setLastWatchedTimestamp(storedTimestamp);
-      setMaxTimeReached(convertTimestampToSeconds(storedTimestamp));
-    }
-  }, []);
-
-  // Debounced function to save progress every 10 seconds.
+  // Debounced saving (3s delay)
   const debouncedSaveProgress = useCallback(
     debounce(async (seconds) => {
       try {
         const timestamp = convertSecondsToTimestamp(seconds);
-        localStorage.setItem("lastWatchedTimestamp", timestamp);
         const token = localStorage.getItem("authToken");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         await axios.post(
@@ -78,40 +70,63 @@ const YouTubeEmbed = ({ playlistId }) => {
           console.error("Error saving progress:", error);
         }
       }
-    }, 10000),
+    }, 3000),
     [playerVideoId, playlistId]
   );
 
-  // Helper to re-fetch progress from backend.
+  // Flush debounced calls on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (debouncedSaveProgress.flush) {
+        debouncedSaveProgress.flush();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [debouncedSaveProgress]);
+
+  // Fetch Progress
   const fetchProgress = async (videoId) => {
     try {
       const token = localStorage.getItem("authToken");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.get("/user-progress", {
-        params: { video_id: String(videoId) },
+        params: {
+          video_id: String(videoId),
+          playlist_id: playlistId,
+        },
         headers,
       });
       if (response.data && response.data.data) {
-        // Corrected: using response instead of an undefined variable.
-        setCompletedTasks(response.data.data.completed_tasks || []);
-        setLastWatchedTimestamp(response.data.data.last_timestamp || "00:00:00");
+        const data = response.data.data;
+        setCompletedTasks(data.completed_tasks || []);
+        setLastWatchedTimestamp(data.last_timestamp || "00:00:00");
       }
     } catch (error) {
       console.error("Error fetching progress:", error);
     }
   };
 
-  // Fetch tasks and progress when component mounts or playlistId changes.
+  // Fetch tasks & progress on mount
   useEffect(() => {
     const fetchTasksAndProgress = async () => {
       try {
         const token = localStorage.getItem("authToken");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        // Get playlist info => videoId
         const playlistResponse = await axios.get(`/playlists/${playlistId}`, { headers });
         const videoId = String(playlistResponse.data.video_id);
+
+        // Get tasks & progress in parallel
         const [tasksResponse, progressResponse] = await Promise.all([
           axios.get(`/tasks/${playlistId}`, { headers }),
-          axios.get("/user-progress", { params: { video_id: videoId }, headers }),
+          axios.get("/user-progress", {
+            params: { video_id: videoId, playlist_id: playlistId },
+            headers,
+          }),
         ]);
 
         const tasksData = tasksResponse.data || [];
@@ -122,13 +137,14 @@ const YouTubeEmbed = ({ playlistId }) => {
         setTasks(tasksData);
 
         if (progressResponse.data && progressResponse.data.data) {
-          // Corrected: use progressResponse instead of response.
-          setCompletedTasks(progressResponse.data.data.completed_tasks || []);
-          setLastWatchedTimestamp(progressResponse.data.data.last_timestamp || "00:00:00");
+          const p = progressResponse.data.data;
+          setCompletedTasks(p.completed_tasks || []);
+          setLastWatchedTimestamp(p.last_timestamp || "00:00:00");
         } else {
           setCompletedTasks([]);
           setLastWatchedTimestamp("00:00:00");
         }
+
         setPlayerVideoId(videoId);
       } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -142,9 +158,10 @@ const YouTubeEmbed = ({ playlistId }) => {
     fetchTasksAndProgress();
   }, [playlistId]);
 
-  // Load YouTube Iframe API and initialize player.
+  // Initialize YouTube Player
   useEffect(() => {
     if (!lastWatchedTimestamp || !playerVideoId) return;
+
     const loadYouTubeAPI = () => {
       if (!window.YT) {
         const script = document.createElement("script");
@@ -166,8 +183,7 @@ const YouTubeEmbed = ({ playlistId }) => {
           onReady: (event) => {
             setPlayerReady(true);
             if (lastWatchedTimestamp && lastWatchedTimestamp !== "00:00:00") {
-              const lastTimestampInSeconds = convertTimestampToSeconds(lastWatchedTimestamp);
-              event.target.seekTo(lastTimestampInSeconds, true);
+              event.target.seekTo(convertTimestampToSeconds(lastWatchedTimestamp), true);
               console.log("Resuming video at:", lastWatchedTimestamp);
             }
           },
@@ -177,16 +193,16 @@ const YouTubeEmbed = ({ playlistId }) => {
           autoplay: 0,
           controls: 1,
           enablejsapi: 1,
-          rel: 0, // Only show related videos from the same channel at the end
-          modestbranding: 1, // Remove YouTube logo from the control bar
-        }
+          rel: 0,
+          modestbranding: 1,
+        },
       });
     };
 
     loadYouTubeAPI();
   }, [lastWatchedTimestamp, playerVideoId]);
 
-  // Update video progress and maxTimeReached.
+  // Track Video Progress
   useEffect(() => {
     const progressInterval = setInterval(() => {
       if (
@@ -195,9 +211,9 @@ const YouTubeEmbed = ({ playlistId }) => {
         typeof playerInstanceRef.current.getCurrentTime === "function"
       ) {
         const currentTime = playerInstanceRef.current.getCurrentTime();
-        setMaxTimeReached((prevMax) => {
-          const newMax = currentTime > prevMax ? currentTime : prevMax;
-          const VIDEO_DURATION = 112049; // Total duration in seconds
+        setMaxTimeReached((prev) => {
+          const newMax = currentTime > prev ? currentTime : prev;
+          const VIDEO_DURATION = 112049;
           setVideoProgress(Math.round((newMax * 100) / VIDEO_DURATION));
           return newMax;
         });
@@ -206,7 +222,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     return () => clearInterval(progressInterval);
   }, [playerReady]);
 
-  // Save progress periodically using maxTimeReached.
+  // Debounced save progress every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (
@@ -220,14 +236,13 @@ const YouTubeEmbed = ({ playlistId }) => {
     return () => clearInterval(interval);
   }, [playerReady, maxTimeReached, debouncedSaveProgress]);
 
-  // Pause video when a task is active.
+  // Pause video if task is open
   useEffect(() => {
     if (currentTaskIndex !== null && playerInstanceRef.current) {
       playerInstanceRef.current.pauseVideo();
     }
   }, [currentTaskIndex]);
 
-  // Pause video if playing and a task is active (fallback).
   const handlePlayerStateChange = useCallback(
     (event) => {
       if (event.data === window.YT.PlayerState.PLAYING) {
@@ -241,7 +256,7 @@ const YouTubeEmbed = ({ playlistId }) => {
     [currentTaskIndex]
   );
 
-  // Mark task as completed and update backend.
+  // Mark task complete
   const handleTaskComplete = useCallback(async () => {
     if (currentTaskIndex !== null) {
       const currentTask = tasks[currentTaskIndex];
@@ -250,7 +265,11 @@ const YouTubeEmbed = ({ playlistId }) => {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const res = await axios.post(
           "/user-progress/tasks",
-          { video_id: String(playerVideoId), task_id: String(currentTask.id) },
+          {
+            video_id: String(playerVideoId),
+            playlist_id: playlistId,
+            task_id: String(currentTask.id),
+          },
           { headers }
         );
         if (res.data && res.data.data) {
@@ -262,15 +281,36 @@ const YouTubeEmbed = ({ playlistId }) => {
       } catch (error) {
         console.error("Error completing task:", error);
       }
-      // Exit coding area and resume video.
       setCurrentTaskIndex(null);
       if (playerReady && playerInstanceRef.current) {
         playerInstanceRef.current.playVideo();
       }
     }
-  }, [currentTaskIndex, tasks, playerVideoId, playerReady]);
+  }, [currentTaskIndex, tasks, playerVideoId, playlistId, playerReady]);
 
-  // Check for upcoming tasks based on video time.
+  // When video is finished, show button to navigate to Final Project
+  const handleGoToFinalProject = () => {
+    // Navigate using useNavigate hook
+    navigate("/final-project");
+  };
+
+  // Return to course button for tasks
+  const handleReturn = () => {
+    console.log("Return to course button clicked");
+    if (currentTaskIndex !== null && tasks.length > 0 && playerInstanceRef.current) {
+      const taskTimeSec = convertTimestampToSeconds(tasks[currentTaskIndex].timestamp);
+      let targetTime = taskTimeSec - 30;
+      if (targetTime < 0) targetTime = 0;
+      console.log(`Seeking back to ${targetTime} seconds...`);
+      playerInstanceRef.current.seekTo(targetTime, true);
+      setCurrentTaskIndex(null);
+      playerInstanceRef.current.playVideo();
+    } else {
+      console.warn("No active task. handleReturn logic skipped.");
+    }
+  };
+
+  // Check for next task every second
   useEffect(() => {
     if (!playerInstanceRef.current || !tasks.length || !playerReady) return;
     const interval = setInterval(() => {
@@ -278,9 +318,9 @@ const YouTubeEmbed = ({ playlistId }) => {
         const currentTime = Math.floor(playerInstanceRef.current.getCurrentTime());
         if (taskTriggeredRef.current) return;
         const nextTaskIndex = tasks.findIndex(
-          (task) =>
-            currentTime >= convertTimestampToSeconds(task.timestamp) &&
-            !completedTasks.includes(String(task.id))
+          (t) =>
+            currentTime >= convertTimestampToSeconds(t.timestamp) &&
+            !completedTasks.includes(String(t.id))
         );
         if (nextTaskIndex !== -1 && nextTaskIndex !== currentTaskIndex) {
           setCurrentTaskIndex(nextTaskIndex);
@@ -288,13 +328,13 @@ const YouTubeEmbed = ({ playlistId }) => {
           taskTriggeredRef.current = true;
         }
       } catch (error) {
-        console.warn("Error during task checking:", error);
+        console.warn("Error checking tasks:", error);
       }
     }, 1000);
     return () => clearInterval(interval);
   }, [tasks, completedTasks, currentTaskIndex, playerReady]);
 
-  // Auto-scroll playlist sidebar to the active task.
+  // Scroll active task into view in sidebar
   useEffect(() => {
     if (currentTaskIndex !== null && tasks.length > 0) {
       const activeTaskId = tasks[currentTaskIndex].id;
@@ -305,46 +345,54 @@ const YouTubeEmbed = ({ playlistId }) => {
     }
   }, [currentTaskIndex, tasks]);
 
+  const VIDEO_DURATION = 112049;
+  const progressPercent = Math.round((maxTimeReached * 100) / VIDEO_DURATION);
+
   return (
     <div className="youtube-layout-container">
-      {/* Left Column: Video and Coding Area */}
       <div className="left-column">
         <div className="video-progress-container">
           <div className={`video-container ${currentTaskIndex === null ? "" : "hidden"}`}>
-            <div className="youtube-player" ref={playerRef} id="player"></div>
+            <div className="youtube-player" ref={playerRef} id="player" />
           </div>
           <div className="course-progress-bar">
-            <div className="course-progress-bar-inner" style={{ width: videoProgress + "%" }}>
-              <span className="progress-percent">{videoProgress}%</span>
+            <div className="course-progress-bar-inner" style={{ width: progressPercent + "%" }}>
+              <span className="progress-percent">{progressPercent}%</span>
             </div>
           </div>
+          {progressPercent >= 100 && (
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <button onClick={handleGoToFinalProject} className="submit-final-button">
+                Go to Final Project
+              </button>
+            </div>
+          )}
         </div>
         {tasks.length > 0 && currentTaskIndex !== null && (
           <div className="code-task-container">
-            <CodeTask task={tasks[currentTaskIndex]} onTaskComplete={handleTaskComplete} />
+            <CodeTask
+              task={tasks[currentTaskIndex]}
+              onTaskComplete={handleTaskComplete}
+              onReturn={handleReturn}
+            />
           </div>
         )}
       </div>
-      {/* Right Column: Playlist Sidebar */}
       <div className="playlist-sidebar">
         <h3>Playlist</h3>
         <ul>
-          {tasks.map((task) => {
-            const isActive =
-              currentTaskIndex !== null && tasks[currentTaskIndex].id === task.id;
-            const isCompleted = completedTasks.includes(String(task.id));
+          {tasks.map((t) => {
+            const active = currentTaskIndex !== null && tasks[currentTaskIndex].id === t.id;
+            const completed = completedTasks.includes(String(t.id));
             return (
               <li
-                key={task.id}
-                id={`playlist-item-${task.id}`}
-                className={`playlist-item ${isActive ? "active" : ""} ${
-                  isCompleted ? "completed" : ""
-                }`}
+                key={t.id}
+                id={`playlist-item-${t.id}`}
+                className={`playlist-item ${active ? "active" : ""} ${completed ? "completed" : ""}`}
                 onClick={() => {
-                  // If the task is completed and coding area is active, exit coding area
-                  if (isCompleted && playerInstanceRef.current) {
-                    const taskTimeSec = convertTimestampToSeconds(task.timestamp);
-                    let targetTime = taskTimeSec - 30;
+                  if (completed && playerInstanceRef.current) {
+                    const sec = convertTimestampToSeconds(t.timestamp);
+                    let targetTime = sec - 30;
                     if (targetTime < 0) targetTime = 0;
                     playerInstanceRef.current.seekTo(targetTime, true);
                     if (currentTaskIndex !== null) {
@@ -354,8 +402,8 @@ const YouTubeEmbed = ({ playlistId }) => {
                   }
                 }}
               >
-                {task.title}
-                {isCompleted && <span className="checkmark"> ✔️</span>}
+                {t.title}
+                {completed && <span className="checkmark"> ✔️</span>}
               </li>
             );
           })}

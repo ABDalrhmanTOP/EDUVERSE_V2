@@ -10,11 +10,11 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   border: 1px solid #383838;
   position: relative;
-  transition: background-color 0.5s ease, color 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.3s ease;
 }
 
+/* Just the box-shadow on hover, no transform anymore */
 .code-task-container:hover {
-  transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
@@ -132,39 +132,73 @@
   cursor: not-allowed;
 }
 
-/* ========= Feedback Modal (Background Removed) ========= */
+/* ========= Feedback Overlay / Modal ========= */
 .feedback-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    /* Optional: add a semi-transparent background to focus on the modal */
-    background: rgba(0, 0, 0, 0.3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000; /* Ensure it is above other content */
-  }
+  pointer-events: none;
+}
+
+/* Always fixed & centered on screen */
 .feedback-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1050;
+  z-index: 2200;
   padding: 20px 30px;
-  background: transparent;
+  background: #fff;
   border: 2px solid #AD998A;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
-  transition: none;
 }
 
+
+/* Dark Mode Modal */
+.code-task-container.dark-mode .feedback-modal {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+/* Light Mode Modal */
+.code-task-container.light-mode .feedback-modal {
+  background: #fff;
+  color: #333;
+}
+
+/* Remove text background in the modal */
+.feedback-modal p,
+.feedback-modal .feedback-message {
+  background-color: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ========= Hint Code Block ========= */
+.hint-code {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  font-family: "Fira Code", monospace;
+}
+
+/* Dark Mode Hint */
+.code-task-container.dark-mode .hint-code {
+  background-color: #3c3c3c; /* Distinct from the regular dark background */
+  color: #ffce00;           /* Bright color to catch attention */
+  border: 1px dashed #ffce00;
+}
+
+/* Light Mode Hint */
+.code-task-container.light-mode .hint-code {
+  background-color: #fff8c4; /* Soft yellow background */
+  color: #333;
+  border: 1px dashed #AD998A;
+}
+
+/* ========= Feedback Message ========= */
 .feedback-message {
   margin-top: 10px;
   white-space: pre-line;
@@ -241,7 +275,7 @@
   transform: scale(1.05);
 }
 
-/* Remove any blue outline/border on hover or focus for the editor wrapper and Monaco editor */
+/* Remove any outline/border on hover or focus for the editor wrapper and Monaco editor */
 .editor-wrapper,
 .editor-wrapper:focus,
 .editor-wrapper:hover,
@@ -253,6 +287,112 @@
   box-shadow: none !important;
 }
 
+/* ========= Return Button ========= */
+.return-button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.return-button {
+  background: none;
+  border: none;
+  color: #AD998A;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.3s ease;
+}
+
+.return-button:hover {
+  color: #d4af7f;
+}
+.task-container {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Title & Prompt */
+.task-title {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.task-prompt {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* MCQ Options */
+.mcq-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.mcq-options button {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.mcq-options button:hover {
+  background-color: #e0e0e0;
+}
+
+.tf-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.tf-buttons button {
+  flex: 1;
+  margin: 0 10px;
+  padding: 15px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tf-buttons button.true {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.tf-buttons button.false {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.tf-buttons button:hover {
+  opacity: 0.9;
+}
+.task-hint {
+  font-size: 0.95rem;
+  color: #d9534f;
+  margin-top: 10px;
+  display: none;
+}
+
+.task-hint.visible {
+  display: block;
+}
 
 /* ========= Animations ========= */
 @keyframes fadeIn {

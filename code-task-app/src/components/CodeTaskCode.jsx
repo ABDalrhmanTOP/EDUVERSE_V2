@@ -1,22 +1,23 @@
-// components/CodeTaskCode.jsx
+// src/components/CodeTaskCode.jsx
 import React, { useState } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import axios from "axios";
+import { FaArrowLeft } from "react-icons/fa";
 import Lottie from "lottie-react";
 import successAnimation from "../animations/success.json";
 import errorAnimation from "../animations/error.json";
 import "../styles/CodeTask.css";
 
+// Adjust if necessary for your dev environment:
 axios.defaults.baseURL = "http://127.0.0.1:8000/api";
 
-const CodeTaskCode = ({ task, onTaskComplete }) => {
+const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
   const [code, setCode] = useState("");
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [isLoading, setIsLoading] = useState(false);
-  // For dark mode we use "custom-dark", for light we use "vs-light"
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   const [editorTheme, setEditorTheme] = useState("custom-dark");
 
-  // onMount: define our custom dark theme for Monaco
   const handleEditorMount = (editor, monaco) => {
     monaco.editor.defineTheme("custom-dark", {
       base: "vs-dark",
@@ -51,36 +52,38 @@ const CodeTaskCode = ({ task, onTaskComplete }) => {
     }
     setIsLoading(true);
     setFeedback({});
+
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post(
         "/evaluate-code",
-        {
-          code: code,
-          language_id: 54,
-          task_id: task.id,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { code, language_id: 54, task_id: task.id },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      const { success, error, details } = response.data;
+
+      const { success, error, details, expected, received } = response.data;
+
       if (success) {
         setFeedback({
           type: "success",
-          message: "✅ Correct! Returning to the course...",
+          message: "✅ Correct! Returning to the course..."
         });
+        // After 2s, call onTaskComplete to close the task overlay
         setTimeout(() => onTaskComplete(), 2000);
       } else {
+        const newAttempts = wrongAttempts + 1;
+        setWrongAttempts(newAttempts);
+        // Show both "expected" and "received" if they exist
         setFeedback({
           type: "error",
-          message: `❌ ${error}.\nDetails: ${details}`,
+          message: `❌ Incorrect output.\nYour Output: ${
+            received || "Not available"
+          }\nExpected Output: ${expected || "Not available"}`
         });
       }
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.error || "Unknown error occurred";
-      const errorDetails = error.response?.data?.details || "";
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || "Unknown error occurred";
+      const errorDetails = err.response?.data?.details || "";
       setFeedback({
         type: "error",
         message: `Error submitting code: ${errorMessage}.\n${errorDetails}`,
@@ -93,21 +96,27 @@ const CodeTaskCode = ({ task, onTaskComplete }) => {
   const toggleTheme = () => {
     const newTheme = editorTheme === "custom-dark" ? "vs-light" : "custom-dark";
     setEditorTheme(newTheme);
+
     if (window.monaco) {
       window.monaco.editor.setTheme(newTheme);
     }
   };
 
   return (
-    // Dynamically add a class for light or dark mode
-    <div className={`code-task-container ${editorTheme === "vs-light" ? "light-mode" : "dark-mode"}`}>
+    <div
+      className={`code-task-container ${
+        editorTheme === "vs-light" ? "light-mode" : "dark-mode"
+      }`}
+    >
       <h3>{task.title}</h3>
       <p>{task.prompt}</p>
+
       <div className="theme-toggle-container">
         <button className="theme-toggle-button" onClick={toggleTheme}>
           {editorTheme === "custom-dark" ? "☀️ Light Theme" : "🌙 Dark Theme"}
         </button>
       </div>
+
       <div className="editor-wrapper">
         <MonacoEditor
           width="100%"
@@ -134,16 +143,9 @@ const CodeTaskCode = ({ task, onTaskComplete }) => {
             formatOnPaste: true,
             minimap: { enabled: false },
             automaticLayout: true,
-            bracketPairColorization: {
-              enabled: true,
-              independentColorPool: true,
-            },
+            bracketPairColorization: { enabled: true, independentColorPool: true },
             semanticHighlighting: { enabled: true },
-            scrollbar: {
-              vertical: "auto",
-              horizontal: "auto",
-              handleMouseWheel: true,
-            },
+            scrollbar: { vertical: "auto", horizontal: "auto", handleMouseWheel: true },
             cursorBlinking: "smooth",
             cursorSmoothCaretAnimation: "on",
             cursorStyle: "line",
@@ -152,6 +154,7 @@ const CodeTaskCode = ({ task, onTaskComplete }) => {
           }}
         />
       </div>
+
       <div className="submit-button-container">
         <button
           className="submit-button"
@@ -161,16 +164,35 @@ const CodeTaskCode = ({ task, onTaskComplete }) => {
           {isLoading ? "Testing..." : "Submit Code"}
         </button>
       </div>
+
+      <div className="return-button-container">
+        <button className="return-button" onClick={onReturn}>
+          <FaArrowLeft /> Return to Course
+        </button>
+      </div>
+
       {feedback.message && (
         <div className="feedback-modal">
           {feedback.type === "success" ? (
-            <Lottie animationData={successAnimation} style={{ width: 200, height: 200 }} />
+            <Lottie
+              animationData={successAnimation}
+              style={{ width: 200, height: 200 }}
+            />
           ) : (
-            <Lottie animationData={errorAnimation} style={{ width: 150, height: 150 }} />
+            <Lottie
+              animationData={errorAnimation}
+              style={{ width: 150, height: 150 }}
+            />
           )}
-          <p className="feedback-message" style={{ whiteSpace: "pre-line" }}>
-            {feedback.message}
-          </p>
+
+          <p className="feedback-message">{feedback.message}</p>
+
+          {wrongAttempts >= 3 && (
+            <pre className="hint-code">
+              <strong>Hint:</strong> {task.syntax_hint}
+            </pre>
+          )}
+
           {feedback.type === "error" && (
             <button className="try-again-button" onClick={() => setFeedback({})}>
               Try Again

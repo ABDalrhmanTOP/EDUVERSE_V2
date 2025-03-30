@@ -1,31 +1,39 @@
-// src/components/CodeTaskTrueFalse.jsx
 import React, { useState } from "react";
-import { FaCheckCircle, FaTimesCircle, FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import Lottie from "lottie-react";
 import successAnimation from "../animations/success.json";
 import errorAnimation from "../animations/error.json";
 import "../styles/CodeTask.css";
 
-const CodeTaskTrueFalse = ({ task, onTaskComplete, onReturn }) => {
+const CodeTaskMCQ = ({ task, onTaskComplete, onReturn }) => {
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [wrongAttempts, setWrongAttempts] = useState(0);
 
-  const handleAnswer = (answer) => {
-    // For True/False tasks, we do not display expected_output.
-    if (String(answer).toLowerCase() === String(task.correct_answer).toLowerCase()) {
+  let parsedOptions = {};
+  try {
+    parsedOptions = JSON.parse(task.options || "{}");
+  } catch (e) {
+    console.warn("Unable to parse MCQ options as JSON:", e);
+  }
+
+  const handleAnswer = (chosenKey) => {
+    if (String(chosenKey) === String(task.expected_output)) {
       setFeedback({
         type: "success",
         message: "✅ Correct! Returning to the course..."
       });
       setTimeout(() => onTaskComplete(), 2000);
     } else {
-      const newAttempts = wrongAttempts + 1;
-      setWrongAttempts(newAttempts);
+      const newCount = wrongAttempts + 1;
+      setWrongAttempts(newCount);
       let msg = "❌ Incorrect answer. Please try again.";
-      if (newAttempts >= 3) {
-        msg += `\nHint: ${task.syntax_hint}`; // syntax_hint holds the hint and correct answer.
+      if (newCount >= 3 && task.syntax_hint) {
+        msg += `\nHint: ${task.syntax_hint}`;
       }
-      setFeedback({ type: "error", message: msg });
+      setFeedback({
+        type: "error",
+        message: msg,
+      });
     }
   };
 
@@ -34,13 +42,15 @@ const CodeTaskTrueFalse = ({ task, onTaskComplete, onReturn }) => {
       <h3 className="task-title">{task.title}</h3>
       <p className="task-prompt">{task.prompt}</p>
 
-      <div className="tf-buttons">
-        <button className="true" onClick={() => handleAnswer("true")}>
-          <FaCheckCircle /> True
-        </button>
-        <button className="false" onClick={() => handleAnswer("false")}>
-          <FaTimesCircle /> False
-        </button>
+      <div className="mcq-options">
+        {Object.entries(parsedOptions).map(([key, value]) => (
+          <button
+            key={key}
+            onClick={() => handleAnswer(key)}
+          >
+            {key}) {value}
+          </button>
+        ))}
       </div>
 
       <div className="return-button-container">
@@ -59,10 +69,15 @@ const CodeTaskTrueFalse = ({ task, onTaskComplete, onReturn }) => {
           <p className="feedback-message" style={{ whiteSpace: "pre-line" }}>
             {feedback.message}
           </p>
+          {feedback.type === "error" && (
+            <button className="try-again-button" onClick={() => setFeedback({})}>
+              Try Again
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default CodeTaskTrueFalse;
+export default CodeTaskMCQ;
