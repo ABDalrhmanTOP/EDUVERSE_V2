@@ -1,0 +1,12 @@
+.home-video-container {
+    padding: 20px;
+  }
+  
+  .home-video-container h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+  }
+  
+  /* Additional styles for slider and admin progress table can be added or merged with your existing CSS */
+  

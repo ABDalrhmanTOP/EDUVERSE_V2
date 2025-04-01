@@ -14,9 +14,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\UserDetailController;
 use App\Http\Controllers\ChatController;
-
+use App\Http\Controllers\UserRatingController;
 use Illuminate\Support\Facades\Log;
-
+use App\Http\Controllers\FinalProjectController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -89,13 +89,17 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 });
 //show corses in home page
-Route::middleware('auth:api')->group(function () {
+// Show courses in home page
+Route::middleware('auth:sanctum')->group(function () {
     Route::get('/courses', [CourseController::class, 'index']);
 });
 
 
 Route::get('/chat', [ChatController::class, 'index']);
 
-
-Route::post('/final-project', [App\Http\Controllers\FinalProjectController::class, 'submitFinalProject'])
-    ->middleware('auth:api');
+// For quick testing, remove the middleware:
+Route::middleware('auth:sanctum')->post(
+    '/final-project',
+    [FinalProjectController::class, 'submitFinalProject']
+);
+Route::middleware('auth:sanctum')->post('/user-feedback', [UserRatingController::class, 'store']);

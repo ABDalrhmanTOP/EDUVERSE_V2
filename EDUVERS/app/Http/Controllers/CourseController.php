@@ -8,44 +8,44 @@ use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
-    // جلب جميع الكورسات
+    // Fetch all courses
     public function index()
     {
-        $Playlists = Playlist::all();
-        return response()->json($Playlists);
+        // If you don't need to eager load ratings, simply use:
+        $playlists = Playlist::all();
+        return response()->json($playlists);
     }
 
-    // إضافة كورس جديد
+    // Add new course
     public function store(Request $request)
     {
         $validated = $request->validate([
             'video_id' => 'required|string|max:255',
-            'name'       => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $Playlist = Playlist::create($validated);
-        return response()->json($Playlist, 201);
+        $playlist = Playlist::create($validated);
+        return response()->json($playlist, 201);
     }
-
 
     public function update(Request $request, $id)
     {
-        $Playlist = Playlist::findOrFail($id);
+        $playlist = Playlist::findOrFail($id);
         $validated = $request->validate([
             'video_id' => 'required|string|max:255',
-            'name'       => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $Playlist->update($validated);
-        return response()->json($Playlist);
+        $playlist->update($validated);
+        return response()->json($playlist);
     }
 
     public function destroy($id)
     {
-        $Playlist = Playlist::findOrFail($id);
-        $Playlist->delete();
+        $playlist = Playlist::findOrFail($id);
+        $playlist->delete();
         return response()->json(['message' => 'Course deleted successfully']);
     }
 }

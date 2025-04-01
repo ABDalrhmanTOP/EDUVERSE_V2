@@ -15,9 +15,15 @@ class Playlist extends Model
         'description',
     ];
 
-    public function tasks()
+    // Relationship: a playlist has many ratings.
+    // In app/Models/Playlist.php
+    public function ratings()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(UserRating::class);
+    }
 
+    public function getAverageRatingAttribute()
+    {
+        return round($this->ratings()->avg('rating') ?? 0, 1);
     }
 }
