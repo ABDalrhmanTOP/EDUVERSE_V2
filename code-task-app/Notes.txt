@@ -1,0 +1,20 @@
+php artisan storage:link // اذا الصورة ماكانت عم تتحمل
+
+UPDATE user_progress
+SET 
+    last_timestamp = (
+        SELECT t.timestamp 
+        FROM tasks t 
+        WHERE t.playlist_id = 1 
+          AND t.id = 21 
+        LIMIT 1
+    ),
+    completed_tasks = (
+        SELECT IFNULL(JSON_ARRAYAGG(CAST(t.id AS CHAR)), '[]')
+        FROM tasks t
+        WHERE t.playlist_id = 1 
+          AND t.id < 34
+    )
+WHERE user_id = 5
+  AND playlist_id = 1
+  AND video_id = '8jLOx1hD3_o'; //كويري لحتى تخلص من كل التاسكات وتروح للمشروع النهائي انتبه بس على اليوزر اي دي
