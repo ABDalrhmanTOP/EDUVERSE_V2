@@ -49,7 +49,7 @@ const App = () => {
         <Route path="/" element={<Welcome isSplit={isSplit} formType={formType} onNavigate={handleSplitScreen} isAuthenticated={isAuthenticated} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
         <Route path="/homevideo" element={<HomeVideo />} />
         
         {/* Protected Routes */}

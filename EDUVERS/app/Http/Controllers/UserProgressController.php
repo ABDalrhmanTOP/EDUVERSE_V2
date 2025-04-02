@@ -17,9 +17,9 @@ class UserProgressController extends Controller
         Log::info('Save Progress Request Received:', $request->all());
 
         $validated = $request->validate([
-            'video_id'      => 'required|string',
+            'video_id'       => 'required|string',
             'last_timestamp' => 'required|string',
-            'playlist_id'   => 'required|integer',
+            'playlist_id'    => 'required|integer',
         ]);
 
         $userId = Auth::id();
@@ -31,11 +31,10 @@ class UserProgressController extends Controller
         }
 
         try {
-            // Always match on user_id, video_id, playlist_id
             $progress = UserProgress::updateOrCreate(
                 [
-                    'user_id'    => $userId,
-                    'video_id'   => $validated['video_id'],
+                    'user_id'     => $userId,
+                    'video_id'    => $validated['video_id'],
                     'playlist_id' => $validated['playlist_id'],
                 ],
                 [
@@ -50,9 +49,9 @@ class UserProgressController extends Controller
             }
 
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Progress saved',
-                'data'   => $progress
+                'data'    => $progress
             ], 200);
         } catch (\Exception $e) {
             Log::error('Error Saving Progress:', [
@@ -67,7 +66,7 @@ class UserProgressController extends Controller
     }
 
     /**
-     * Get user progress.
+     * Get user progress for specific video and playlist.
      */
     public function getProgress(Request $request)
     {
@@ -90,35 +89,33 @@ class UserProgressController extends Controller
             ->first();
 
         if (!$progress) {
-            // Return a helpful "no progress" structure
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'No progress found',
-                'data'   => [
-                    'id'             => null,
-                    'user_id'        => $userId,
-                    'video_id'       => $validated['video_id'],
-                    'playlist_id'    => $validated['playlist_id'],
-                    'last_timestamp' => '00:00:00',
+                'data'    => [
+                    'id'              => null,
+                    'user_id'         => $userId,
+                    'video_id'        => $validated['video_id'],
+                    'playlist_id'     => $validated['playlist_id'],
+                    'last_timestamp'  => '00:00:00',
                     'completed_tasks' => [],
                 ]
             ], 200);
         }
 
-        // Ensure completed_tasks is an array
         if (!is_array($progress->completed_tasks)) {
             $progress->completed_tasks = [];
         }
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Progress retrieved',
-            'data'   => $progress,
+            'data'    => $progress,
         ], 200);
     }
 
     /**
-     * Mark a task as completed (auto-create if missing).
+     * Mark a task as completed.
      */
     public function completeTask(Request $request)
     {
@@ -139,24 +136,18 @@ class UserProgressController extends Controller
         }
 
         try {
-            // Instead of just "where(...)->first()", we do "firstOrNew()"
             $progress = UserProgress::firstOrNew([
-                'user_id'    => $userId,
-                'video_id'   => $validated['video_id'],
+                'user_id'     => $userId,
+                'video_id'    => $validated['video_id'],
                 'playlist_id' => $validated['playlist_id'],
             ]);
 
-            // If it's a new row, set defaults
             if (!$progress->exists) {
                 $progress->last_timestamp = "00:00:00";
                 $progress->completed_tasks = [];
             }
 
-            // Ensure completed_tasks is an array
-            $completedTasks = is_array($progress->completed_tasks)
-                ? $progress->completed_tasks
-                : [];
-
+            $completedTasks = is_array($progress->completed_tasks) ? $progress->completed_tasks : [];
             if (!in_array($validated['task_id'], $completedTasks)) {
                 $completedTasks[] = $validated['task_id'];
             }
@@ -170,9 +161,9 @@ class UserProgressController extends Controller
             ]);
 
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Task marked as completed',
-                'data'   => $progress,
+                'data'    => $progress,
             ], 200);
         } catch (\Exception $e) {
             Log::error('Error marking task as completed:', [
@@ -184,5 +175,66 @@ class UserProgressController extends Controller
                 'message' => 'Error marking task as completed'
             ], 500);
         }
+    }
+
+    /**
+     * Get course progress for a user.
+     */
+    public function getCourseProgress(Request $request, $userId)
+    {
+        // Ensure the authenticated user is the same as $userId (or allow admin rights)
+        if (Auth::id() != $userId) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Forbidden'
+            ], 403);
+        }
+
+        // Retrieve the user progress record along with the related playlist
+        $progress = UserProgress::with('playlist')->where('user_id', $userId)->first();
+
+        if (!$progress) {
+            // Return default values if no progress is found
+            return response()->json([
+                'course_title' => null,
+                'progress_percentage' => 0,
+                'completed_lessons' => 0,
+                'total_lessons' => 0,
+                'certificates_earned' => 0,
+            ], 200);
+        }
+
+        // Retrieve the related playlist
+        $playlist = $progress->playlist;
+
+        // Merge playlist name and description using a hyphen.
+        // If no playlist is associated, fall back to a default title.
+        $courseTitle = $playlist
+            ? $playlist->name . " - " . $playlist->description
+            : "Unknown Course";
+
+        // Assume the playlist has a total_lessons field; otherwise, use a default value.
+        $totalLessons = $playlist && $playlist->total_lessons
+            ? $playlist->total_lessons
+            : 10;
+
+        // Count the completed lessons from the completed_tasks array.
+        $completedLessons = count($progress->completed_tasks);
+
+        // Calculate progress percentage (cap at 100).
+        $progressPercentage = $totalLessons > 0
+            ? min(100, ($completedLessons / $totalLessons) * 100)
+            : 0;
+
+        // Award a certificate if progress is 100%.
+        $certificatesEarned = ($progressPercentage === 100) ? 1 : 0;
+
+        return response()->json([
+            'course_title' => $courseTitle,
+            'progress_percentage' => $progressPercentage,
+            'completed_lessons' => $completedLessons,
+            'total_lessons' => $totalLessons,
+            'certificates_earned' => $certificatesEarned,
+        ], 200);
     }
 }

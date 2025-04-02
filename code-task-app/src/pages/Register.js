@@ -1,4 +1,3 @@
-// src/pages/Register.js
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Auth.css";
@@ -34,6 +33,7 @@ const Register = ({ onFinished, onSwitchToLogin }) => {
     if (!success) {
       setMessage("Registration failed. Please try again.");
     } else {
+      // Optionally navigate to the profile page after registration
       if (onFinished) onFinished();
     }
   };
@@ -82,7 +82,6 @@ const Register = ({ onFinished, onSwitchToLogin }) => {
           </button>
           {message && <p className="feedback">{message}</p>}
         </form>
-        {/* Footer Link to switch to Login */}
         <div className="auth-footer">
           <p>
             Have an account?{" "}

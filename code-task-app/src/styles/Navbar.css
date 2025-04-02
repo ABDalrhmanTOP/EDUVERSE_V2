@@ -13,11 +13,11 @@ body {
 
 /* Navbar Container */
 .nav_container {
-  position: fixed;              /* Fixed positioning */
-  top: 0;                       /* Always at the top */
-  left: 50%;                    /* Center horizontally */
+  position: fixed;
+  top: 0;
+  left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;                /* High z-index to ensure it's above other content */
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -91,23 +91,36 @@ body {
   display: flex;
   align-items: center;
 }
-.profile-icon {
+
+/* Use a button for the profile icon */
+.profile-icon-btn {
+  background: transparent;
+  border: none;
   cursor: pointer;
   color: white;
-  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  z-index: 10;
+  padding: 0;
 }
-.profile-icon:hover {
+.profile-icon-btn:hover {
   color: #d2b6b6;
 }
+
 .username-display {
   font-size: 16px;
   font-weight: bold;
   color: white;
   margin-right: 8px;
 }
+
+/* Profile Dropdown – added a debug border for visibility */
 .profile-dropdown {
   position: absolute;
-  top: 70px;
+  top: 60px; /* Adjusted from 70px for testing; tweak as needed */
   right: 0;
   background-color: #424055;
   border-radius: 8px;
@@ -118,7 +131,9 @@ body {
   padding: 8px;
   gap: 4px;
   z-index: 1300;
+  border: 2px solid red;  /* DEBUG: Remove once confirmed visible */
 }
+
 .profile-dropdown-link {
   border: none;
   background: none;
@@ -155,6 +170,15 @@ body {
 .navbar .navbar-btn:hover {
   background-color: #d2b6b6;
   transform: scale(1.05);
+}
+.navbar-profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  /* Optionally add a border */
+  border: 2px solid #fff;
 }
 
 /* Media Queries for responsiveness */

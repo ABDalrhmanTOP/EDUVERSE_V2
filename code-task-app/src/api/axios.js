@@ -1,29 +1,32 @@
+// src/api/axios.js
 import axios from "axios";
 
-// Configure base Axios client
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api", // No trailing slash
-  withCredentials: true, // Required for cookies
+  baseURL: "http://localhost:8000/api", // Adjust if needed
+  withCredentials: true, // Required if using cookie-based auth (e.g., Sanctum)
 });
 
-// Add CSRF protection (MUST happen before any API calls)
-await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-  withCredentials: true,
-});
+// Immediately request the CSRF cookie (if using Laravel Sanctum)
+(async () => {
+  try {
+    await axios.get("http://localhost:8000/sanctum/csrf-cookie", { withCredentials: true });
+    console.log("CSRF cookie set");
+  } catch (error) {
+    console.error("CSRF cookie request failed:", error);
+  }
+})();
 
-// Request interceptor for auth token
+// Request interceptor: attach token from localStorage
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("bearerToken");
-  
-  // Attach Bearer token if available
+  const token = localStorage.getItem("token"); // Ensure token is stored with this key
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  
-  // Required headers for Laravel API
   config.headers.Accept = "application/json";
-  config.headers["Content-Type"] = "application/json";
-  
+  // If data is not FormData, set Content-Type to application/json
+  if (!(config.data instanceof FormData)) {
+    config.headers["Content-Type"] = "application/json";
+  }
   return config;
 });
 

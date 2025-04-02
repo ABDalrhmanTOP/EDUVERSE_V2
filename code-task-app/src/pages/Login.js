@@ -1,4 +1,3 @@
-// src/pages/Login.js
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Auth.css";
@@ -22,8 +21,8 @@ const Login = ({ onFinished, onSwitchToRegister }) => {
     if (!success) {
       setMessage("Login failed. Please check your credentials.");
     } else {
-      // Refresh or navigate if needed
-      navigate(0);
+      // Navigate to profile page (or dashboard) after successful login.
+      navigate("/profile");
       if (onFinished) onFinished();
     }
   };

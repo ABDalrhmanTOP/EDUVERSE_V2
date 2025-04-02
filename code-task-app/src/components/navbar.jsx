@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+// src/components/Navbar.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Navbar.css";
-import { FaUserCircle } from "react-icons/fa";
 import eduverseLogo from "../assets/eduverse_logo.png";
-
+import defaultProfile from "../assets/default-profile.png"; // Ensure this file exists
 
 const Navbar = ({ onNavigate, isFormOpen }) => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -12,11 +12,19 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
   const [activeForm, setActiveForm] = useState(null);
   const navigate = useNavigate();
 
-  // Since AuthContext provides "user", extract username and role
+  // Extract username and role from user
   const username = user ? (user.username || user.name || "User") : "";
   const userRole = user ? user.role : null;
 
-  // Toggle side register form for EduBot
+  // Compute the profile image URL if available
+  // (Make sure your backend storage is linked via `php artisan storage:link`)
+  let profileImageUrl = defaultProfile;
+  if (isAuthenticated && user && user.profile_photo_path) {
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+    profileImageUrl = `${baseUrl}/storage/${user.profile_photo_path}`;
+  }
+
+  // Handlers for navigation
   const handleEduBot = () => {
     if (!isAuthenticated) {
       if (activeForm === "register") {
@@ -32,7 +40,6 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     }
   };
 
-  // Toggle side register form for Courses
   const handleHomeVideo = () => {
     if (!isAuthenticated) {
       if (activeForm === "register") {
@@ -48,7 +55,6 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     }
   };
 
-  // Toggle Login/Register side form when the corresponding button is clicked
   const handleAuthButtonClick = (formType) => {
     if (activeForm === formType) {
       setActiveForm(null);
@@ -60,23 +66,24 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     }
   };
 
-  // When the logo is clicked, close any open form and navigate home
   const handleLogoClick = () => {
     setActiveForm(null);
     onNavigate(null);
     navigate("/");
   };
 
-  // Toggle the profile dropdown menu
   const toggleProfileMenu = () => {
     setShowProfileMenu((prev) => !prev);
   };
 
-  // Logout handler: call the context's logout, hide menu, and navigate home
   const handleLogout = () => {
     logout();
     setShowProfileMenu(false);
     navigate("/");
+  };
+
+  const handleDashboard = () => {
+    navigate("/AdminDashboard");
   };
 
   const navbarClasses = [
@@ -85,14 +92,9 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
     isFormOpen ? "navbar-transparent" : "",
   ].join(" ");
 
-  // If user is admin, clicking shows the dashboard
-  const handleDashboard = () => {
-    navigate("/AdminDashboard");
-  };
-
   return (
     <nav className={navbarClasses}>
-      {/* Left Section: Logo, Courses, EduBot, and Admin (if applicable) */}
+      {/* Left Section */}
       <div className="navbar-left">
         <img
           src={eduverseLogo}
@@ -112,21 +114,24 @@ const Navbar = ({ onNavigate, isFormOpen }) => {
           </button>
         )}
       </div>
-
-      {/* Right Section: If authenticated, show username and profile icon; otherwise, Login/Register buttons */}
+      {/* Right Section */}
       <div className="navbar-right">
         {isAuthenticated ? (
           <div className="profile-container">
             {username && <span className="username-display">{username}</span>}
-            <div className="profile-icon" onClick={toggleProfileMenu}>
-              <FaUserCircle size={32} />
-            </div>
+            {/* Instead of the default profile icon, show the user’s profile image */}
+            <img
+              src={profileImageUrl}
+              alt="User Profile"
+              className="navbar-profile-picture"
+              onClick={() => navigate("/profile")}
+            />
             {showProfileMenu && (
               <div className="profile-dropdown">
                 <button
                   className="profile-dropdown-link"
                   onClick={() => {
-                    navigate("/Profile");
+                    navigate("/profile");
                     setShowProfileMenu(false);
                   }}
                 >
