@@ -1,71 +1,141 @@
-// src/App.js
+// src/App.jsx
 import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate
+  Navigate,
 } from "react-router-dom";
-import { useAuth, AuthProvider } from "./context/AuthContext";
-import Navbar from "./components/navbar";
-import Welcome from "./pages/Welcome";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+// Your components
+import Navbar from "./components/Navbar";
+import Homepage from "./components/Homepage";
+import HomeVideo from "./pages/HomeVideo";
 import FormTest from "./pages/form_test";
 import VideoPage from "./pages/VideoPage";
+import Profile from "./pages/Profile";
+import ChatApp from "./pages/ChatApp";
+import FinalProject from "./components/FinalProject";
+
+// Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
 import CoursesList from "./components/admin/CoursesList";
 import UsersList from "./components/admin/UsersList";
 import UserDetail from "./components/admin/UserDetial";
-import HomeVideo from "./pages/HomeVideo";
+
 import "./App.css";
-import Profile from "./pages/Profile";
 import "bootstrap/dist/css/bootstrap.min.css";
-import ChatApp from "./pages/ChatApp";
-import FinalProject from "./components/FinalProject";
+
+// ----------------- ProtectedRoute -----------------
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  return isAuthenticated ? children : <Navigate to="/" />;
+};
+
+// --------------- AdminProtectedRoute --------------
+const AdminProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (!isAuthenticated) {
+    return <Navigate to="/" />;
+  }
+  if (user?.role !== "admin") {
+    return <Navigate to="/" />;
+  }
+  return children;
+};
 
 const App = () => {
-  const { isAuthenticated } = useAuth();
-
-  // State for controlling the split-screen in Welcome
-  const [isSplit, setIsSplit] = useState(false);
   const [formType, setFormType] = useState(null);
-
-  // Toggle split-screen for login/register forms
-  const handleSplitScreen = (type) => {
-    setIsSplit(!!type);
-    setFormType(type);
-  };
 
   return (
     <>
-      <Navbar
-        onNavigate={handleSplitScreen}
-        isFormOpen={!!(formType === "login" || formType === "register")}
-      />
-
+      <Navbar setFormType={setFormType} />
       <Routes>
-        <Route path="/chat" element={isAuthenticated ? <ChatApp /> : <Navigate to="/login" />} />
-        <Route path="/" element={<Welcome isSplit={isSplit} formType={formType} onNavigate={handleSplitScreen} isAuthenticated={isAuthenticated} />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
-        <Route path="/homevideo" element={<HomeVideo />} />
-        
-        {/* Protected Routes */}
-        <Route path="/foem_test" element={isAuthenticated ? <FormTest /> : <Navigate to="/" />} />
-        <Route path="/video" element={isAuthenticated ? <VideoPage /> : <Navigate to="/" />} />
+        {/* Public/Homepage */}
+        <Route
+          path="/"
+          element={
+            <Homepage formType={formType} setFormType={setFormType} />
+          }
+        />
 
-        {/* Admin Routes */}
-        <Route path="/AdminDashboard" element={<AdminDashboard />}>
+        {/* Protected */}
+        <Route
+          path="/homevideo"
+          element={
+            <ProtectedRoute>
+              <HomeVideo />
+            </ProtectedRoute>
+          }
+        />
+        {/* NOTE: single param "levelId" */}
+        <Route
+          path="/form_test/:levelId"
+          element={
+            <ProtectedRoute>
+              <FormTest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+  path="/video"
+  element={
+    <ProtectedRoute>
+      <VideoPage />
+    </ProtectedRoute>
+  }
+/>
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatApp />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/final-project"
+          element={
+            <ProtectedRoute>
+              <FinalProject />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin */}
+        <Route
+          path="/AdminDashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="users" replace />} />
           <Route path="users" element={<UsersList />} />
-          <Route path="courses" element={<CoursesList />} />
           <Route path="userdetail/:user_id" element={<UserDetail />} />
+          <Route path="courses" element={<CoursesList />} />
         </Route>
 
-        {/* Final Project Route (accessible only after finishing the course) */}
-        <Route path="/final-project" element={<FinalProject />} />
-
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>

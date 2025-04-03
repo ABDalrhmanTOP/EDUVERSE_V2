@@ -85,8 +85,8 @@ Route::fallback(function () {
     Log::warning('API Route not found', ['url' => request()->url()]);
     return response()->json(['message' => 'API Route not found.'], 404);
 });
-// In routes/api.php, under your protected routes:
+// Return all course progress for the authenticated user, split into two arrays
 Route::middleware('auth:sanctum')->get(
-    '/user-progress/course-progress/{userId}',
-    [UserProgressController::class, 'getCourseProgress']
-)->name('user-progress.getCourseProgress');
+    '/user-progress/all',
+    [UserProgressController::class, 'getAllCourseProgress']
+)->name('user-progress.getAll');

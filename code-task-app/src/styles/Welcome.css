@@ -1,185 +1,226 @@
-/* General Container */
-.welcome-container {
+src/styles/Welcome.css
+
+/* --- Base Container --- */
+.welcome-page-container {
+  min-height: 100vh; /* Ensure it covers viewport height */
   display: flex;
-  height: 100vh;
-  background: linear-gradient(135deg, #424055, #6a5c7e);
-  font-family: 'Arial', sans-serif;
-  color: white;
-  overflow: hidden;
-  position: relative;
+  flex-direction: column; /* Stack content and footer */
+  background-color: #F5F5DC; /* Primary beige background */
+  color: #333333; /* Dark text */
+  font-family: 'Poppins', sans-serif;
+  padding-top: 90px; /* Add padding for fixed navbar height + spacing */
+  transition: background-color 0.5s ease;
 }
 
-/* Left Section */
+/* When form is active, maybe slightly darken or change background */
+.welcome-page-container.split-active {
+   /* Example: Slightly darken background */
+   /* background-color: #E8E4D8; */
+}
+
+.welcome-content-area {
+  display: flex;
+  flex-grow: 1; /* Allow content to fill space */
+  width: 100%;
+  max-width: 1400px; /* Limit max width for large screens */
+  margin: 0 auto; /* Center content area */
+  padding: 20px 40px; /* Padding around content */
+  box-sizing: border-box;
+}
+
+/* --- Left Section (Main Content) --- */
 .welcome-left {
-  flex: 1;
+  flex: 1; /* Take remaining space when form isn't shown */
+  padding-right: 30px; /* Space between content and potential form */
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  padding: 20px;
-  text-align: center;
-  transition: all 0.8s ease;
+  transition: flex 0.6s ease-in-out, opacity 0.6s ease;
+  opacity: 1;
 }
 
 .welcome-left.split {
-  flex: 0.5;
-  border-top-left-radius: 50px;
-  border-bottom-left-radius: 50px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  flex: 0.6; /* Shrink when form is shown */
+  opacity: 0.9; /* Slightly fade back */
+}
+
+/* Hero Section */
+.welcome-hero {
+  text-align: left; /* Align text left */
+  margin-bottom: 50px;
 }
 
 .welcome-header {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  animation: fadeIn 1.5s ease;
+  font-size: 3.2rem; /* Larger heading */
+  font-weight: 700;
+  color: #5C5853; /* Use navbar color for heading */
+  margin-bottom: 15px;
+  line-height: 1.2;
 }
 
 .welcome-subtext {
-  font-size: 1.5rem;
-  margin-bottom: 30px;
-  animation: fadeIn 1.5s ease;
+  font-size: 1.3rem; /* Slightly larger subtext */
+  color: #555; /* Slightly lighter text */
+  max-width: 600px; /* Limit width for readability */
 }
 
 /* Features Section */
 .features-section {
-  padding: 40px 20px;
+  margin-top: 40px;
+}
+
+.features-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #AD998A; /* Accent color for title */
+  margin-bottom: 30px;
+  text-align: left;
 }
 
 .features-grid {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+  gap: 30px;
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: #ffffff; /* White background for cards */
   border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s ease;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #EDE0D4; /* Light beige border */
 }
 
 .feature-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
 }
 
-.feature-card img {
-  border-radius: 10px;
+.feature-image {
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  height: 180px; /* Fixed height for images */
+  object-fit: cover; /* Cover the area */
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
 .feature-card h3 {
-  margin-top: 15px;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #5C5853;
 }
 
 .feature-card p {
   font-size: 1rem;
-  color: #ddd;
+  color: #666;
+  line-height: 1.5;
 }
 
-/* Right Section */
+/* --- Right Section (Login/Register Form) --- */
 .welcome-right {
-  flex: 0.5;
+  flex: 0.4; /* Take up space when shown */
   display: flex;
   justify-content: center;
   align-items: center;
-  background: transparent;
-  border-top-right-radius: 50px;
-  border-bottom-right-radius: 50px;
-  position: relative;
-  z-index: 10;
-  padding: 0;
-  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+  padding-left: 30px; /* Space from left content */
+  animation: slideInForm 0.6s ease-in-out forwards;
+  overflow: hidden; /* Prevent content spill during animation */
 }
 
-/* Form Container */
-.form-container {
+@keyframes slideInForm {
+  from {
+    transform: translateX(50%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.form-wrapper {
   width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
+  max-width: 400px; /* Max width for the form */
+  background: #ffffff; /* White background for form */
+  padding: 30px 40px;
   border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  position: absolute;
-  animation: fadeIn 0.5s ease forwards;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid #EDE0D4; /* Light beige border */
 }
 
-/* Animation Classes */
-.form-container.animate-slide-in {
-  animation: slideIn 0.5s ease forwards;
-}
-
-.form-container.animate-slide-out {
-  animation: slideOut 0.5s ease forwards;
-}
-
-/* Zigzag Divider */
-.zigzag-divider {
-  position: absolute;
-  left: 0;
-  width: 50px;
-  height: 100%;
-  background: repeating-linear-gradient(45deg, #AD998A, #AD998A 10px, #6a5c7e 10px, #6a5c7e 20px);
-  z-index: 5;
-  clip-path: polygon(0 0, 50% 5%, 0 10%, 50% 15%, 0 20%, 50% 25%, 0 30%, 50% 35%, 0 40%, 50% 45%, 0 50%, 50% 55%, 0 60%, 50% 65%, 0 70%, 50% 75%, 0 80%, 50% 85%, 0 90%, 50% 95%, 0 100%);
-}
-
-/* Footer */
-.footer {
+/* --- Footer --- */
+.footer { /* General footer styles, can be in a global CSS */
   text-align: center;
-  background: #424055;
-  color: white;
-  padding: 10px;
+  padding: 20px;
   font-size: 0.9rem;
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  color: #5C5853; /* Darker beige/gray text */
+  background-color: #EDE0D4; /* Light beige background for footer */
+  border-top: 1px solid #CDC5B7; /* Slightly darker border */
   width: 100%;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  margin-top: auto; /* Push footer to bottom */
 }
 
-.footer-link {
-  color: #AD998A;
-  text-decoration: none;
+.welcome-footer {
+   /* Specific styles if needed */
 }
 
-.footer-link:hover {
-  text-decoration: underline;
+/* --- Responsiveness --- */
+@media (max-width: 992px) {
+  .welcome-content-area {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .welcome-left {
+    padding-right: 0;
+    margin-bottom: 40px; /* Space when stacked */
+    opacity: 1 !important; /* Ensure visible when stacked */
+    flex: 1 !important; /* Take full width when stacked */
+  }
+
+   .welcome-left.split {
+       margin-bottom: 40px; /* Add space even when split on smaller screens */
+   }
+
+  .welcome-right {
+    padding-left: 0;
+    width: 100%;
+    max-width: 500px; /* Allow form to be wider */
+    margin: 0 auto; /* Center form */
+    animation: none; /* Disable slide-in on small screens if preferred */
+  }
+
+  .welcome-hero, .features-section {
+      text-align: center; /* Center align text on small screens */
+  }
+   .features-title {
+       text-align: center;
+   }
+
+  .welcome-subtext {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideOut {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
+@media (max-width: 768px) {
+    .welcome-header {
+        font-size: 2.5rem;
+    }
+    .welcome-subtext {
+        font-size: 1.1rem;
+    }
+    .features-title {
+        font-size: 1.8rem;
+    }
+    .feature-card h3 {
+        font-size: 1.2rem;
+    }
+     .form-wrapper {
+         padding: 25px 30px;
+     }
 }
