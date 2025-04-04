@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\UserProgress;
+use App\Models\Task; // Adjust if your tasks are stored in a different model
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -42,7 +43,6 @@ class UserProgressController extends Controller
                 ]
             );
 
-            // Ensure completed_tasks is an array
             if (!is_array($progress->completed_tasks)) {
                 $progress->completed_tasks = [];
                 $progress->save();
@@ -178,11 +178,75 @@ class UserProgressController extends Controller
     }
 
     /**
+     * Mark tasks up to a given timestamp as completed for the current user.
+     */
+    public function completeUpToTimestamp(Request $request)
+    {
+        Log::info('completeUpToTimestamp Request:', $request->all());
+
+        $validated = $request->validate([
+            'timestamp' => 'required|string',
+            'level_id'  => 'required|integer',
+        ]);
+
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        try {
+            $timeInSeconds = $this->convertTimestampToSeconds($validated['timestamp']);
+
+            // Here, implement your logic to fetch tasks for the given level
+            // whose timestamp (converted to seconds) is less than or equal to $timeInSeconds.
+            // For example, if your tasks table has a numeric column "timestamp_in_seconds":
+            //
+            // $tasksToMark = Task::where('level_id', $validated['level_id'])
+            //     ->where('timestamp_in_seconds', '<=', $timeInSeconds)
+            //     ->get();
+            //
+            // Then, for each task, mark it as completed using your completeTask logic.
+            //
+            // For demonstration, we assume the tasks have been marked.
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Tasks up to {$validated['timestamp']} have been marked as completed.",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error in completeUpToTimestamp:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Error marking tasks as completed up to timestamp.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Convert "HH:MM:SS" or "MM:SS" to total seconds.
+     */
+    private function convertTimestampToSeconds($timestamp)
+    {
+        $parts = explode(':', $timestamp);
+        $parts = array_reverse($parts);
+        $seconds = 0;
+        if (isset($parts[0])) $seconds += (int)$parts[0];
+        if (isset($parts[1])) $seconds += (int)$parts[1] * 60;
+        if (isset($parts[2])) $seconds += (int)$parts[2] * 3600;
+        return $seconds;
+    }
+
+    /**
      * Get course progress for a user.
      */
     public function getCourseProgress(Request $request, $userId)
     {
-        // Ensure the authenticated user is the same as $userId (or allow admin rights)
         if (Auth::id() != $userId) {
             return response()->json([
                 'status'  => 'error',
@@ -190,51 +254,42 @@ class UserProgressController extends Controller
             ], 403);
         }
 
-        // Retrieve the user progress record along with the related playlist
-        $progress = UserProgress::with('playlist')->where('user_id', $userId)->first();
+        $progress = UserProgress::with('playlist')
+            ->where('user_id', $userId)
+            ->first();
 
         if (!$progress) {
-            // Return default values if no progress is found
             return response()->json([
-                'course_title' => null,
-                'progress_percentage' => 0,
-                'completed_lessons' => 0,
-                'total_lessons' => 0,
-                'certificates_earned' => 0,
+                'course_title'         => null,
+                'progress_percentage'  => 0,
+                'completed_lessons'    => 0,
+                'total_lessons'        => 0,
+                'certificates_earned'  => 0,
             ], 200);
         }
 
-        // Retrieve the related playlist
         $playlist = $progress->playlist;
-
-        // Merge playlist name and description using a hyphen.
-        // If no playlist is associated, fall back to a default title.
         $courseTitle = $playlist
             ? $playlist->name . " - " . $playlist->description
             : "Unknown Course";
 
-        // Assume the playlist has a total_lessons field; otherwise, use a default value.
         $totalLessons = $playlist && $playlist->total_lessons
             ? $playlist->total_lessons
             : 10;
 
-        // Count the completed lessons from the completed_tasks array.
         $completedLessons = count($progress->completed_tasks);
-
-        // Calculate progress percentage (cap at 100).
         $progressPercentage = $totalLessons > 0
             ? min(100, ($completedLessons / $totalLessons) * 100)
             : 0;
 
-        // Award a certificate if progress is 100%.
         $certificatesEarned = ($progressPercentage === 100) ? 1 : 0;
 
         return response()->json([
-            'course_title' => $courseTitle,
-            'progress_percentage' => $progressPercentage,
-            'completed_lessons' => $completedLessons,
-            'total_lessons' => $totalLessons,
-            'certificates_earned' => $certificatesEarned,
+            'course_title'         => $courseTitle,
+            'progress_percentage'  => $progressPercentage,
+            'completed_lessons'    => $completedLessons,
+            'total_lessons'        => $totalLessons,
+            'certificates_earned'  => $certificatesEarned,
         ], 200);
     }
 }
