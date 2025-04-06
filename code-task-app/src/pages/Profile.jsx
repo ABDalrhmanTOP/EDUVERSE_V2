@@ -11,7 +11,7 @@ import {
 import { CSSTransition, SwitchTransition } from "react-transition-group";
 import { useAuth } from "../context/AuthContext";
 import CropModal from "../components/CropModal";
-import defaultProfile from "../assets/default-profile.png";
+import defaultProfile from "../assets/user.png";
 
 const Profile = () => {
   const { videoId } = useParams();
@@ -125,7 +125,7 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      const response = await axios.get("/profile");
+      const response = await axios.get("/profile", { withCredentials: true });
       const userData = response.data.user;
       setUser_id(userData?.id);
       setName(userData?.name || "N/A");
@@ -142,36 +142,33 @@ const Profile = () => {
     }
   };
 
- // ... inside fetchCourses:
- const fetchCourses = async () => {
-  if (!user?.id) return;
-  setCoursesLoading(true);
-  setErrorCourses("");
-  try {
-    const response = await axios.get(`/user-progress/course-progress/${user.id}`);
-    const info = response.data;
-    // Use the merged title from the backend
-    setNameCourses(info?.course_title || "Your Course");
-    setProgress(info?.progress_percentage || 0);
-    setCompletedtask(info?.completed_lessons || 0);
-    setTotalLessons(Math.max(info?.total_lessons || 0, info?.completed_lessons || 0));
-    setCertificates(info?.certificates_earned || 0);
-    if ((info?.progress_percentage || 0) === 100) {
-      const simulatedCourses = [
-        { id: 1, name: info.course_title || "Your Course", totalLessons: Math.max(info?.total_lessons || 0, info?.completed_lessons || 0) },
-      ];
-      setCompletedCourses(simulatedCourses);
-      setSelectedCourse(simulatedCourses[0].id);
+  const fetchCourses = async () => {
+    if (!user?.id) return;
+    setCoursesLoading(true);
+    setErrorCourses("");
+    try {
+      const response = await axios.get(`/user-progress/course-progress/${user.id}`, { withCredentials: true });
+      const info = response.data;
+      setNameCourses(info?.course_title || "Your Course");
+      setProgress(info?.progress_percentage || 0);
+      setCompletedtask(info?.completed_lessons || 0);
+      setTotalLessons(Math.max(info?.total_lessons || 0, info?.completed_lessons || 0));
+      setCertificates(info?.certificates_earned || 0);
+      if ((info?.progress_percentage || 0) === 100) {
+        const simulatedCourses = [
+          { id: 1, name: info.course_title || "Your Course", totalLessons: Math.max(info?.total_lessons || 0, info?.completed_lessons || 0) },
+        ];
+        setCompletedCourses(simulatedCourses);
+        setSelectedCourse(simulatedCourses[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch courses:", err);
+      setErrorCourses("Could not load course data.");
+      setProgress(0);
+    } finally {
+      setCoursesLoading(false);
     }
-  } catch (err) {
-    console.error("Failed to fetch courses:", err);
-    setErrorCourses("Could not load course data.");
-    setProgress(0);
-  } finally {
-    setCoursesLoading(false);
-  }
-};
-
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -179,7 +176,7 @@ const Profile = () => {
     setMessage("");
     setError("");
     try {
-      const response = await axios.put("/profile", { name, username, email });
+      const response = await axios.put("/profile", { name, username, email }, { withCredentials: true });
       setMessage("Profile updated successfully!");
       setIsEditing(false);
       updateUser(response.data.user);
@@ -204,7 +201,7 @@ const Profile = () => {
     }
     setPasswordLoading(true);
     try {
-      await axios.post("/change-password", { currentPassword, newPassword });
+      await axios.post("/change-password", { currentPassword, newPassword }, { withCredentials: true });
       setMessage("Password updated successfully!");
       setCurrentPassword("");
       setNewPassword("");
@@ -233,6 +230,7 @@ const Profile = () => {
     try {
       const response = await axios.post("/profile/picture", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
       });
       if (response.data.path) {
         setProfilePhotoPath(response.data.path);
@@ -246,6 +244,24 @@ const Profile = () => {
     } catch (err) {
       console.error("Picture upload error:", err);
       setError(err.response?.data?.message || "Failed to upload picture. Please try again.");
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
+  // New: Remove profile picture (calls DELETE /profile/picture)
+  const handleRemoveProfilePicture = async () => {
+    setUploadingPicture(true);
+    setError("");
+    setMessage("");
+    try {
+      await axios.delete("/profile/picture", { withCredentials: true });
+      setProfilePhotoPath(null);
+      updateUser({ ...user, profile_photo_path: null });
+      setMessage("Profile picture removed.");
+    } catch (err) {
+      console.error("Failed to remove profile picture:", err);
+      setError(err.response?.data?.message || "Failed to remove profile picture.");
     } finally {
       setUploadingPicture(false);
     }
@@ -316,6 +332,12 @@ const Profile = () => {
                   <FaTimes /> Cancel
                 </button>
               </div>
+            )}
+            {/* Remove Picture Button (only shows when a custom picture is set) */}
+            {!selectedFile && profilePhotoPath && (
+              <button className="button secondary small" onClick={handleRemoveProfilePicture} disabled={uploadingPicture}>
+                <FaTimes /> Remove Picture
+              </button>
             )}
           </div>
           <div className="profile-header-details">

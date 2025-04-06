@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import Navbar from "./Navbar";
 import "../styles/Homepage.css";
+import { FaPhoneAlt, FaWhatsapp } from 'react-icons/fa';
 
 const Login = ({ onFinished, onSwitchToRegister, closeForm }) => {
    const { login } = useAuth();
@@ -303,10 +304,17 @@ const Homepage = ({ formType, setFormType }) => { // Receive props from App.js
             )}
        </AnimatePresence>
 
-      <footer className="homepage-footer">
-        <p>© {new Date().getFullYear()} Eduverse.</p>
-        {/* Add footer links: About Us, Contact, Privacy Policy etc. */}
-      </footer>
+       <footer className='homepage-footer'style={{ textAlign: 'center', marginTop: '2rem' }}>
+      <p>© {new Date().getFullYear()} EduVerse. All rights reserved.</p>
+      <p>
+        <FaPhoneAlt style={{ marginRight: '0.5rem' }} />
+        Phone: +963 980 609 120
+      </p>
+      <p>
+        <FaWhatsapp style={{ marginRight: '0.5rem' }} />
+        WhatsApp: +963 982 068 156
+      </p>
+    </footer>
     </div>
   );
 };

@@ -4,8 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import { FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi'; // Example icons
 import "../styles/Navbar.css"; // <-- Use the NEW Navbar.css
-import eduverseLogo from "../assets/eduverse_logo.png"; // Make sure path is correct
-import defaultProfile from "../assets/default-profile.png";
+import eduverseLogo from "../assets/1.png"; // Make sure path is correct
+import defaultProfile from "../assets/user.png";
 
 const Navbar = ({ setFormType }) => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -101,7 +101,7 @@ const Navbar = ({ setFormType }) => {
             onClick={handleLogoClick}
             title="Go to Homepage"
           />
-           <span className="navbar-brand-text" onClick={handleLogoClick}>Eduverse</span>
+           {/*<span className="navbar-brand-text" onClick={handleLogoClick}>Eduverse</span>*/}
         </div>
 
         {/* Center: Desktop Links */}
