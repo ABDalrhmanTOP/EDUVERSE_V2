@@ -42,6 +42,10 @@
   gap: 10px;
   margin: 20px;
 }
+.feature-item {
+  cursor: pointer;
+}
+
 
 .navbar-logo {
   height: 30px;
