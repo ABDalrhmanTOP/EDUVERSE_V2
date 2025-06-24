@@ -17,6 +17,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserRatingController;
 use App\Http\Controllers\FinalProjectController;
 use App\Http\Controllers\TaskPlaylistVideoController;
+use App\Http\Controllers\EduBotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,9 +58,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user-progress/course-progress/{userId}', [UserProgressController::class, 'getCourseProgress']);
 
     // Profile
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
-    Route::post('/profile/picture', [ProfileController::class, 'updatePicture']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'show']);
+        Route::put('/profile', [ProfileController::class, 'update']);
+        Route::post('/profile/picture', [ProfileController::class, 'updatePicture']);
+        Route::delete('/profile/picture', [ProfileController::class, 'removePicture']);
+    });
 
     // Test & Course
     Route::get('/showTest/{levelId}', [TestController::class, 'showTest']);
@@ -107,7 +111,6 @@ Route::get('/tasks/{playlistId}', [TaskController::class, 'getTasks']);
 Route::post('/evaluate-code', [TaskController::class, 'evaluateCode']);
 Route::post('/send-verification-code', [EmailVerificationController::class, 'sendVerificationCode']);
 Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);
-Route::get('/chat', [ChatController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
@@ -126,3 +129,12 @@ Route::fallback(function () {
     Log::warning('API Route not found', ['url' => request()->url()]);
     return response()->json(['message' => 'API Route not found.'], 404);
 });
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/user-progress/update', [UserProgressController::class, 'updateProgress']);
+});
+
+Route::get('/edubot', [EduBotController::class, 'index']);
+Route::post('/edubot', [EduBotController::class, 'store']);
+Route::get('/edubot/{id}', [EduBotController::class, 'show']);
+Route::put('/edubot/{id}', [EduBotController::class, 'update']);
+Route::delete('/edubot/{id}', [EduBotController::class, 'destroy']);

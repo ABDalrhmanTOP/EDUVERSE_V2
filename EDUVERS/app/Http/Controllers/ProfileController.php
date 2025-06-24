@@ -14,7 +14,6 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        // Return just the user’s info, or omit sensitive data if desired
         return response()->json([
             'user' => Auth::user()
         ]);
@@ -39,7 +38,7 @@ class ProfileController extends Controller
         $user->email = $validated['email'];
 
         if (!empty($validated['password'])) {
-            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
@@ -49,9 +48,12 @@ class ProfileController extends Controller
             'user' => $user
         ], 200);
     }
+
+    /**
+     * Update the authenticated user's profile picture.
+     */
     public function updatePicture(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
         if (!$user) {
             return response()->json(['message' => 'User not authenticated'], 401);
@@ -73,6 +75,26 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Picture updated successfully!',
             'path' => $path
+        ], 200);
+    }
+
+    /**
+     * Remove the authenticated user's profile picture.
+     */
+    public function removePicture(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+
+        // Optionally: Delete the file from storage if needed.
+        $user->profile_photo_path = null;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile picture removed successfully!'
         ], 200);
     }
 }
