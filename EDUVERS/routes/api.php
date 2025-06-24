@@ -16,6 +16,7 @@ use App\Http\Controllers\UserDetailController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserRatingController;
 use App\Http\Controllers\FinalProjectController;
+use App\Http\Controllers\TaskPlaylistVideoController;
 use App\Http\Controllers\EduBotController;
 
 /*
@@ -92,6 +93,13 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     Route::post('/courses', [CourseController::class, 'store']);
     Route::put('/courses/{id}', [CourseController::class, 'update']);
     Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+
+    Route::get('/task/{id}', [TaskPlaylistVideoController::class, 'show']);
+    Route::post('/task', [TaskPlaylistVideoController::class, 'store']);
+    Route::put('/task/{id}', [TaskPlaylistVideoController::class, 'update']);
+    Route::delete('/task/{id}', [TaskPlaylistVideoController::class, 'destroy']);
+
+
 });
 
 /*

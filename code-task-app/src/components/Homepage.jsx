@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+
+
 import {
   FiBookOpen,
   FiMessageSquare,
@@ -11,6 +13,7 @@ import {
   FiUser
 } from "react-icons/fi";
 import Navbar from "./Navbar";
+
 import "../styles/Homepage.css";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 

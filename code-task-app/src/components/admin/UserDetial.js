@@ -54,7 +54,7 @@ const UserProgressTable = () => {
   };
 
   return (
-    <div className="container my-4 p-4 bg-white rounded shadow">
+    <div className="container my-4 p-4  rounded shadow" style={{ backgroundColor: '#EAE0D5' }}>
       <h2 className="mb-4 text-center text-primary fw-bold">User Progress Management</h2>
       
       {loading ? (
