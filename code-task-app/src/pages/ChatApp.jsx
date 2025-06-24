@@ -4,7 +4,7 @@ import axios from 'axios';
 import '../styles/ChatApp.css';
 import SidebarIcon from '../assets/sidebar-left-svgrepo-com.svg';
 import NewChatIcon from '../assets/chat-add.svg';
-import EduVerseIcon from '../assets/sidebar-icon.png';
+import EduVerseIcon from '../assets/3.png';
 
 import { CopyAll, Edit, Check, Send, MoreHoriz } from '@mui/icons-material';
 import {
@@ -25,7 +25,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 const ChatApp = () => {
   // State management
   const [chats, setChats] = useState([
-    { id: 1, title: 'Chat 1', messages: [] },
+    { id: 1, title: 'Give code for snake game in Python', messages: [] },
     { id: 2, title: 'Chat 2', messages: [] }
   ]);
   const [activeChatId, setActiveChatId] = useState(chats[0]?.id || null);
@@ -218,7 +218,7 @@ const ChatApp = () => {
   // Render bot messages with EduVerse icon on the left and a copy button
   const renderBotMessage = (msg, index) => (
     <Box className="bot-message-wrapper">
-      <img src={EduVerseIcon} alt="EduVerse" className="eduverse-icon" />
+     {/* <img src={EduVerseIcon} alt="EduVerse" className="eduverse-icon" />*/}
       <Box className="bot-message-text">
         {renderMessageContent(msg.content)}
       </Box>
@@ -414,7 +414,7 @@ const ChatApp = () => {
                 </Box>
               ))
             )}
-            {loading && <div className="loading-indicator">Thinking...</div>}
+            {loading && <div className="loading-indicator">...</div>}
             <div ref={messagesEndRef} />
           </Box>
 
