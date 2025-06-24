@@ -4,6 +4,8 @@ import axios from "../../api/axios";
 import { Modal } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom";
 import "../../styles/Auth.css";
+import { FaEdit , FaInfo, FaTrash} from 'react-icons/fa';
+
 const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
@@ -17,7 +19,6 @@ const UsersList = () => {
     try {
       const response = await axios.get('/users');
       setUsers(response.data);
-      console.log(response.data)
       setError('');
     } catch (error) {
       console.error(error);
@@ -53,10 +54,10 @@ const UsersList = () => {
   };
 
   return (
-    <div className="container my-4 p-4 bg-light rounded shadow">
-      <h2 className="mb-4 text-center text-primary">User Management</h2>
+    <div className="container my-4 p-4 rounded shadow" style={{ backgroundColor: '#EAE0D5' }}>
+      <h2 className="mb-4 text-center" style={{ color: '#5D3A00' }}>User Management</h2>
       <div className="text-center mb-3">
-        <button className="btn btn-success px-4 py-2" onClick={() => setShowForm(true)}>
+        <button className="btn px-4 py-2" style={{ backgroundColor: '#6B705C', borderColor: '#6B705C', color: '#ffffff' }} onClick={() => setShowForm(true)}>
           + Add New User
         </button>
       </div>
@@ -66,8 +67,8 @@ const UsersList = () => {
         <div className="alert alert-danger text-center">{error}</div>
       ) : (
         <div className="table-responsive mt-3">
-          <table className="table table-striped table-hover table-bordered text-center">
-            <thead className="table-dark">
+          <table className="table table-hover table-striped table-bordered text-center">
+            <thead style={{ Color: '#A98467', borderColor: '#6B705C'}}>
               <tr>
                 <th>ID</th>
                 <th>Name</th>
@@ -91,9 +92,9 @@ const UsersList = () => {
                     <td>{user.email}</td>
                     <td>{user.test_taken ? "True" : "False"}</td>
                     <td>
-                      <button className="btn btn-sm btn-primary-400 mx-1" onClick={() => navigate(`/AdminDashboard/userdetail/${user.id}`)}>View</button>
-                      <button className="btn btn-sm btn-primary mx-1" onClick={() => handleEdit(user)}>Edit</button>
-                      <button className="btn btn-sm btn-danger mx-1" onClick={() => handleDelete(user.id)}>Delete</button>
+                      <button className="btn btn-sm mx-1" style={{ backgroundColor: '#A98467', borderColor: '#A98467', color: '#fff' }} onClick={() => navigate(`/AdminDashboard/userdetail/${user.id}`)}><FaInfo/></button>
+                      <button className="btn btn-sm mx-1" style={{ backgroundColor: '#A98467', borderColor: '#A98467', color: '#fff' }} onClick={() => handleEdit(user)}><FaEdit /></button>
+                      <button className="btn btn-sm mx-1" style={{ backgroundColor: '#BC4749', borderColor: '#BC4749', color: '#fff' }} onClick={() => handleDelete(user.id)}><FaTrash/></button>
                     </td>
                   </tr>
                 ))
@@ -103,14 +104,17 @@ const UsersList = () => {
         </div>
       )}
 
-      <Modal  show={showForm} onHide={() => setShowForm(false)} centered>
-        <div className="auth-container1 animated-form">
-       <Modal.Header closeButton />
-        <Modal.Body>
-          <UserForm editingUser={editingUser} onSuccess={handleFormSuccess} onClose={() => setShowForm(false)} />
-        </Modal.Body>
-        </div>
-      </Modal>
+
+      <Modal show={showForm} onHide={() => setShowForm(false)} centered  >
+           
+            {/* <Modal.Header closeButton style={{ backgroundColor: '#EAE0D5'}}>
+              <Modal.Title></Modal.Title>
+            </Modal.Header> */}
+            <Modal.Body style={{ backgroundColor: '#EAE0D5'}} className="border-2">
+              <UserForm editingUSer={editingUser} onSuccess={handleFormSuccess} />
+            </Modal.Body>
+           
+       </Modal>
     </div>
   );
 };

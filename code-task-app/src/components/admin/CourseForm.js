@@ -1,96 +1,100 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../api/axios.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const CourseForm = ({ editingCourse, onSuccess }) => {
   const [video_id, setVideo_ID] = useState('');
-  const [name, setname] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (editingCourse) {
       setVideo_ID(editingCourse.video_id);
-      setname(editingCourse.name);
+      setName(editingCourse.name);
       setDescription(editingCourse.description);
     } else {
-      setname('');
       setVideo_ID('');
+      setName('');
       setDescription('');
     }
   }, [editingCourse]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = { 
-      video_id, 
-      name, 
-      description
-    };
+    const data = { video_id, name, description };
 
-    if (editingCourse) {
-      // Update existing course
-      axios.put(`/courses/${editingCourse.id}`, data)
-        .then(response => onSuccess())
-        .catch(error => console.error('Error updating course:', error));
-    } else {
-      // Add new course
-      axios.post('/courses', data)
-        .then(response => onSuccess())
-        .catch(error => console.error('Error adding course:', error));
+    try {
+      if (editingCourse) {
+        await axios.put(`/courses/${editingCourse.id}`, data);
+      } else {
+        await axios.post('/courses', data);
+      }
+      onSuccess();
+    } catch (error) {
+      console.error('Error saving course:', error);
+      // Optionally, add user-friendly error handling here (e.g., a toast notification)
     }
   };
-
-
   return (
-    <div className="container mt-4">
-      <form onSubmit={handleSubmit} className="shadow p-4 rounded bg-light">
-        <div className="d-flex justify-content-between">
-          <h3 className="text-center mb-4">{editingCourse ? 'Update Course' : 'Add Course'}</h3>
-        </div>
+    <div className="container mt-3" >
+      <div className="card shadow-lg border-0 rounded-4 p-5" style={{ backgroundColor: "#AD998A"}}>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="video_id" className="form-label fw-bold text-secondary">
+              🎬 Video ID <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              id="video_id"
+              className="form-control form-control-lg border-2"
+              placeholder="Enter YouTube or internal video ID (e.g., dQw4w9WgXcQ)"
+              value={video_id}
+              onChange={(e) => setVideo_ID(e.target.value)}
+              required
+            />
+            <small className="form-text text-muted">
+              This could be a YouTube video ID or an ID from your internal video platform.
+            </small>
+          </div>
 
-        <div className="mb-3">
-          <label htmlFor="video_id" className="form-label">Video Title</label>
-          <input 
-            id="video_id" 
-            type="text" 
-            className="form-control" 
-            value={video_id} 
-            onChange={e => setVideo_ID(e.target.value)} 
-            required 
-          />
-        </div>
+          <div className="mb-4">
+            <label htmlFor="name" className="form-label fw-bold text-secondary">
+              📚 Course Title <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              className="form-control form-control-lg border-2"
+              placeholder="e.g., Master React Hooks: A Comprehensive Guide"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
 
-        <div className="mb-3">
-          <label htmlFor="name" className="form-label">Course Name</label>
-          <input 
-            id="name" 
-            type="text" 
-            className="form-control" 
-            value={name} 
-            onChange={e => setname(e.target.value)} 
-            required 
-          />
-        </div>
+          <div className="mb-5">
+            <label htmlFor="description" className="form-label fw-bold text-secondary">
+              📝 Course Description
+            </label>
+            <textarea
+              id="description"
+              className="form-control border-2"
+              placeholder="Provide a brief, engaging summary of the course content and what learners will achieve."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows="6"
+            />
+          </div>
 
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
-          <textarea 
-            id="description" 
-            className="form-control" 
-            value={description} 
-            onChange={e => setDescription(e.target.value)} 
-            rows="4" 
-          />
-        </div>
-
-        <div className="d-flex justify-content-center">
-          <button type="submit" className="btn btn-primary">
-            {editingCourse ? 'Update' : 'Add'}
-          </button>
-        </div>
-      </form>
+          <div className="d-grid gap-2 col-8 mx-auto">
+            <button type="submit" className="btn btn-lg rounded-pill shadow" style={{ backgroundColor: '#6B705C', borderColor: '#6B705C' }}>
+              {editingCourse ? ' Save Changes' : ' Add Course'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

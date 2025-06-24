@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   FiBookOpen, FiMessageSquare, FiTrendingUp, FiCpu, FiX, FiUser 
 } from 'react-icons/fi';
-import Navbar from "./Navbar";
+import Navbar from "./navbar";
 import "../styles/Homepage.css";
 
 const Login = ({ onFinished, onSwitchToRegister, closeForm }) => {

@@ -9,7 +9,7 @@ import {
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Your components
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar";
 import Homepage from "./components/Homepage";
 import HomeVideo from "./pages/HomeVideo";
 import FormTest from "./pages/form_test";
@@ -23,6 +23,7 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import CoursesList from "./components/admin/CoursesList";
 import UsersList from "./components/admin/UsersList";
 import UserDetail from "./components/admin/UserDetial";
+import TaskList from "./components/admin/TaskList";
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -133,6 +134,7 @@ const App = () => {
           <Route path="users" element={<UsersList />} />
           <Route path="userdetail/:user_id" element={<UserDetail />} />
           <Route path="courses" element={<CoursesList />} />
+          <Route path="TaskList/:course_id" element={<TaskList />} />
         </Route>
 
         {/* Catch-all */}

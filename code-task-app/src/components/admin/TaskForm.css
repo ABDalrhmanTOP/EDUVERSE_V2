@@ -1,0 +1,47 @@
+/* components/TaskForm.css */
+
+/* Custom Card Styling */
+.task-form-custom-card {
+  background-color: #EAE0D5; /* Matching CourseForm card background */
+}
+
+/* Custom Title Styling */
+.custom-form-title {
+  color: #6B705C; /* Matching CourseForm button color */
+}
+
+/* Custom Input/Select Border Color on Focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: #6B705C; /* Matching button color for focus border */
+  box-shadow: 0 0 0 0.25rem rgba(107, 112, 92, 0.25); /* Subtle shadow using the main color */
+}
+
+/* Custom Primary Button */
+.custom-btn-primary {
+  background-color: #6B705C; /* Matching CourseForm button background */
+  border-color: #6B705C; /* Matching CourseForm button border */
+  color: white; /* White text for contrast */
+}
+
+.custom-btn-primary:hover {
+  background-color: #5A604E; /* Slightly darker on hover */
+  border-color: #5A604E;
+}
+
+.custom-btn-primary:disabled {
+  background-color: #A9B1A0; /* Lighter shade when disabled */
+  border-color: #A9B1A0;
+}
+
+/* Custom Secondary Button */
+.custom-btn-secondary {
+  background-color: #EAE0D5; /* A lighter shade for the secondary button */
+  border-color: #EAE0D5;
+  color: #6B705C; /* Darker text for contrast */
+}
+
+.custom-btn-secondary:hover {
+  background-color: #D3C9BE; /* Slightly darker on hover */
+  border-color: #D3C9BE;
+}
