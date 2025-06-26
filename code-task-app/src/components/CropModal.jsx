@@ -17,7 +17,7 @@ const CropModal = ({ imageSrc, onComplete, onCancel }) => {
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       onComplete(croppedImageBlob);
     } catch (e) {
-      console.error("Cropping failed:", e);
+      // Remove console.error for production readiness
     }
   };
 

@@ -19,7 +19,6 @@ const UserProgressTable = () => {
         setError(null);
       })
       .catch(error => {
-        console.error("Error fetching user progress:", error);
         setError("Failed to fetch user progress. Please try again.");
         setUsersProgress([]);
       })

@@ -111,7 +111,6 @@ const ChatApp = () => {
       );
       setError(null);
     } catch (err) {
-      console.error('Error:', err);
       setError(`Error: ${err.response?.data?.detail || err.message}`);
     } finally {
       setLoading(false);

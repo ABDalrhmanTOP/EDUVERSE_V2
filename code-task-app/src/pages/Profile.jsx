@@ -135,8 +135,7 @@ const Profile = () => {
       setProfilePhotoPath(userData?.profile_photo_path || null);
       updateUser(userData);
     } catch (err) {
-      console.error("Failed to fetch profile:", err);
-      setError("Failed to load profile information.");
+      setError("Failed to load profile. Please try again.");
     } finally {
       setProfileLoading(false);
     }
@@ -162,9 +161,7 @@ const Profile = () => {
         setSelectedCourse(simulatedCourses[0].id);
       }
     } catch (err) {
-      console.error("Failed to fetch courses:", err);
-      setErrorCourses("Could not load course data.");
-      setProgress(0);
+      setError("Failed to load courses. Please try again.");
     } finally {
       setCoursesLoading(false);
     }
@@ -232,9 +229,9 @@ const Profile = () => {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      if (response.data.path) {
-        setProfilePhotoPath(response.data.path);
-        updateUser({ ...user, profile_photo_path: response.data.path });
+      if (response.data.profile_photo_path) {
+        setProfilePhotoPath(response.data.profile_photo_path);
+        updateUser({ ...user, profile_photo_path: response.data.profile_photo_path });
       } else {
         await fetchProfile();
       }
@@ -242,8 +239,7 @@ const Profile = () => {
       setPreviewSource(null);
       setMessage(response.data.message || "Picture updated successfully!");
     } catch (err) {
-      console.error("Picture upload error:", err);
-      setError(err.response?.data?.message || "Failed to upload picture. Please try again.");
+      setError("Failed to upload picture. Please try again.");
     } finally {
       setUploadingPicture(false);
     }
@@ -258,10 +254,8 @@ const Profile = () => {
       await axios.delete("/profile/picture", { withCredentials: true });
       setProfilePhotoPath(null);
       updateUser({ ...user, profile_photo_path: null });
-      setMessage("Profile picture removed.");
     } catch (err) {
-      console.error("Failed to remove profile picture:", err);
-      setError(err.response?.data?.message || "Failed to remove profile picture.");
+      setError("Failed to remove profile picture. Please try again.");
     } finally {
       setUploadingPicture(false);
     }

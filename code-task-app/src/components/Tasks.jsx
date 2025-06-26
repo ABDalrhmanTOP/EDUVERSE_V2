@@ -9,7 +9,7 @@ const Tasks = ({ playlistId }) => {
                 const response = await axios.get(`/playlists/${playlistId}/tasks`);
                 setTasks(response.data);
             } catch (error) {
-                console.error("Error fetching tasks:", error);
+                // Remove console.error statements for production readiness
             }
         };
         fetchTasks();

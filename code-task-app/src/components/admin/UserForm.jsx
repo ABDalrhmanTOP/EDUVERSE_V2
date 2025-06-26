@@ -1,6 +1,6 @@
 // src/components/UserForm.js
 import React, { useEffect, useState } from 'react';
-import api from '../../api/axios.js';
+import api from '../../api/axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const emptyUser = {
@@ -82,7 +82,6 @@ const UserForm = ({ editingUser, onSuccess, onClose }) => {
       }
       onClose();
     } catch (error) {
-      console.error('Error saving user:', error);
       onSuccess(`Error saving user: ${error.response?.data?.message || error.message}`, true);
     } finally {
       setLoading(false);

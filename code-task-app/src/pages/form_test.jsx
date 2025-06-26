@@ -66,11 +66,7 @@ function FormTest() {
           setQuestions([]);
         }
       } catch (err) {
-        console.error("Error fetching questions:", err);
-        setError("Could not load questions. Please try again later or contact support.");
-        if (err.response?.status === 401) {
-          navigate("/login");
-        }
+        setError("Failed to load questions. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -110,8 +106,6 @@ function FormTest() {
       setSubmitted(true);
       setViewMode("results");
     } catch (err) {
-      console.error("Error submitting answers:", err);
-      setError(err.response?.data?.message || "An error occurred while submitting your answers.");
       setResultsData(null);
     } finally {
       setIsSubmitting(false);
@@ -157,7 +151,7 @@ function FormTest() {
           level_id: parseInt(levelId, 10),
         });
       } catch (err) {
-        console.error("Error updating progress or marking tasks:", err);
+        // Error updating progress
       }
       navigate(`/video?levelId=${levelId}&timestamp=${failTimestamp}`);
     }
@@ -204,7 +198,7 @@ function FormTest() {
           <div className="results-message fail-message">
             <h2>Need More Practice</h2>
             <p>
-              You scored {score} correct answers, which isn’t enough. We’ll move you to the
+              You scored {score} correct answers, which isn't enough. We'll move you to the
               beginning of Level {levelId} for further review.
             </p>
             <p>Click below to resume the course at the appropriate point.</p>

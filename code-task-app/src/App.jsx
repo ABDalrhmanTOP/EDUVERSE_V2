@@ -24,6 +24,7 @@ import CoursesList from "./components/admin/CoursesList";
 import UsersList from "./components/admin/UsersList";
 import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
+import TasksDashboard from "./components/admin/TasksDashboard";
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -130,11 +131,16 @@ const App = () => {
             </AdminProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="users" replace />} />
+          <Route index element={<div />} />
           <Route path="users" element={<UsersList />} />
           <Route path="userdetail/:user_id" element={<UserDetail />} />
           <Route path="courses" element={<CoursesList />} />
+          <Route path="tasks" element={<TasksDashboard />} />
           <Route path="TaskList/:course_id" element={<TaskList />} />
+          <Route path="analytics" element={<div>Analytics Page - Coming Soon</div>} />
+          <Route path="settings" element={<div>Settings Page - Coming Soon</div>} />
+          <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
+          <Route path="edubot" element={<div>EduBot Settings - Coming Soon</div>} />
         </Route>
 
         {/* Catch-all */}

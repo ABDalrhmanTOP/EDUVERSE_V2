@@ -8,7 +8,7 @@ import { ProgressBar } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import "./CoursesDashboard.css"; // custom CSS for dashboard
+import "../../styles/admin/CoursesDashboard.css"; // custom CSS for dashboard
 
 const VIDEO_DURATION = 112049; // example duration
 
@@ -26,7 +26,6 @@ const UserProgressTable = () => {
         setError(null);
       })
       .catch(error => {
-        console.error("Error fetching user progress:", error);
         setError("Failed to fetch user progress. Please try again.");
         setUsersProgress([]);
       })
@@ -123,60 +122,91 @@ const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
+  const fetchPlaylists = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await axios.get("/courses");
+      setPlaylists(response.data || []);
+    } catch (err) {
+      setError("Failed to load courses, please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshPlaylists = async () => {
+    setRefreshing(true);
+    await fetchPlaylists();
+    setRefreshing(false);
+  };
+
   useEffect(() => {
-    const fetchPlaylists = async () => {
-      try {
-        const response = await axios.get("/courses");
-        setPlaylists(response.data);
-      } catch (err) {
-        console.error("Error fetching playlists:", err);
-        setError("Failed to load courses, please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPlaylists();
   }, []);
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 2,
-    slidesToScroll: 1,
-    responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 1 } },
-      { breakpoint: 768, settings: { slidesToShow: 1 } },
-    ],
+  // Group courses by year and semester
+  const groupCourses = (courses) => {
+    const grouped = {};
+    courses.forEach(course => {
+      const key = `Year ${course.year} - Semester ${course.semester}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(course);
+    });
+    return grouped;
   };
 
+  const groupedCourses = groupCourses(playlists);
+
   return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        Available Courses
-      </h2>
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+    <div className="user-courses-container">
+      <div className="user-courses-header">
+        <h2 className="user-courses-title">
+          Available Courses
+        </h2>
+        <button 
+          className="user-refresh-btn"
+          onClick={refreshPlaylists}
+          disabled={refreshing}
+        >
+          {refreshing ? 'Refreshing...' : '🔄 Refresh'}
+        </button>
+      </div>
+      {error && <p className="user-error-message">{error}</p>}
       {loading ? (
-        <div className="flex justify-center items-center h-72">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600"></div>
+        <div className="user-loading-container">
+          <div className="user-loading-spinner"></div>
         </div>
       ) : (
-        <Slider {...settings} className="w-full max-w-screen-lg mx-auto">
-          {playlists.length > 0 ? (
-            playlists.map((playlist) => (
-              <div key={playlist.id} className="px-2">
-                <PlaylistCard playlist={playlist} />
+        <div className="user-courses-grid">
+          {Object.entries(groupedCourses).map(([group, groupCourses], idx) => (
+            <div key={group} className="user-course-group">
+              <h3 className="user-course-group-title">{group}</h3>
+              <div className="user-courses-row">
+                {groupCourses.map((playlist, i) => (
+                  <motion.div 
+                    key={playlist.id} 
+                    initial={{ opacity: 0, y: 30 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: i * 0.1 }}
+                    className="user-course-card-wrapper"
+                  >
+                    <PlaylistCard playlist={playlist} />
+                  </motion.div>
+                ))}
               </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-500 w-full">
+            </div>
+          ))}
+          {Object.keys(groupedCourses).length === 0 && (
+            <p className="user-no-courses-message">
               No courses available at the moment.
             </p>
           )}
-        </Slider>
+        </div>
       )}
     </div>
   );
@@ -194,39 +224,50 @@ const PlaylistCard = ({ playlist }) => {
     }
   };
 
+  // Extract YouTube video ID if a full URL is provided
+  const extractYouTubeId = (idOrUrl) => {
+    if (!idOrUrl) return '';
+    // If it's a full URL, extract the ID
+    const match = idOrUrl.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+    if (match) return match[1];
+    // If it's already an ID
+    if (/^[\w-]{11}$/.test(idOrUrl)) return idOrUrl;
+    return '';
+  };
+  const videoId = extractYouTubeId(playlist.video_id || playlist.videoId);
+  const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+
   return (
     <motion.div
-      className="relative group cursor-pointer"
-      whileHover={{ scale: 1.05 }}
+      className="user-playlist-card"
+      whileHover={{ scale: 1.05, y: -5 }}
+      whileTap={{ scale: 0.95 }}
       onClick={handleCourses}
     >
-      <img
-        src={
-          playlist.thumbnail ||
-          `https://img.youtube.com/vi/${playlist.video_id}/hqdefault.jpg`
-        }
-        alt={playlist.name}
-        className="w-full h-[500px] object-cover"
-      />
-      <div className="absolute inset-0 z-10 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6">
-        <h3 className="text-white text-2xl font-bold mb-3 text-center">
-          {playlist.name}
-        </h3>
-        <p className="text-white text-md mb-4 text-center max-w-md">
-          {playlist.description}
-        </p>
-        <p className="text-white text-sm mb-2">
-          Average Rating: {playlist.average_rating ? playlist.average_rating : "N/A"}
-        </p>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleCourses();
-          }}
-          className="bg-blue-600 text-white py-3 px-6 rounded-full shadow hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          Watch the Course
-        </button>
+      <div className="user-card-thumbnail-container">
+        <img
+          src={thumbnailUrl}
+          alt={playlist.name}
+          className="user-card-thumbnail"
+        />
+        <div className="user-card-overlay">
+          <div className="user-card-content">
+            <h3 className="user-card-title">{playlist.name}</h3>
+            <p className="user-card-description">{playlist.description}</p>
+            <div className="user-card-rating">
+              ⭐ {playlist.average_rating ? playlist.average_rating.toFixed(1) : "N/A"}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCourses();
+              }}
+              className="user-watch-btn"
+            >
+              🎬 Watch Course
+            </button>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

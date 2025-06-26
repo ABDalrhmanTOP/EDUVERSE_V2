@@ -62,12 +62,9 @@ const YouTubeEmbed = ({ playlistId }) => {
           },
           { headers }
         );
-        console.log("Progress saved:", timestamp);
       } catch (error) {
         if (error.response && error.response.status === 401) {
           window.location.href = "/login";
-        } else {
-          console.error("Error saving progress:", error);
         }
       }
     }, 3000),
@@ -149,8 +146,6 @@ const YouTubeEmbed = ({ playlistId }) => {
       } catch (error) {
         if (error.response && error.response.status === 401) {
           window.location.href = "/login";
-        } else {
-          console.error("Error fetching tasks or progress:", error);
         }
       }
     };
@@ -184,7 +179,6 @@ const YouTubeEmbed = ({ playlistId }) => {
             setPlayerReady(true);
             if (lastWatchedTimestamp && lastWatchedTimestamp !== "00:00:00") {
               event.target.seekTo(convertTimestampToSeconds(lastWatchedTimestamp), true);
-              console.log("Resuming video at:", lastWatchedTimestamp);
             }
           },
           onStateChange: handlePlayerStateChange,
@@ -279,7 +273,9 @@ const YouTubeEmbed = ({ playlistId }) => {
         }
         await fetchProgress(playerVideoId);
       } catch (error) {
-        console.error("Error completing task:", error);
+        if (error.response && error.response.status === 401) {
+          window.location.href = "/login";
+        }
       }
       setCurrentTaskIndex(null);
       if (playerReady && playerInstanceRef.current) {
@@ -296,17 +292,13 @@ const YouTubeEmbed = ({ playlistId }) => {
 
   // Return to course button for tasks
   const handleReturn = () => {
-    console.log("Return to course button clicked");
     if (currentTaskIndex !== null && tasks.length > 0 && playerInstanceRef.current) {
       const taskTimeSec = convertTimestampToSeconds(tasks[currentTaskIndex].timestamp);
       let targetTime = taskTimeSec - 30;
       if (targetTime < 0) targetTime = 0;
-      console.log(`Seeking back to ${targetTime} seconds...`);
       playerInstanceRef.current.seekTo(targetTime, true);
       setCurrentTaskIndex(null);
       playerInstanceRef.current.playVideo();
-    } else {
-      console.warn("No active task. handleReturn logic skipped.");
     }
   };
 
@@ -328,7 +320,6 @@ const YouTubeEmbed = ({ playlistId }) => {
           taskTriggeredRef.current = true;
         }
       } catch (error) {
-        console.warn("Error checking tasks:", error);
       }
     }, 1000);
     return () => clearInterval(interval);

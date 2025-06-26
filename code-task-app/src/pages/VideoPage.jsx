@@ -16,7 +16,7 @@ const VideoPage = () => {
         setTasks(res.data);
       })
       .catch((err) => {
-        console.error("Error fetching tasks:", err);
+        // Remove console.error statements for production readiness
       });
   }, []);
 

@@ -201,7 +201,6 @@ const FinalProject = () => {
         setResult({ error: response.data.message });
       }
     } catch (error) {
-      console.error("Error submitting final project:", error);
       setResult({ error: "Submission failed. Please try again." });
     }
     setIsSubmitting(false);
@@ -229,7 +228,6 @@ const FinalProject = () => {
       );
       setFeedbackSubmitted(true);
     } catch (error) {
-      console.error("Error submitting feedback:", error);
       alert("Error submitting feedback. Please try again later.");
     }
   };

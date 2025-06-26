@@ -198,70 +198,64 @@ const HomeVideo = () => {
       try {
         const response = await axios.get("/courses");
         if (response.data && response.data.length > 0) {
-          const fetchedCppCourse = response.data.find(
-            (course) => course.name === "C++ Programming"
-          );
-          if (fetchedCppCourse) {
-            const cppIndex = finalCourses.findIndex(
-              (c) => c.videoId === "8jLOx1hD3_o"
-            );
-            if (cppIndex !== -1) {
-              finalCourses[cppIndex] = {
-                ...finalCourses[cppIndex],
-                id: fetchedCppCourse.id || finalCourses[cppIndex].id,
-                name: fetchedCppCourse.name || finalCourses[cppIndex].name,
-                description:
-                  fetchedCppCourse.description ||
-                  finalCourses[cppIndex].description,
-                average_rating:
-                  fetchedCppCourse.average_rating ||
-                  finalCourses[cppIndex].average_rating,
-                comingSoon: false, // Ensure C++ remains unlocked
-                isFetched: true,
-              };
-            }
-          } else {
-            console.warn(
-              "C++ course data not found in API response. Using defaults."
-            );
-            const cppIndex = finalCourses.findIndex(
-              (c) => c.videoId === "8jLOx1hD3_o"
-            );
-            if (cppIndex !== -1) {
-              finalCourses[cppIndex].comingSoon = false;
-            }
-          }
-        } else {
-          console.warn(
-            "API did not return any course data. Using default course structure."
-          );
-          const cppIndex = finalCourses.findIndex(
-            (c) => c.videoId === "8jLOx1hD3_o"
-          );
-          if (cppIndex !== -1) {
-            finalCourses[cppIndex].comingSoon = false;
-          }
+          // Transform API courses to match the expected format
+          const apiCourses = response.data.map(course => ({
+            id: course.id,
+            name: course.name,
+            description: course.description,
+            videoId: course.video_id,
+            comingSoon: false, // All API courses are available
+            average_rating: course.average_rating || 4.0,
+            isFetched: true,
+            year: course.year,
+            semester: course.semester,
+          }));
+          
+          // Combine API courses with static courses, prioritizing API courses
+          finalCourses = [...apiCourses, ...allCourseData.filter(course => !course.isFetched)];
         }
-        setPlaylists(finalCourses);
       } catch (err) {
-        console.error("Error fetching or processing courses:", err);
-        setError(
-          "Could not load course list accurately. Displaying default structure."
-        );
-        const cppIndex = finalCourses.findIndex(
-          (c) => c.videoId === "8jLOx1hD3_o"
-        );
-        if (cppIndex !== -1) {
-          finalCourses[cppIndex].comingSoon = false;
-        }
-        setPlaylists(finalCourses);
+        setError("Failed to load some courses, showing available ones.");
       } finally {
+        setPlaylists(finalCourses);
         setLoading(false);
       }
     };
 
     fetchAndSetCourses();
   }, []);
+
+  const refreshCourses = async () => {
+    setLoading(true);
+    setError("");
+    let finalCourses = [...allCourseData];
+
+    try {
+      const response = await axios.get("/courses");
+      if (response.data && response.data.length > 0) {
+        // Transform API courses to match the expected format
+        const apiCourses = response.data.map(course => ({
+          id: course.id,
+          name: course.name,
+          description: course.description,
+          videoId: course.video_id,
+          comingSoon: false, // All API courses are available
+          average_rating: course.average_rating || 4.0,
+          isFetched: true,
+          year: course.year,
+          semester: course.semester,
+        }));
+        
+        // Combine API courses with static courses, prioritizing API courses
+        finalCourses = [...apiCourses, ...allCourseData.filter(course => !course.isFetched)];
+      }
+    } catch (err) {
+      setError("Failed to refresh courses.");
+    } finally {
+      setPlaylists(finalCourses);
+      setLoading(false);
+    }
+  };
 
   // Slider Settings
   const sliderSettings = {
@@ -291,10 +285,6 @@ const HomeVideo = () => {
         if (playlist.id) {
           navigate(`/form_test/${playlist.id}`);
         } else {
-          console.error(
-            "Missing ID for navigation on playlist:",
-            playlist
-          );
           setError("Could not navigate to the course test (missing ID).");
         }
       }
@@ -302,13 +292,17 @@ const HomeVideo = () => {
   };
 
   return (
-    <motion.div
-      className="home-video-container"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <h2 className="section-title">Explore Our Courses</h2>
+    <div className="home-video-container">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="section-title">Explore Our Courses</h2>
+        <button 
+          className="btn btn-outline-primary btn-sm"
+          onClick={refreshCourses}
+          disabled={loading}
+        >
+          {loading ? 'Refreshing...' : 'Refresh Courses'}
+        </button>
+      </div>
       {error && <p className="error-message">{error}</p>}
       {loading ? (
         <div className="loader-container">
@@ -341,7 +335,7 @@ const HomeVideo = () => {
           No courses are currently available.
         </p>
       )}
-    </motion.div>
+    </div>
   );
 };
 

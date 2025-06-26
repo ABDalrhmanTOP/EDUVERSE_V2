@@ -12,7 +12,6 @@ const Dashboard = () => {
       await logout();
       navigate("/"); // Navigate to home/login after logout
     } catch (error) {
-      console.error("Error during logout:", error);
       // Handle logout error (e.g., show a message)
     }
   };

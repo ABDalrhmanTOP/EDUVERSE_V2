@@ -12,7 +12,7 @@ import {
   FiX,
   FiUser
 } from "react-icons/fi";
-import Navbar from "./Navbar";
+import Navbar from './navbar';
 
 import "../styles/Homepage.css";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
@@ -130,7 +130,6 @@ const Register = ({ onFinished, onSwitchToLogin, closeForm }) => {
       }
     } catch (error) {
       setIsLoading(false);
-      console.error("Reg error:", error);
       setMessage({ text: error?.response?.data?.message || "An error occurred.", type: "error" });
     }
   };

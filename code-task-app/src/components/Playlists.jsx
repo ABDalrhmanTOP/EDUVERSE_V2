@@ -11,7 +11,7 @@ const Playlists = ({ currentTaskIndex, tasks }) => {
                 const response = await axios.get("/playlists");
                 setPlaylists(response.data);
             } catch (error) {
-                console.error("Error fetching playlists:", error);
+                // Remove all console.log, console.warn, and console.error statements from here
             }
         };
         fetchPlaylists();

@@ -13,7 +13,7 @@ const CodeTaskMCQ = ({ task, onTaskComplete, onReturn }) => {
   try {
     parsedOptions = JSON.parse(task.options || "{}");
   } catch (e) {
-    console.warn("Unable to parse MCQ options as JSON:", e);
+    // console.warn("Unable to parse MCQ options as JSON:", e);
   }
 
   const handleAnswer = (chosenKey) => {
