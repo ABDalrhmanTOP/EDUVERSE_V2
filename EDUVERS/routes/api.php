@@ -18,6 +18,7 @@ use App\Http\Controllers\UserRatingController;
 use App\Http\Controllers\FinalProjectController;
 use App\Http\Controllers\TaskPlaylistVideoController;
 use App\Http\Controllers\EduBotController;
+use App\Http\Controllers\PlacementTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,10 @@ Route::get('/playlists', [PlaylistController::class, 'index']);
 
 // For showing a single playlist by ID:
 Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
+
+// YouTube video duration route (public, no auth required)
+Route::get('/youtube/video-duration/{videoId}', [CourseController::class, 'getVideoDuration']);
+Route::get('/youtube/test/{videoId}', [CourseController::class, 'testVideoDuration']);
 
 /*
 |--------------------------------------------------------------------------
@@ -70,11 +75,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/submitTest/{levelId}', [TestController::class, 'submitTest']);
     Route::get('/checkTestTaken', [ResultTest::class, 'checkTestTaken']);
     Route::post('/submitTest/{level}', [ResultTest::class, 'submitTest']);
-    Route::get('/courses', [CourseController::class, 'index']);
 
     // Final Project & Feedback
     Route::post('/final-project', [FinalProjectController::class, 'submitFinalProject']);
     Route::post('/user-feedback', [UserRatingController::class, 'store']);
+
+    // Placement Test
+    Route::post('/placement-test/start', [PlacementTestController::class, 'start']);
+    Route::post('/placement-test/submit', [PlacementTestController::class, 'submit']);
 });
 
 /*
@@ -94,12 +102,12 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     Route::put('/courses/{id}', [CourseController::class, 'update']);
     Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 
+    // Task management routes
+    Route::get('/tasks', [TaskController::class, 'index']);
     Route::get('/task/{id}', [TaskPlaylistVideoController::class, 'show']);
     Route::post('/task', [TaskPlaylistVideoController::class, 'store']);
     Route::put('/task/{id}', [TaskPlaylistVideoController::class, 'update']);
     Route::delete('/task/{id}', [TaskPlaylistVideoController::class, 'destroy']);
-
-
 });
 
 /*
@@ -126,8 +134,7 @@ Route::middleware('auth:sanctum')->get('/user-progress/all', [UserProgressContro
 |--------------------------------------------------------------------------
 */
 Route::fallback(function () {
-    Log::warning('API Route not found', ['url' => request()->url()]);
-    return response()->json(['message' => 'API Route not found.'], 404);
+    return response()->json(['error' => 'API endpoint not found'], 404);
 });
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user-progress/update', [UserProgressController::class, 'updateProgress']);
@@ -138,3 +145,6 @@ Route::post('/edubot', [EduBotController::class, 'store']);
 Route::get('/edubot/{id}', [EduBotController::class, 'show']);
 Route::put('/edubot/{id}', [EduBotController::class, 'update']);
 Route::delete('/edubot/{id}', [EduBotController::class, 'destroy']);
+
+// Public GET route for courses
+Route::get('/courses', [CourseController::class, 'index']);

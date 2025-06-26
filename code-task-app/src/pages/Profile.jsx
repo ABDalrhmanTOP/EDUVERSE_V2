@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import axios from "../api/axios";
+import apiClient from "../api/axios";
 import "../styles/Profile.css";
 import "bootstrap/dist/css/bootstrap-grid.min.css";
 import { useParams } from "react-router-dom";
@@ -125,7 +125,7 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      const response = await axios.get("/profile", { withCredentials: true });
+      const response = await apiClient.get("/profile");
       const userData = response.data.user;
       setUser_id(userData?.id);
       setName(userData?.name || "N/A");
@@ -146,7 +146,7 @@ const Profile = () => {
     setCoursesLoading(true);
     setErrorCourses("");
     try {
-      const response = await axios.get(`/user-progress/course-progress/${user.id}`, { withCredentials: true });
+      const response = await apiClient.get(`/user-progress/course-progress/${user.id}`);
       const info = response.data;
       setNameCourses(info?.course_title || "Your Course");
       setProgress(info?.progress_percentage || 0);
@@ -173,7 +173,7 @@ const Profile = () => {
     setMessage("");
     setError("");
     try {
-      const response = await axios.put("/profile", { name, username, email }, { withCredentials: true });
+      const response = await apiClient.put("/profile", { name, username, email });
       setMessage("Profile updated successfully!");
       setIsEditing(false);
       updateUser(response.data.user);
@@ -198,7 +198,7 @@ const Profile = () => {
     }
     setPasswordLoading(true);
     try {
-      await axios.post("/change-password", { currentPassword, newPassword }, { withCredentials: true });
+      await apiClient.post("/change-password", { currentPassword, newPassword });
       setMessage("Password updated successfully!");
       setCurrentPassword("");
       setNewPassword("");
@@ -225,9 +225,8 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      const response = await axios.post("/profile/picture", formData, {
+      const response = await apiClient.post("/profile/picture", formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
       });
       if (response.data.profile_photo_path) {
         setProfilePhotoPath(response.data.profile_photo_path);
@@ -251,7 +250,7 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      await axios.delete("/profile/picture", { withCredentials: true });
+      await apiClient.delete("/profile/picture");
       setProfilePhotoPath(null);
       updateUser({ ...user, profile_photo_path: null });
     } catch (err) {

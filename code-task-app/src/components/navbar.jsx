@@ -3,6 +3,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import { FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi'; // Example icons
+import { FaChevronDown } from 'react-icons/fa';
 import "../styles/Navbar.css"; // <-- Use the NEW Navbar.css
 import eduverseLogo from "../assets/1.png"; // Make sure path is correct
 import defaultProfile from "../assets/user.png";

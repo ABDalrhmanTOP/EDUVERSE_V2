@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from '../../api/axios.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaTimes, FaSave, FaYoutube, FaTasks, FaTrash, FaExclamationTriangle, FaCode, FaListUl, FaCheckCircle, FaSpinner, FaChevronUp, FaChevronDown, FaCheck } from 'react-icons/fa';
 import '../../styles/admin/CourseForm.css';
 
-const CourseForm = ({ editingCourse, onSuccess }) => {
+const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const [video_id, setVideo_id] = useState('');
   const [videoDuration, setVideoDuration] = useState('00:10:00');
   const [name, setName] = useState('');
@@ -24,6 +24,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
   const [fetchingDuration, setFetchingDuration] = useState(false);
   const [durationAutoFetched, setDurationAutoFetched] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [paid, setPaid] = useState(false);
 
   // Real-time validation state
   const [videoValidation, setVideoValidation] = useState({
@@ -33,6 +34,16 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
     isDuplicate: false,
     duplicateCourse: null
   });
+
+  // Add refs for all main fields
+  const nameRef = useRef();
+  const descriptionRef = useRef();
+  const yearRef = useRef();
+  const semesterRef = useRef();
+  const videoIdRef = useRef();
+  const videoDurationRef = useRef();
+  const formErrorRef = useRef();
+  const taskErrorRef = useRef();
 
   const languageOptions = [
     { value: 'javascript', label: 'JavaScript' },
@@ -57,6 +68,10 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
     setIsInitialized(true);
   }, [editingCourse]);
 
+  useEffect(() => {
+    setTaskError('');
+  }, [tasks]);
+
   const fetchExistingCourses = async () => {
     try {
       const response = await axios.get('/courses');
@@ -75,6 +90,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
     setVideoDuration(course.video_duration || '00:10:00');
     setTasks(course.tasks || []);
     setShowTaskSection(course.tasks && course.tasks.length > 0);
+    setPaid(!!course.paid);
   };
 
   // Enhanced field validation
@@ -268,39 +284,57 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
     return true;
   };
 
+  // Enhanced validateForm to return first error field name
   const validateForm = () => {
     const fields = [
-      { name: 'name', value: name },
-      { name: 'description', value: description },
-      { name: 'video_id', value: video_id },
-      { name: 'videoDuration', value: videoDuration },
-      { name: 'year', value: year },
-      { name: 'semester', value: semester }
+      { name: 'name', value: name, ref: nameRef },
+      { name: 'description', value: description, ref: descriptionRef },
+      { name: 'video_id', value: video_id, ref: videoIdRef },
+      { name: 'videoDuration', value: videoDuration, ref: videoDurationRef },
+      { name: 'year', value: year, ref: yearRef },
+      { name: 'semester', value: semester, ref: semesterRef }
     ];
-
     let isValid = true;
+    let firstErrorField = null;
     fields.forEach(field => {
       if (!validateField(field.name, field.value)) {
         isValid = false;
+        if (!firstErrorField) firstErrorField = field.ref;
       }
     });
-
-    return isValid;
+    return { isValid, firstErrorField };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setFormError('');
-    
-    if (!validateForm()) {
+    let errorNotification = false;
+    // Validate form fields and get first error ref
+    const { isValid, firstErrorField } = validateForm();
+    if (!isValid) {
       setFormError('Please fix the errors in the form fields.');
+      setTimeout(() => {
+        if (firstErrorField && firstErrorField.current) {
+          firstErrorField.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstErrorField.current.focus();
+        } else if (formErrorRef.current) {
+          formErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       setLoading(false);
+      errorNotification = true;
       return;
     }
-    
+    // Validate tasks
     if (!validateTasks()) {
+      setTimeout(() => {
+        if (taskErrorRef.current) {
+          taskErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       setLoading(false);
+      errorNotification = true;
       return;
     }
 
@@ -336,6 +370,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
       year: Number(year), 
       semester: Number(semester), 
       video_duration: videoDuration, 
+      paid,
       tasks: tasks.map(t => {
         const taskData = {
           title: t.title,
@@ -375,9 +410,13 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
       }
       onSuccess();
     } catch (error) {
+      setTimeout(() => {
+        if (formErrorRef.current) {
+          formErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       if (error.response && error.response.data) {
         const { error: errorType, message } = error.response.data;
-        
         if (errorType === 'duplicate_video_id') {
           setFormError('A course with this video ID already exists. Please use a different video.');
           setFieldErrors(prev => ({
@@ -388,10 +427,15 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
           setFormError(message || 'Error saving course. Please try again.');
         }
       } else {
-      setFormError('Error saving course. Please try again.');
+        setFormError('Error saving course. Please try again.');
       }
+      errorNotification = true;
     } finally {
       setLoading(false);
+      if (errorNotification && window && window.dispatchEvent) {
+        // Custom event for error notification (to be handled by parent or notification system)
+        window.dispatchEvent(new CustomEvent('showErrorNotification', { detail: { message: 'Save failed. Please check the form for errors.' } }));
+      }
     }
   };
 
@@ -424,7 +468,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
     setDurationAutoFetched(false);
 
     try {
-      const response = await axios.get(`/api/youtube/duration/${videoId}`);
+      const response = await axios.get(`youtube/video-duration/${videoId}`);
       if (response.data && response.data.duration) {
         const convertedDuration = convertDuration(response.data.duration);
         setVideoDuration(convertedDuration);
@@ -507,7 +551,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
     <motion.div
       initial={{ opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="course-form-field-error"
+      className="field-error-message"
     >
       <FaExclamationTriangle className="error-icon" />
       {message}
@@ -695,7 +739,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
           value={task.question}
           onChange={(e) => handleTaskChange(index, 'question', e.target.value)}
           placeholder="Enter MCQ question..."
-          required
+          className="course-form-input"
         />
       </div>
       <div className="mcq-options-list">
@@ -745,7 +789,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
           value={task.tf_question}
           onChange={(e) => handleTaskChange(index, 'tf_question', e.target.value)}
           placeholder="Enter True/False question..."
-          required
+          className="course-form-input"
         />
       </div>
       <div className="form-group">
@@ -753,7 +797,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
         <select
           value={task.tf_answer}
           onChange={(e) => handleTaskChange(index, 'tf_answer', e.target.value === 'true')}
-          required
+          className="course-form-select"
         >
           <option value="true">True</option>
           <option value="false">False</option>
@@ -769,7 +813,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
         <select
           value={task.coding_language}
           onChange={(e) => handleTaskChange(index, 'coding_language', e.target.value)}
-          required
+          className="course-form-select"
         >
           {languageOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -785,7 +829,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
           onChange={(e) => handleTaskChange(index, 'coding_question', e.target.value)}
           placeholder="Enter the coding problem..."
           rows="4"
-          required
+          className="course-form-textarea"
         />
       </div>
       <div className="form-group">
@@ -809,20 +853,21 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                   value={testCase.input}
                   onChange={(e) => handleTestCaseChange(index, caseIdx, 'input', e.target.value)}
                   placeholder="Input"
-                  required
+                  className="course-form-input"
                 />
                 <input
                   type="text"
                   value={testCase.output}
                   onChange={(e) => handleTestCaseChange(index, caseIdx, 'output', e.target.value)}
                   placeholder="Expected Output"
-                  required
+                  className="course-form-input"
                 />
                 <input
                   type="text"
                   value={testCase.description}
                   onChange={(e) => handleTestCaseChange(index, caseIdx, 'description', e.target.value)}
                   placeholder="Description (optional)"
+                  className="course-form-input"
                 />
               </div>
             </div>
@@ -843,6 +888,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
           onChange={(e) => handleTaskChange(index, 'coding_solution', e.target.value)}
           placeholder="Enter the solution code..."
           rows="6"
+          className="course-form-textarea"
         />
       </div>
     </div>
@@ -961,7 +1007,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
           </h2>
           <button
             className="course-form-close-btn"
-            onClick={onSuccess}
+            onClick={onClose}
             type="button"
           >
             <FaTimes />
@@ -974,6 +1020,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="course-form-error"
+              ref={formErrorRef}
             >
               <FaExclamationTriangle className="error-icon" />
               {formError}
@@ -994,7 +1041,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
               }}
               className={`course-form-input ${fieldErrors.name ? 'error' : ''}`}
               placeholder="Enter course name"
-              required
+              ref={nameRef}
             />
             {fieldErrors.name && <ErrorMessage message={fieldErrors.name} />}
           </div>
@@ -1013,7 +1060,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
               className={`course-form-textarea ${fieldErrors.description ? 'error' : ''}`}
               placeholder="Enter course description"
               rows="4"
-              required
+              ref={descriptionRef}
             />
             {fieldErrors.description && <ErrorMessage message={fieldErrors.description} />}
           </div>
@@ -1031,7 +1078,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                   validateField('year', e.target.value);
                 }}
                 className={`course-form-select ${fieldErrors.year ? 'error' : ''}`}
-                required
+                ref={yearRef}
               >
                 <option value="">Select Year</option>
                 <option value="1">Year 1</option>
@@ -1054,13 +1101,28 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                   validateField('semester', e.target.value);
                 }}
                 className={`course-form-select ${fieldErrors.semester ? 'error' : ''}`}
-                required
+                ref={semesterRef}
               >
                 <option value="">Select Semester</option>
                 <option value="1">Semester 1</option>
                 <option value="2">Semester 2</option>
               </select>
               {fieldErrors.semester && <ErrorMessage message={fieldErrors.semester} />}
+            </div>
+
+            <div className="course-form-group">
+              <label className="course-form-label">
+                Course Type *
+              </label>
+              <select
+                name="paid"
+                value={paid ? 'paid' : 'free'}
+                onChange={e => setPaid(e.target.value === 'paid')}
+                className="course-form-select"
+              >
+                <option value="free">Free</option>
+                <option value="paid">Paid</option>
+              </select>
             </div>
           </div>
 
@@ -1078,7 +1140,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                 videoValidation.isValid ? 'valid' : videoValidation.error ? 'error' : ''
               }`}
               placeholder="Enter YouTube URL or video ID"
-              required
+              ref={videoIdRef}
             />
             {fieldErrors.video_id && <ErrorMessage message={fieldErrors.video_id} />}
             
@@ -1142,7 +1204,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                 }}
                 className={`course-form-input ${fieldErrors.videoDuration ? 'error' : ''}`}
               placeholder="e.g., 00:10:00 for 10 minutes"
-              required
+              ref={videoDurationRef}
             />
               {fetchingDuration && (
                 <div className="course-form-duration-loading">
@@ -1183,6 +1245,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="course-form-task-error"
+                ref={taskErrorRef}
               >
                 <FaExclamationTriangle className="error-icon" />
                 {taskError}
@@ -1235,7 +1298,6 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                                   onChange={(e) => handleTaskChange(index, 'title', e.target.value)}
                                   placeholder="Enter task title..."
                                   className="course-form-input"
-                                  required
                                 />
                         </div>
 
@@ -1245,7 +1307,6 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
                             value={task.type}
                             onChange={(e) => handleTaskChange(index, 'type', e.target.value)}
                             className="course-form-select"
-                                  required
                           >
                             <option value="mcq">Multiple Choice</option>
                                   <option value="true_false">True/False</option>
@@ -1340,7 +1401,7 @@ const CourseForm = ({ editingCourse, onSuccess }) => {
             <button
               type="button"
               className="course-form-cancel-btn"
-              onClick={onSuccess}
+              onClick={onClose}
               disabled={loading || videoValidation.isChecking}
             >
               <FaTimes />

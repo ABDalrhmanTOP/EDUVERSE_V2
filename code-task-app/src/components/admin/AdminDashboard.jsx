@@ -18,7 +18,7 @@ import {
   FaTrash,
   FaEye
 } from 'react-icons/fa';
-import axios from '../../api/axios';
+import apiClient from '../../api/axios';
 import '../../styles/admin/AdminDashboard.css';
 import eduverseLogo from '../../assets/eduverse_logo.png';
 
@@ -76,19 +76,19 @@ const AdminDashboard = () => {
 
       // Test if backend is reachable
       try {
-        const testResponse = await axios.get('http://localhost:8000/api/user');
+        const testResponse = await apiClient.get('/user');
       } catch (testError) {
         // Backend connectivity test failed
       }
 
       // Set auth header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       // Fetch users, courses, and tasks
       const [usersRes, coursesRes, tasksRes] = await Promise.all([
-        axios.get('/users'),
-        axios.get('/courses'),
-        axios.get('/tasks')
+        apiClient.get('/users'),
+        apiClient.get('/courses'),
+        apiClient.get('/tasks')
       ]);
 
       const newStats = {

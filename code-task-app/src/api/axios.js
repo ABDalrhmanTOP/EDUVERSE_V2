@@ -18,16 +18,51 @@ const apiClient = axios.create({
 
 // Request interceptor: attach token from localStorage
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); // Ensure token is stored with this key
+  // Check for both possible token keys
+  const token = localStorage.getItem("token") || localStorage.getItem("authToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('Token attached to request:', token.substring(0, 20) + '...');
+  } else {
+    console.log('No token found in localStorage');
   }
   config.headers.Accept = "application/json";
   // If data is not FormData, set Content-Type to application/json
   if (!(config.data instanceof FormData)) {
     config.headers["Content-Type"] = "application/json";
   }
+  console.log('Request config:', {
+    url: config.url,
+    method: config.method,
+    hasToken: !!token,
+    headers: config.headers
+  });
   return config;
 });
+
+// Response interceptor: handle authentication errors
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.error('API Error Response:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method
+    });
+    
+    // If we get a 401, the token might be invalid
+    if (error.response?.status === 401) {
+      console.log('Authentication failed - clearing token');
+      localStorage.removeItem("token");
+      localStorage.removeItem("authToken");
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;

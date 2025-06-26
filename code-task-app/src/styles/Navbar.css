@@ -451,3 +451,75 @@
     width: 95%;
   }
 }
+
+/* Courses Filter Dropdown (Desktop) */
+.courses-tab-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.courses-filter-dropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  min-width: 170px;
+  background: linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(181, 160, 121, 0.13);
+  z-index: 1001;
+  padding: 0.5em 0;
+  border: 1.5px solid #e3cfa4;
+  display: flex;
+  flex-direction: column;
+  animation: dropdown-appear 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+.courses-filter-dropdown .dropdown-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.7em 1.3em;
+  font-size: 1rem;
+  color: #7d6a4d;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.18s, color 0.18s;
+}
+.courses-filter-dropdown .dropdown-item.selected,
+.courses-filter-dropdown .dropdown-item:hover {
+  background: #f0e6d2;
+  color: #b5a079;
+}
+
+/* Mobile Courses Filter Dropdown */
+.mobile-courses-dropdown-wrapper {
+  width: 100%;
+  margin-bottom: 0.5em;
+}
+.mobile-courses-filter-dropdown {
+  width: 100%;
+  background: linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(181, 160, 121, 0.10);
+  padding: 0.3em 0;
+  margin-top: 0.2em;
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid #e3cfa4;
+}
+.mobile-courses-filter-dropdown .dropdown-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.7em 1.2em;
+  font-size: 1rem;
+  color: #7d6a4d;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.18s, color 0.18s;
+}
+.mobile-courses-filter-dropdown .dropdown-item.selected,
+.mobile-courses-filter-dropdown .dropdown-item:hover {
+  background: #f0e6d2;
+  color: #b5a079;
+}

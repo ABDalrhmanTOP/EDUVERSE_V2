@@ -15,54 +15,44 @@ class UserProgressController extends Controller
      */
     public function saveProgress(Request $request)
     {
-        Log::info('Save Progress Request Received:', $request->all());
-
-        $validated = $request->validate([
-            'video_id'       => 'required|string',
-            'last_timestamp' => 'required|string',
-            'playlist_id'    => 'required|integer',
-        ]);
-
-        $userId = Auth::id();
-        if (!$userId) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'User not authenticated',
-            ], 401);
-        }
-
         try {
-            $progress = UserProgress::updateOrCreate(
-                [
-                    'user_id'     => $userId,
-                    'video_id'    => $validated['video_id'],
-                    'playlist_id' => $validated['playlist_id'],
-                ],
-                [
-                    'last_timestamp' => $validated['last_timestamp'],
-                ]
-            );
+            $request->validate([
+                'video_id' => 'required|string',
+                'playlist_id' => 'required|integer',
+                'last_timestamp' => 'required|string',
+            ]);
 
-            // Ensure completed_tasks is an array
-            if (!is_array($progress->completed_tasks)) {
-                $progress->completed_tasks = [];
-                $progress->save();
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Progress saved',
-                'data'    => $progress
-            ], 200);
+            $videoId = $request->input('video_id');
+            $playlistId = $request->input('playlist_id');
+            $lastTimestamp = $request->input('last_timestamp');
+
+            // Find existing progress or create new
+            $progress = UserProgress::where('user_id', $user->id)
+                ->where('playlist_id', $playlistId)
+                ->first();
+
+            if ($progress) {
+                $progress->update([
+                    'last_timestamp' => $lastTimestamp,
+                    'updated_at' => now(),
+                ]);
+            } else {
+                UserProgress::create([
+                    'user_id' => $user->id,
+                    'playlist_id' => $playlistId,
+                    'video_id' => $videoId,
+                    'last_timestamp' => $lastTimestamp,
+                ]);
+            }
+
+            return response()->json(['message' => 'Progress saved successfully']);
         } catch (\Exception $e) {
-            Log::error('Error Saving Progress:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Error saving progress'
-            ], 500);
+            return response()->json(['error' => 'Failed to save progress'], 500);
         }
     }
 
@@ -120,61 +110,47 @@ class UserProgressController extends Controller
      */
     public function completeTask(Request $request)
     {
-        Log::info('Complete Task Request:', $request->all());
-
-        $validated = $request->validate([
-            'video_id'    => 'required|string',
-            'playlist_id' => 'required|integer',
-            'task_id'     => 'required|string',
-        ]);
-
-        $userId = Auth::id();
-        if (!$userId) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-
         try {
-            $progress = UserProgress::firstOrNew([
-                'user_id'     => $userId,
-                'video_id'    => $validated['video_id'],
-                'playlist_id' => $validated['playlist_id'],
+            $request->validate([
+                'task_id' => 'required|integer',
+                'playlist_id' => 'required|integer',
             ]);
 
-            if (!$progress->exists) {
-                $progress->last_timestamp = "00:00:00";
-                $progress->completed_tasks = [];
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
+            $taskId = $request->input('task_id');
+            $playlistId = $request->input('playlist_id');
+
+            // Find or create progress record
+            $progress = UserProgress::where('user_id', $user->id)
+                ->where('playlist_id', $playlistId)
+                ->first();
+
+            if (!$progress) {
+                $progress = UserProgress::create([
+                    'user_id' => $user->id,
+                    'playlist_id' => $playlistId,
+                    'video_id' => '', // Will be updated when video progress is saved
+                    'last_timestamp' => '00:00:00',
+                    'completed_tasks' => [],
+                ]);
+            }
+
+            // Ensure completed_tasks is an array
             $completedTasks = is_array($progress->completed_tasks) ? $progress->completed_tasks : [];
-            if (!in_array($validated['task_id'], $completedTasks)) {
-                $completedTasks[] = $validated['task_id'];
+
+            // Add task to completed list if not already there
+            if (!in_array($taskId, $completedTasks)) {
+                $completedTasks[] = $taskId;
+                $progress->update(['completed_tasks' => $completedTasks]);
             }
 
-            $progress->completed_tasks = $completedTasks;
-            $progress->save();
-
-            Log::info('Task marked as completed successfully:', [
-                'task_id'         => $validated['task_id'],
-                'completed_tasks' => $completedTasks,
-            ]);
-
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Task marked as completed',
-                'data'    => $progress,
-            ], 200);
+            return response()->json(['message' => 'Task marked as completed']);
         } catch (\Exception $e) {
-            Log::error('Error marking task as completed:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Error marking task as completed'
-            ], 500);
+            return response()->json(['error' => 'Failed to complete task'], 500);
         }
     }
 
@@ -183,41 +159,40 @@ class UserProgressController extends Controller
      */
     public function completeUpToTimestamp(Request $request)
     {
-        Log::info('completeUpToTimestamp Request:', $request->all());
-
-        $validated = $request->validate([
-            'timestamp' => 'required|string',
-            'level_id'  => 'required|integer',
-        ]);
-
-        $userId = Auth::id();
-        if (!$userId) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-
         try {
-            $timeInSeconds = $this->convertTimestampToSeconds($validated['timestamp']);
-
-            // Implement your logic to fetch tasks for the given level
-            // and mark them as completed if their time <= $timeInSeconds.
-            // For demonstration, we assume the tasks have been marked.
-
-            return response()->json([
-                'status'  => 'success',
-                'message' => "Tasks up to {$validated['timestamp']} have been marked as completed.",
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Error in completeUpToTimestamp:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            $request->validate([
+                'timestamp' => 'required|string',
+                'playlist_id' => 'required|integer',
             ]);
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Error marking tasks as completed up to timestamp.'
-            ], 500);
+
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            $timestamp = $request->input('timestamp');
+            $playlistId = $request->input('playlist_id');
+
+            // Find or create progress record
+            $progress = UserProgress::where('user_id', $user->id)
+                ->where('playlist_id', $playlistId)
+                ->first();
+
+            if (!$progress) {
+                $progress = UserProgress::create([
+                    'user_id' => $user->id,
+                    'playlist_id' => $playlistId,
+                    'video_id' => '',
+                    'last_timestamp' => $timestamp,
+                    'completed_tasks' => [],
+                ]);
+            } else {
+                $progress->update(['last_timestamp' => $timestamp]);
+            }
+
+            return response()->json(['message' => 'Progress updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update progress'], 500);
         }
     }
 

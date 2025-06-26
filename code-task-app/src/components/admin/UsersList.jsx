@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaUsers, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus, FaEnvelope, FaCalendar } from 'react-icons/fa';
-import axios from '../../api/axios';
+import apiClient from '../../api/axios';
 import UserForm from './UserForm';
 import '../../styles/admin/UsersList.css';
 
@@ -21,7 +21,7 @@ const UsersList = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.get('/users');
+      const response = await apiClient.get('/users');
       setUsers(response.data || []);
     } catch (error) {
       setError('Failed to load users. Please try again.');
@@ -49,7 +49,7 @@ const UsersList = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`/users/${userId}`);
+        await apiClient.delete(`/users/${userId}`);
         setUsers(users.filter(user => user.id !== userId));
       } catch (error) {
         alert('Failed to delete user. Please try again.');

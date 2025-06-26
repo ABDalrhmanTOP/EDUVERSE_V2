@@ -57,11 +57,7 @@ class FinalProjectController extends Controller
             ]);
 
         if (!$judge0Response->successful()) {
-            Log::error("Judge0 API call failed", ['response' => $judge0Response->body()]);
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Code evaluation failed due to an external API error.'
-            ], 500);
+            return response()->json(['error' => 'Failed to submit code to Judge0'], 500);
         }
 
         $judgeData = $judge0Response->json();
@@ -164,15 +160,6 @@ int main() {
 }
 CODE;
 
-        Log::info('Final Project graded', [
-            'user_id'      => $userId,
-            'coding_marks' => $codingMarks,
-            'mcq_marks'    => $mcqMarks,
-            'tf_marks'     => $tfMarks,
-            'final_mark'   => $finalMark,
-            'grade'        => $grade,
-        ]);
-
         // --- 5. Link submission with user progress ---
         $userProgress = \App\Models\UserProgress::where('user_id', $userId)
             ->where('video_id', $validated['video_id'])
@@ -202,10 +189,6 @@ CODE;
                 'feedback'         => $validated['feedback'] ?? null,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error storing final project submission:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Error storing final project submission'

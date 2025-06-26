@@ -1,6 +1,6 @@
 // src/components/CoursesDashboard.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../../api/axios";
+import apiClient from '../../api/axios';
 import { useNavigate, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import Slider from "react-slick";
@@ -20,7 +20,7 @@ const UserProgressTable = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`user-progress/user/all`)
+    apiClient.get(`user-progress/user/all`)
       .then(response => {
         setUsersProgress(response.data);
         setError(null);
@@ -130,7 +130,7 @@ const Playlists = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await axios.get("/courses");
+      const response = await apiClient.get("/courses");
       setPlaylists(response.data || []);
     } catch (err) {
       setError("Failed to load courses, please try again later.");

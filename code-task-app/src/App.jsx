@@ -12,11 +12,11 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Navbar from "./components/navbar";
 import Homepage from "./components/Homepage";
 import HomeVideo from "./pages/HomeVideo";
-import FormTest from "./pages/form_test";
 import VideoPage from "./pages/VideoPage";
 import Profile from "./pages/Profile";
 import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
+import PlacementTest from "./pages/PlacementTest";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -81,21 +81,13 @@ const App = () => {
         />
         {/* NOTE: single param "levelId" */}
         <Route
-          path="/form_test/:levelId"
+          path="/video"
           element={
             <ProtectedRoute>
-              <FormTest />
+              <VideoPage />
             </ProtectedRoute>
           }
         />
-        <Route
-  path="/video"
-  element={
-    <ProtectedRoute>
-      <VideoPage />
-    </ProtectedRoute>
-  }
-/>
 
         <Route
           path="/profile"
@@ -118,6 +110,15 @@ const App = () => {
           element={
             <ProtectedRoute>
               <FinalProject />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/placement-test/:courseId"
+          element={
+            <ProtectedRoute>
+              <PlacementTest />
             </ProtectedRoute>
           }
         />

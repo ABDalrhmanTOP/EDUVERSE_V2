@@ -14,10 +14,25 @@ class Task extends Model
         'video_id',
         'timestamp',
         'title',
+        'description',
         'prompt',
         'expected_output',
         'syntax_hint',
         'type',
         'options',
+        'question',
+        'correct_answer',
+        'tf_question',
+        'tf_answer',
+        'coding_question',
+        'coding_test_cases',
+        'coding_solution',
+        'coding_language',
+        'points',
     ];
+
+    public function playlist()
+    {
+        return $this->belongsTo(Playlist::class);
+    }
 }

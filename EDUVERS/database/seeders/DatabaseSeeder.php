@@ -16,16 +16,17 @@ class DatabaseSeeder extends Seeder
             PlaylistsSeeder::class,
             TasksSeeder::class,
             LevelSeeder::class,
-            QuestionSeeder::class
+            QuestionSeeder::class,
+            PlacementQuestionsSeeder::class
             // Add other seeders as required
         ]);
 
         User::factory()->create([
             'name' => 'adminEdu',
-            'username'=> 'adminedu',
+            'username' => 'adminedu',
             'email' => 'ert44039@gmail.com',
-            'password'=>'$2y$12$azrTFlr8dHKvxWLy5eiHTO7LTiTjE4dt2k/dXr3gF8oGdKBBbtuTm',
-            'role'=>'admin'
+            'password' => '$2y$12$azrTFlr8dHKvxWLy5eiHTO7LTiTjE4dt2k/dXr3gF8oGdKBBbtuTm',
+            'role' => 'admin'
         ]);
     }
 }

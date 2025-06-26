@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaBook, FaSync, FaTasks } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import axios from '../../api/axios';
+import apiClient from '../../api/axios';
 import CourseForm from './CourseForm';
 import ConfirmationModal from './ConfirmationModal';
 import SuccessNotification from './SuccessNotification';
@@ -31,11 +31,23 @@ const CoursesList = () => {
     fetchCourses();
   }, []);
 
+  useEffect(() => {
+    const handleErrorNotification = (e) => {
+      setSuccessNotification({
+        isVisible: true,
+        message: e.detail?.message || 'Save failed. Please check the form for errors.',
+        type: 'error',
+      });
+    };
+    window.addEventListener('showErrorNotification', handleErrorNotification);
+    return () => window.removeEventListener('showErrorNotification', handleErrorNotification);
+  }, []);
+
   const fetchCourses = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.get('/courses');
+      const response = await apiClient.get('/courses');
       setCourses(response.data || []);
     } catch (error) {
       setError('Failed to load courses. Please try again.');
@@ -71,7 +83,7 @@ const CoursesList = () => {
 
   const confirmDeleteCourse = async () => {
     try {
-      await axios.delete(`/courses/${deleteModal.courseId}`);
+      await apiClient.delete(`/courses/${deleteModal.courseId}`);
       setCourses(courses.filter(course => course.id !== deleteModal.courseId));
       setDeleteModal({ isOpen: false, courseId: null, courseName: '' });
       
@@ -224,6 +236,7 @@ const CoursesList = () => {
                         <th className="courses-list-table-th">Description</th>
                         <th className="courses-list-table-th">Video ID</th>
                         <th className="courses-list-table-th">Tasks</th>
+                        <th className="courses-list-table-th">Course Type</th>
                         <th className="courses-list-table-th">Actions</th>
                       </tr>
                     </thead>
@@ -261,6 +274,9 @@ const CoursesList = () => {
                           </td>
                           <td className="courses-list-cell courses-list-tasks" style={{textAlign: 'center'}}>
                             <span className="tasks-number-container">{course.tasks ? course.tasks.length : 0}</span>
+                          </td>
+                          <td className="courses-list-cell courses-list-type" style={{textAlign: 'center'}}>
+                            <span className={`course-type-badge ${(course.paid === true || course.paid === 1) ? 'paid' : 'free'}`}>{(course.paid === true || course.paid === 1) ? 'Paid' : 'Free'}</span>
                           </td>
                           <td className="courses-list-cell courses-list-actions-cell">
                             <div className="courses-list-action-buttons" style={{flexWrap: 'nowrap', minHeight: '48px'}}>
@@ -320,6 +336,7 @@ const CoursesList = () => {
             <CourseForm
               editingCourse={editingCourse}
               onSuccess={handleCourseSuccess}
+              onClose={handleCloseForm}
             />
           </>
         )}

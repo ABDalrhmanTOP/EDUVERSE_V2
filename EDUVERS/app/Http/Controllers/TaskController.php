@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
+    public function index()
+    {
+        $tasks = Task::with('playlist')->get();
+        return response()->json($tasks);
+    }
+
     public function getTasks($playlistId)
     {
-        $tasks = Task::where('playlist_id', $playlistId)->get();
+        $tasks = Task::where('playlist_id', $playlistId)->with('playlist')->get();
 
         if ($tasks->isEmpty()) {
             return response()->json(['message' => 'No tasks found'], 404);
@@ -22,135 +28,232 @@ class TaskController extends Controller
 
     public function evaluateCode(Request $request)
     {
-        Log::info('Evaluate code endpoint hit', ['data' => $request->all()]);
-
-        // Validate incoming request
-        $request->validate([
-            'code' => 'required|string|min:1',
-            'language_id' => 'required|integer',
-            'task_id' => 'required|integer',
-        ]);
-
         try {
-            // Fetch the task
-            $task = Task::findOrFail($request->task_id);
-            $encodedCode = base64_encode($request->code);
+            $request->validate([
+                'source_code' => 'required|string',
+                'language_id' => 'required|integer',
+                'test_cases' => 'required|array',
+                'test_cases.*.input' => 'required|string',
+                'test_cases.*.output' => 'required|string',
+            ]);
 
-            // Send code to Judge0 API
-            $response = Http::withHeaders([
-                'X-RapidAPI-Host' => 'judge0-ce.p.rapidapi.com',
-                'X-RapidAPI-Key' => env('JUDGE0_API_KEY'),
-            ])->withOptions(['verify' => false])
-                ->post('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=true', [
-                    'source_code' => $encodedCode,
-                    'language_id' => $request->language_id,
-                    'stdin' => '',
+            $sourceCode = $request->input('source_code');
+            $languageId = $request->input('language_id');
+            $testCases = $request->input('test_cases');
+
+            // Prepare test cases for Judge0
+            $testInputs = [];
+            $expectedOutputs = [];
+            foreach ($testCases as $testCase) {
+                $testInputs[] = $testCase['input'];
+                $expectedOutputs[] = trim($testCase['output']);
+            }
+
+            // Submit code to Judge0
+            $response = Http::post('http://localhost:2358/submissions', [
+                'source_code' => $sourceCode,
+                'language_id' => $languageId,
+                'stdin' => implode("\n", $testInputs),
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json(['error' => 'Failed to submit code to Judge0'], 500);
+            }
+
+            $submission = $response->json();
+            $token = $submission['token'];
+
+            // Wait for compilation and execution
+            sleep(2);
+
+            // Get results
+            $resultResponse = Http::get("http://localhost:2358/submissions/{$token}");
+            if (!$resultResponse->successful()) {
+                return response()->json(['error' => 'Failed to get execution results'], 500);
+            }
+
+            $result = $resultResponse->json();
+            $status = $result['status']['id'];
+
+            // Handle different status codes
+            if ($status === 1 || $status === 2) {
+                // Still processing, wait a bit more
+                sleep(1);
+                $resultResponse = Http::get("http://localhost:2358/submissions/{$token}");
+                $result = $resultResponse->json();
+                $status = $result['status']['id'];
+            }
+
+            if ($status === 3) {
+                // Success - check output
+                $output = trim($result['stdout']);
+                $actualOutputs = explode("\n", $output);
+                $actualOutputs = array_map('trim', $actualOutputs);
+
+                $passed = 0;
+                $total = count($expectedOutputs);
+                $results = [];
+
+                for ($i = 0; $i < $total; $i++) {
+                    $expected = $expectedOutputs[$i];
+                    $actual = isset($actualOutputs[$i]) ? $actualOutputs[$i] : '';
+                    $isCorrect = ($expected === $actual);
+                    if ($isCorrect) $passed++;
+
+                    $results[] = [
+                        'test_case' => $i + 1,
+                        'input' => $testCases[$i]['input'],
+                        'expected' => $expected,
+                        'actual' => $actual,
+                        'passed' => $isCorrect
+                    ];
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'passed' => $passed,
+                    'total' => $total,
+                    'results' => $results
                 ]);
-
-            Log::info('Judge0 API Response', ['response' => $response->json()]);
-            $responseData = $response->json();
-
-            // Handle API errors
-            if ($response->failed() || $response->status() >= 400) {
-                return $this->handleApiError($responseData);
-            }
-
-            // Parse outputs
-            $stdout = isset($responseData['stdout']) ? base64_decode($responseData['stdout']) : null;
-
-            if ($stdout === null) {
-                // Handle no output received
-                return $this->handleNoOutput($responseData);
-            }
-
-            // Compare output with expected result
-            if (trim($stdout) === trim($task->expected_output)) {
-                return response()->json(['success' => true, 'message' => 'Correct!', 'output' => $stdout]);
-            } else {
+            } elseif ($status === 4) {
+                // Compilation Error
+                $errorDetails = $result['compile_output'] ?? 'Compilation failed';
                 return response()->json([
                     'success' => false,
-                    'message' => 'Incorrect output.',
-                    'expected' => $task->expected_output,
-                    'received' => $stdout,
+                    'error' => 'Compilation Error',
+                    'details' => $errorDetails
+                ]);
+            } elseif ($status === 5) {
+                // Runtime Error
+                $errorDetails = $result['stderr'] ?? 'Runtime error occurred';
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Runtime Error',
+                    'details' => $errorDetails
+                ]);
+            } else {
+                // Other errors
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Execution Error',
+                    'details' => 'Unknown error occurred during execution'
                 ]);
             }
         } catch (\Exception $e) {
-            Log::error('Error in evaluateCode method', [
-                'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['error' => 'An unexpected error occurred.', 'details' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'error' => 'Server Error',
+                'details' => 'An error occurred while processing your request'
+            ], 500);
         }
     }
 
-    /**
-     * Simplify and handle API errors.
-     */
-    private function handleApiError($responseData)
+    public function store(Request $request)
     {
-        $compile_output = isset($responseData['compile_output']) ? base64_decode($responseData['compile_output']) : null;
-        $stderr = isset($responseData['stderr']) ? base64_decode($responseData['stderr']) : null;
+        $validated = $request->validate([
+            'playlist_id' => 'required|integer',
+            'video_id' => 'required|string',
+            'timestamp' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Validate format hh:mm:ss
+                    if (!preg_match('/^([0-9]{1,2}):([0-5][0-9]):([0-5][0-9])$/', $value)) {
+                        $fail('Timestamp must be in hh:mm:ss format.');
+                        return;
+                    }
+                    $exists = Task::where('playlist_id', $request->playlist_id)
+                        ->where('timestamp', $value)
+                        ->exists();
+                    if ($exists) {
+                        $fail('The timestamp must be unique for this course.');
+                        return;
+                    }
+                    // Validate timestamp < video duration (if provided)
+                    if ($request->has('video_duration')) {
+                        $duration = $this->convertTimestampToSeconds($request->video_duration);
+                        $ts = $this->convertTimestampToSeconds($value);
+                        if ($ts >= $duration) {
+                            $fail('Task timestamp must be less than the course video duration.');
+                        }
+                    }
+                },
+            ],
+            'title' => 'required|string|max:255',
+            'prompt' => 'nullable|string',
+            'expected_output' => 'nullable|string',
+            'syntax_hint' => 'nullable|string',
+            'type' => 'required|string',
+            'options' => 'nullable|json',
+        ]);
 
-        if ($compile_output) {
-            $errorDetails = $this->simplifyError($compile_output, true);
-            Log::error('Compilation Error', ['details' => $errorDetails]);
-            return response()->json(['error' => 'Compilation Error', 'details' => $errorDetails], 400);
-        }
+        $task = Task::create($validated);
 
-        if ($stderr) {
-            $errorDetails = $this->simplifyError($stderr, false);
-            Log::error('Runtime Error', ['details' => $errorDetails]);
-            return response()->json(['error' => 'Runtime Error', 'details' => $errorDetails], 400);
-        }
-
-        Log::error('Unknown Judge0 Error', ['response' => $responseData]);
-        return response()->json(['error' => 'Unknown error occurred.', 'details' => 'Please try again later.'], 400);
+        return response()->json($task, 201);
     }
 
-    /**
-     * Handle missing outputs.
-     */
-    private function handleNoOutput($responseData)
+    public function update(Request $request, $id)
     {
-        $compile_output = isset($responseData['compile_output']) ? base64_decode($responseData['compile_output']) : null;
-        $stderr = isset($responseData['stderr']) ? base64_decode($responseData['stderr']) : null;
+        $task = Task::findOrFail($id);
+        $validated = $request->validate([
+            'playlist_id' => 'sometimes|integer',
+            'video_id' => 'sometimes|string',
+            'timestamp' => [
+                'sometimes',
+                'string',
+                function ($attribute, $value, $fail) use ($request, $id, $task) {
+                    // Validate format hh:mm:ss
+                    if (!preg_match('/^([0-9]{1,2}):([0-5][0-9]):([0-5][0-9])$/', $value)) {
+                        $fail('Timestamp must be in hh:mm:ss format.');
+                        return;
+                    }
+                    $playlistId = $request->playlist_id ?? $task->playlist_id;
+                    $exists = Task::where('playlist_id', $playlistId)
+                        ->where('timestamp', $value)
+                        ->where('id', '!=', $id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('The timestamp must be unique for this course.');
+                        return;
+                    }
+                    // Validate timestamp < video duration (if provided)
+                    if ($request->has('video_duration')) {
+                        $duration = $this->convertTimestampToSeconds($request->video_duration);
+                        $ts = $this->convertTimestampToSeconds($value);
+                        if ($ts >= $duration) {
+                            $fail('Task timestamp must be less than the course video duration.');
+                        }
+                    }
+                },
+            ],
+            'title' => 'sometimes|string|max:255',
+            'prompt' => 'nullable|string',
+            'expected_output' => 'nullable|string',
+            'syntax_hint' => 'nullable|string',
+            'type' => 'sometimes|string',
+            'options' => 'nullable|json',
+        ]);
 
-        if ($compile_output) {
-            $errorDetails = $this->simplifyError($compile_output, true);
-            Log::error('Compilation Error', ['details' => $errorDetails]);
-            return response()->json(['error' => 'Compilation Error', 'details' => $errorDetails], 400);
-        }
+        $task->update($validated);
 
-        if ($stderr) {
-            $errorDetails = $this->simplifyError($stderr, false);
-            Log::error('Runtime Error', ['details' => $errorDetails]);
-            return response()->json(['error' => 'Runtime Error', 'details' => $errorDetails], 400);
-        }
-
-        Log::error('No output received from code execution');
-        return response()->json(['error' => 'No output received from code execution.'], 500);
+        return response()->json($task);
     }
 
-    /**
-     * Simplify error messages for user-friendly display.
-     */
-    private function simplifyError($error, $isCompileError = false)
+    // Helper to convert hh:mm:ss to seconds
+    private function convertTimestampToSeconds($timestamp)
     {
-        // Remove file references
-        $error = preg_replace('/main\.cpp:\s?/', '', $error);
-
-        // Extract and simplify error patterns
-        $lines = explode("\n", $error);
-        $simplifiedLines = [];
-
-        foreach ($lines as $line) {
-            if (preg_match('/(\d+):(\d+): (error|warning): (.+)/', $line, $matches)) {
-                $lineNumber = $matches[1];
-                $errorMessage = ucfirst($matches[4]);
-                $simplifiedLines[] = "On line $lineNumber: $errorMessage";
-            }
+        $parts = explode(':', $timestamp);
+        $seconds = 0;
+        if (count($parts) === 3) {
+            $seconds += (int)$parts[0] * 3600; // hours
+            $seconds += (int)$parts[1] * 60;   // minutes
+            $seconds += (int)$parts[2];        // seconds
+        } elseif (count($parts) === 2) {
+            $seconds += (int)$parts[0] * 60;
+            $seconds += (int)$parts[1];
+        } else {
+            $seconds += (int)$parts[0];
         }
-
-        return implode("\n", $simplifiedLines);
+        return $seconds;
     }
 }

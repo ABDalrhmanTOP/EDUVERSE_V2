@@ -14,7 +14,7 @@ import {
   FaListUl,
   FaTasks
 } from 'react-icons/fa';
-import axios from '../../api/axios';
+import apiClient from '../../api/axios';
 import TaskForm from './TaskForm';
 import ConfirmationModal from './ConfirmationModal';
 import SuccessNotification from './SuccessNotification';
@@ -57,8 +57,8 @@ const TasksDashboard = () => {
     try {
       setLoading(true);
       const [tasksRes, coursesRes] = await Promise.all([
-        axios.get('/tasks'),
-        axios.get('/courses')
+        apiClient.get('/tasks'),
+        apiClient.get('/courses')
       ]);
       setTasks(tasksRes.data || []);
       setCourses(coursesRes.data || []);
@@ -95,7 +95,7 @@ const TasksDashboard = () => {
 
   const confirmDeleteTask = async () => {
     try {
-      await axios.delete(`/task/${deleteModal.taskId}`);
+      await apiClient.delete(`/task/${deleteModal.taskId}`);
       setTasks(tasks.filter(task => task.id !== deleteModal.taskId));
       setDeleteModal({ isOpen: false, taskId: null, taskTitle: '' });
       

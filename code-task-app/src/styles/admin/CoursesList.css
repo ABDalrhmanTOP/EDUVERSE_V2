@@ -777,4 +777,29 @@
 .courses-list-row:hover {
   box-shadow: 0 6px 25px rgba(184,134,11,0.15);
   transform: translateY(-2px);
+}
+
+/* Course Type Badge Styles */
+.course-type-badge {
+  display: inline-block;
+  padding: 0.45em 1.2em;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  background: #f5f1eb;
+  color: #b5a079;
+  border: 1.5px solid #e3cfa4;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.07);
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+.course-type-badge.paid {
+  background: linear-gradient(135deg, #e3cfa4 0%, #f0e6d2 100%);
+  color: #b5a079;
+  border-color: #b5a079;
+}
+.course-type-badge.free {
+  background: linear-gradient(135deg, #f5f1eb 0%, #f0e6d2 100%);
+  color: #7d6a4d;
+  border-color: #e3cfa4;
 } 

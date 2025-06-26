@@ -27,6 +27,8 @@ const SuccessNotification = ({
         return <FaEdit />;
       case 'deleted':
         return <FaTrash />;
+      case 'error':
+        return <FaTimes />;
       case 'success':
       default:
         return <FaCheck />;
@@ -48,6 +50,12 @@ const SuccessNotification = ({
           iconColor: '#3b82f6'
         };
       case 'deleted':
+        return {
+          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+          iconBg: 'rgba(239, 68, 68, 0.2)',
+          iconColor: '#ef4444'
+        };
+      case 'error':
         return {
           background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
           iconBg: 'rgba(239, 68, 68, 0.2)',
@@ -83,7 +91,7 @@ const SuccessNotification = ({
         >
           <div className="success-notification-content">
             <div 
-              className="success-notification-icon"
+              className={`success-notification-icon${type === 'added' ? ' added' : ''}${type === 'deleted' ? ' deleted' : ''}${type === 'updated' ? ' updated' : ''}`}
               style={{ 
                 backgroundColor: typeStyles.iconBg,
                 color: typeStyles.iconColor
@@ -97,6 +105,7 @@ const SuccessNotification = ({
                 {type === 'updated' && 'Successfully Updated!'}
                 {type === 'deleted' && 'Successfully Deleted!'}
                 {type === 'success' && 'Success!'}
+                {type === 'error' && 'Error!'}
               </h4>
               <p className="success-notification-message">{message}</p>
             </div>
