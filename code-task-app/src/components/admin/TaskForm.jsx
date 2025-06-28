@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSave, FaTimes, FaPlus, FaTrash } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import { FaSave, FaTimes, FaPlus, FaTrash, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import axios from '../../api/axios';
 import '../../styles/admin/TaskForm.css';
 
@@ -12,6 +13,8 @@ const TaskForm = ({
   isEditing = false, 
   wide = false 
 }) => {
+  const { t, i18n } = useTranslation();
+  
   // Always use multi-task state, start with one (or prefill if editing)
   const initialTask = task ? {
     title: task.title || '',
@@ -20,12 +23,12 @@ const TaskForm = ({
     timestamp: task.timestamp || '',
     points: task.points || 1,
     question: task.question || '',
-    options: task.options || ['', '', '', ''],
+    options: Array.isArray(task.options) ? task.options : ['', '', '', ''],
     correct_answer: task.correct_answer || 0,
     tf_question: task.tf_question || '',
     tf_answer: task.tf_answer !== undefined ? task.tf_answer : true,
     coding_question: task.coding_question || '',
-    coding_test_cases: task.coding_test_cases || [{ input: '', output: '', description: '' }],
+    coding_test_cases: Array.isArray(task.coding_test_cases) ? task.coding_test_cases : [{ input: '', output: '', description: '' }],
     coding_solution: task.coding_solution || '',
     coding_language: task.coding_language || 'javascript'
   } : {
@@ -91,7 +94,7 @@ const TaskForm = ({
 
   const removeOption = (idx) => {
     if (tasks[idx].options.length <= 2) {
-      setError('MCQ must have at least 2 options');
+      setError(t('admin.tasks.mcqMustHaveAtLeast2Options'));
       return;
     }
     
@@ -138,20 +141,164 @@ const TaskForm = ({
     setTasks(tasks.filter((_, i) => i !== idx));
   };
 
+  // TimestampInput Component
+  const TimestampInput = ({ value, onChange, placeholder = "00:00:00" }) => {
+    // Handle undefined, null, or empty values
+    const safeValue = value || "00:00:00";
+    const [hours, minutes, seconds] = safeValue.split(':').map(Number);
+    
+    const updateParent = (h, m, s) => {
+      const newValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      onChange(newValue);
+    };
+
+    const increment = (type) => {
+      switch (type) {
+        case 'hours':
+          updateParent((hours + 1) % 24, minutes, seconds);
+          break;
+        case 'minutes':
+          updateParent(hours, (minutes + 1) % 60, seconds);
+          break;
+        case 'seconds':
+          updateParent(hours, minutes, (seconds + 1) % 60);
+          break;
+      }
+    };
+
+    const decrement = (type) => {
+      switch (type) {
+        case 'hours':
+          updateParent((hours - 1 + 24) % 24, minutes, seconds);
+          break;
+        case 'minutes':
+          updateParent(hours, (minutes - 1 + 60) % 60, seconds);
+          break;
+        case 'seconds':
+          updateParent(hours, minutes, (seconds - 1 + 60) % 60);
+          break;
+      }
+    };
+
+    const handleInputChange = (type, newValue) => {
+      const numValue = parseInt(newValue) || 0;
+      let clampedValue = numValue;
+      
+      switch (type) {
+        case 'hours':
+          clampedValue = Math.max(0, Math.min(23, numValue));
+          updateParent(clampedValue, minutes, seconds);
+          break;
+        case 'minutes':
+        case 'seconds':
+          clampedValue = Math.max(0, Math.min(59, numValue));
+          if (type === 'minutes') {
+            updateParent(hours, clampedValue, seconds);
+          } else {
+            updateParent(hours, minutes, clampedValue);
+          }
+          break;
+      }
+    };
+
+    return (
+      <div className="timestamp-input-container">
+        <div className="timestamp-input-group">
+          <button
+            type="button"
+            className="timestamp-btn timestamp-up"
+            onClick={() => increment('hours')}
+          >
+            <FaChevronUp />
+          </button>
+          <input
+            type="number"
+            min="0"
+            max="23"
+            value={hours.toString().padStart(2, '0')}
+            onChange={(e) => handleInputChange('hours', e.target.value)}
+            className="timestamp-input"
+          />
+          <button
+            type="button"
+            className="timestamp-btn timestamp-down"
+            onClick={() => decrement('hours')}
+          >
+            <FaChevronDown />
+          </button>
+        </div>
+        
+        <span className="timestamp-separator">:</span>
+        
+        <div className="timestamp-input-group">
+          <button
+            type="button"
+            className="timestamp-btn timestamp-up"
+            onClick={() => increment('minutes')}
+          >
+            <FaChevronUp />
+          </button>
+          <input
+            type="number"
+            min="0"
+            max="59"
+            value={minutes.toString().padStart(2, '0')}
+            onChange={(e) => handleInputChange('minutes', e.target.value)}
+            className="timestamp-input"
+          />
+          <button
+            type="button"
+            className="timestamp-btn timestamp-down"
+            onClick={() => decrement('minutes')}
+          >
+            <FaChevronDown />
+          </button>
+        </div>
+        
+        <span className="timestamp-separator">:</span>
+        
+        <div className="timestamp-input-group">
+          <button
+            type="button"
+            className="timestamp-btn timestamp-up"
+            onClick={() => increment('seconds')}
+          >
+            <FaChevronUp />
+          </button>
+          <input
+            type="number"
+            min="0"
+            max="59"
+            value={seconds.toString().padStart(2, '0')}
+            onChange={(e) => handleInputChange('seconds', e.target.value)}
+            className="timestamp-input"
+          />
+          <button
+            type="button"
+            className="timestamp-btn timestamp-down"
+            onClick={() => decrement('seconds')}
+          >
+            <FaChevronDown />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // Validation and submit
   const validateTask = (task) => {
-    if (!task.title.trim()) return 'Task title is required';
+    if (!task.title.trim()) return t('admin.tasks.taskTitleRequired');
     switch (task.type) {
       case 'mcq':
-        if (!task.question.trim()) return 'Question is required for MCQ';
-        if (task.options.some(opt => !opt.trim())) return 'All MCQ options must be filled';
+        if (!task.question.trim()) return t('admin.tasks.questionRequiredForMCQ');
+        if (task.options.some(opt => !opt.trim())) return t('admin.tasks.allMCQOptionsMustBeFilled');
         break;
       case 'true_false':
-        if (!task.tf_question.trim()) return 'Question is required for True/False';
+        if (!task.tf_question.trim()) return t('admin.tasks.questionRequiredForTrueFalse');
         break;
       case 'CODE':
-        if (!task.coding_question.trim()) return 'Question is required for Coding task';
-        if (task.coding_test_cases.some(tc => !tc.input.trim() || !tc.output.trim())) return 'All test cases must have input and output';
+        if (!task.coding_question.trim()) return t('admin.tasks.questionRequiredForCoding');
+        if (task.coding_test_cases.some(tc => !tc.input.trim() || !tc.output.trim())) return t('admin.tasks.allTestCasesMustHaveInputAndOutput');
         break;
     }
     return null;
@@ -167,7 +314,7 @@ const TaskForm = ({
     try {
       await onSave(tasks);
     } catch (err) {
-      setError('Error saving tasks');
+      setError(t('admin.tasks.errorSavingTasks'));
     } finally {
       setLoading(false);
     }
@@ -176,17 +323,17 @@ const TaskForm = ({
   const renderMCQFields = (task) => (
     <div className="task-type-fields mcq-fields">
       <div className="form-group">
-        <label>MCQ Question *</label>
+        <label>{t('admin.tasks.mcqQuestion')} *</label>
         <input
           type="text"
           value={task.question}
           onChange={(e) => handleInputChange('question', e.target.value)}
-          placeholder="Enter MCQ question..."
+          placeholder={t('admin.tasks.enterMCQQuestion')}
           required
         />
       </div>
       <div className="mcq-options-list">
-        {task.options.map((option, idx) => (
+        {(Array.isArray(task.options) ? task.options : ['', '', '', '']).map((option, idx) => (
           <div className="mcq-option-card" key={idx}>
             <input
               type="radio"
@@ -199,16 +346,16 @@ const TaskForm = ({
               type="text"
               value={option}
               onChange={(e) => handleOptionChange(idx, e.target.value)}
-              placeholder={`Option ${idx + 1}`}
+              placeholder={t('admin.tasks.enterOption')}
               className="mcq-option-input"
               required
             />
-            {task.options.length > 2 && (
+            {(Array.isArray(task.options) ? task.options : ['', '', '', '']).length > 2 && (
               <button
                 type="button"
                 className="remove-option-btn"
-                onClick={() => removeOption(idx)}
-                title="Remove Option"
+                onClick={() => removeOption(tasks.indexOf(task))}
+                title={t('admin.tasks.removeOption')}
               >
                 <FaTrash />
               </button>
@@ -220,7 +367,7 @@ const TaskForm = ({
           className="add-option-btn"
           onClick={() => addOption(tasks.indexOf(task))}
         >
-          <FaPlus /> Add Option
+          <FaPlus /> {t('admin.tasks.addOption')}
         </button>
       </div>
     </div>
@@ -229,12 +376,12 @@ const TaskForm = ({
   const renderTrueFalseFields = (task) => (
     <div className="task-type-fields tf-fields">
       <div className="form-group">
-        <label>True/False Question *</label>
+        <label>{t('admin.tasks.trueFalseQuestion')} *</label>
         <input
           type="text"
           value={task.tf_question}
           onChange={(e) => handleInputChange('tf_question', e.target.value)}
-          placeholder="Enter True/False question..."
+          placeholder={t('admin.tasks.enterTrueFalseQuestion')}
           required
         />
       </div>
@@ -246,7 +393,7 @@ const TaskForm = ({
             checked={task.tf_answer === true}
             onChange={(e) => handleInputChange('tf_answer', true)}
           />
-          True
+          {t('admin.tasks.true')}
         </label>
         <label>
           <input
@@ -255,7 +402,7 @@ const TaskForm = ({
             checked={task.tf_answer === false}
             onChange={(e) => handleInputChange('tf_answer', false)}
           />
-          False
+          {t('admin.tasks.false')}
         </label>
       </div>
     </div>
@@ -264,17 +411,17 @@ const TaskForm = ({
   const renderCodingFields = (task) => (
     <div className="task-type-fields coding-fields">
       <div className="form-group">
-        <label>Coding Question *</label>
+        <label>{t('admin.tasks.codingQuestion')} *</label>
         <input
           type="text"
           value={task.coding_question}
           onChange={(e) => handleInputChange('coding_question', e.target.value)}
-          placeholder="Enter coding question..."
+          placeholder={t('admin.tasks.enterCodingQuestion')}
           required
         />
       </div>
       <div className="form-group">
-        <label>Programming Language *</label>
+        <label>{t('admin.tasks.programmingLanguage')} *</label>
         <select
           value={task.coding_language}
           onChange={(e) => handleInputChange('coding_language', e.target.value)}
@@ -286,22 +433,22 @@ const TaskForm = ({
         </select>
       </div>
       <div className="form-group">
-        <label>Solution (optional)</label>
+        <label>{t('admin.tasks.codingSolution')} ({t('common.optional')})</label>
         <textarea
           value={task.coding_solution}
           onChange={(e) => handleInputChange('coding_solution', e.target.value)}
-          placeholder="Enter reference solution (optional)..."
+          placeholder={t('admin.tasks.enterCodingSolution')}
         />
       </div>
       <div className="coding-test-cases-list">
-        <label style={{fontWeight:600,marginBottom:'0.5rem'}}>Test Cases</label>
-        {task.coding_test_cases.map((tc, idx) => (
+        <label style={{fontWeight:600,marginBottom:'0.5rem'}}>{t('admin.tasks.testCases')}</label>
+        {(Array.isArray(task.coding_test_cases) ? task.coding_test_cases : [{ input: '', output: '', description: '' }]).map((tc, idx) => (
           <div className="test-case-card" key={idx}>
             <input
               type="text"
               value={tc.input}
               onChange={(e) => handleTestCaseChange(idx, 'input', e.target.value)}
-              placeholder="Input"
+              placeholder={t('admin.tasks.input')}
               className="test-case-input"
               required
             />
@@ -309,7 +456,7 @@ const TaskForm = ({
               type="text"
               value={tc.output}
               onChange={(e) => handleTestCaseChange(idx, 'output', e.target.value)}
-              placeholder="Expected Output"
+              placeholder={t('admin.tasks.output')}
               className="test-case-input"
               required
             />
@@ -317,15 +464,15 @@ const TaskForm = ({
               type="text"
               value={tc.description}
               onChange={(e) => handleTestCaseChange(idx, 'description', e.target.value)}
-              placeholder="Description (optional)"
+              placeholder={t('admin.tasks.testCaseDescription')}
               className="test-case-input"
             />
-            {task.coding_test_cases.length > 1 && (
+            {(Array.isArray(task.coding_test_cases) ? task.coding_test_cases : [{ input: '', output: '', description: '' }]).length > 1 && (
               <button
                 type="button"
                 className="remove-btn"
                 onClick={() => removeTestCase(idx)}
-                title="Remove Test Case"
+                title={t('admin.tasks.removeTestCase')}
               >
                 <FaTrash />
               </button>
@@ -337,7 +484,7 @@ const TaskForm = ({
           className="add-test-case-btn"
           onClick={() => addTestCase(tasks.indexOf(task))}
         >
-          <FaPlus /> Add Test Case
+          <FaPlus /> {t('admin.tasks.addTestCase')}
         </button>
       </div>
     </div>
@@ -362,7 +509,7 @@ const TaskForm = ({
           <div className="task-form-header">
             <h2 className="task-form-title">
               <FaPlus className="task-form-icon" />
-              {tasks.length > 1 ? 'Add Multiple Tasks' : isEditing ? 'Edit Task' : 'Add New Task'}
+              {tasks.length > 1 ? t('admin.tasks.addTask') : isEditing ? t('admin.tasks.editTask') : t('admin.tasks.createTask')}
             </h2>
             <button
               className="task-form-close-btn"
@@ -372,61 +519,59 @@ const TaskForm = ({
               <FaTimes />
             </button>
           </div>
-          <form onSubmit={handleSubmit} className="multi-task-form">
+          <form onSubmit={handleSubmit} className="multi-task-form" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
             {error && <div className="error-message">{error}</div>}
-            {tasks.map((t, idx) => (
+            {tasks.map((taskItem, idx) => (
               <div className="multi-task-card" key={idx}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
-                  <span style={{fontWeight:700,fontSize:'1.1rem',color:'#b8860b'}}>Task {idx+1}</span>
+                  <span style={{fontWeight:700,fontSize:'1.1rem',color:'#b8860b'}}>{t('admin.tasks.task')} {idx+1}</span>
                   {tasks.length > 1 && (
-                    <button type="button" className="remove-btn" onClick={() => handleRemoveTask(idx)}><FaTrash /></button>
+                    <button type="button" className="remove-btn" onClick={() => handleRemoveTask(idx)} title={t('admin.tasks.removeTask')}><FaTrash /></button>
                   )}
                 </div>
                 <div className="form-group">
-                  <label>Task Title *</label>
+                  <label>{t('admin.tasks.taskTitle')} *</label>
                   <input
                     type="text"
-                    value={t.title}
+                    value={taskItem.title}
                     onChange={(e) => handleTaskChange(idx, 'title', e.target.value)}
-                    placeholder="Enter task title..."
+                    placeholder={t('admin.tasks.enterTaskTitle')}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label>Task Type *</label>
+                  <label>{t('admin.tasks.taskType')} *</label>
                   <select
-                    value={t.type}
+                    value={taskItem.type}
                     onChange={(e) => handleTaskChange(idx, 'type', e.target.value)}
                     required
                   >
-                    <option value="mcq">MCQ</option>
-                    <option value="true_false">True/False</option>
-                    <option value="CODE">Coding</option>
+                    <option value="mcq">{t('admin.tasks.multipleChoice')}</option>
+                    <option value="true_false">{t('admin.tasks.trueFalse')}</option>
+                    <option value="CODE">{t('admin.tasks.coding')}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Description</label>
+                  <label>{t('admin.tasks.taskDescription')}</label>
                   <textarea
-                    value={t.description}
+                    value={taskItem.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Enter task description..."
+                    placeholder={t('admin.tasks.enterTaskDescription')}
                   />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Video Timestamp (mm:ss)</label>
-                    <input
-                      type="text"
-                      value={t.timestamp}
-                      onChange={(e) => handleInputChange('timestamp', e.target.value)}
-                      placeholder="e.g., 05:30"
+                    <label>{t('admin.tasks.timestamp')} {t('admin.tasks.timestampFormat')}</label>
+                    <TimestampInput
+                      value={taskItem.timestamp}
+                      onChange={(value) => handleInputChange('timestamp', value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label>Points</label>
+                    <label>{t('admin.tasks.points')}</label>
                     <input
                       type="number"
-                      value={t.points}
+                      value={taskItem.points}
                       onChange={(e) => handleInputChange('points', parseInt(e.target.value))}
                       min="1"
                       max="10"
@@ -434,16 +579,16 @@ const TaskForm = ({
                   </div>
                 </div>
                 {/* Task Type Specific Fields */}
-                {t.type === 'mcq' && renderMCQFields(t)}
-                {t.type === 'true_false' && renderTrueFalseFields(t)}
-                {t.type === 'CODE' && renderCodingFields(t)}
+                {taskItem.type === 'mcq' && renderMCQFields(taskItem)}
+                {taskItem.type === 'true_false' && renderTrueFalseFields(taskItem)}
+                {taskItem.type === 'CODE' && renderCodingFields(taskItem)}
               </div>
             ))}
-            <button type="button" className="multi-task-btn" onClick={handleAddTask}><FaPlus /> Add Another Task</button>
+            <button type="button" className="multi-task-btn" onClick={handleAddTask}><FaPlus /> {t('admin.tasks.addAnotherTask')}</button>
             <div className="form-actions">
-              <button type="button" onClick={onCancel} className="cancel-btn">Cancel</button>
+              <button type="button" onClick={onCancel} className="cancel-btn">{t('common.cancel')}</button>
               <button type="submit" className="save-btn" disabled={loading}>
-                <FaSave className={loading ? 'spinning' : ''} /> {loading ? 'Saving...' : (tasks.length > 1 ? 'Save All' : isEditing ? 'Save Changes' : 'Save Task')}
+                <FaSave className={loading ? 'spinning' : ''} /> {loading ? t('common.saving') : (tasks.length > 1 ? t('admin.tasks.saveTasks') : isEditing ? t('common.update') : t('admin.tasks.saveTask'))}
               </button>
             </div>
           </form>

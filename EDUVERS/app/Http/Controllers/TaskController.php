@@ -15,6 +15,12 @@ class TaskController extends Controller
         return response()->json($tasks);
     }
 
+    public function adminIndex()
+    {
+        $tasks = Task::with('playlist')->get();
+        return response()->json($tasks);
+    }
+
     public function getTasks($playlistId)
     {
         $tasks = Task::where('playlist_id', $playlistId)->with('playlist')->get();

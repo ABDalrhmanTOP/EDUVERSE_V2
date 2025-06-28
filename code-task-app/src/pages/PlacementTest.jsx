@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import apiClient from "../api/axios";
 import "../styles/PlacementTest.css";
 import { useParams, useNavigate } from "react-router-dom";
@@ -10,8 +10,8 @@ const personalInitial = {
   country: "",
   experience: "",
   careerGoals: "",
-  hobbies: "",
-  expectations: "",
+  hobbies: [],
+  expectations: [],
   // Dynamic fields
   educationLevel: "",
   fieldOfStudy: "",
@@ -116,11 +116,91 @@ const experienceOptions = [
   "Other"
 ];
 
+const careerGoalsOptions = [
+  "Become a Software Engineer",
+  "Become a Data Scientist",
+  "Become a Web Developer",
+  "Become a Mobile Developer",
+  "Become a DevOps Engineer",
+  "Become a Cybersecurity Expert",
+  "Become a Machine Learning Engineer",
+  "Become a UI/UX Designer",
+  "Become a Product Manager",
+  "Become a Technical Lead",
+  "Become a Researcher",
+  "Become a Teacher/Instructor",
+  "Start my own tech company",
+  "Improve my programming skills",
+  "Switch careers to tech",
+  "Get a promotion in my current role",
+  "Learn for personal interest",
+  "Other"
+];
+
+const hobbiesOptions = [
+  "Reading",
+  "Coding/Programming",
+  "Gaming",
+  "Sports (Football, Basketball, etc.)",
+  "Music",
+  "Travel",
+  "Photography",
+  "Cooking",
+  "Art/Drawing",
+  "Gym/Working out",
+  "Watching movies/TV shows",
+  "Playing musical instruments",
+  "Hiking/Outdoor activities",
+  "Puzzle solving",
+  "Chess",
+  "Blogging/Writing",
+  "Social media",
+  "Learning new languages",
+  "DIY projects",
+  "Other"
+];
+
+const expectationsOptions = [
+  "Learn practical programming skills",
+  "Get hands-on project experience",
+  "Understand theoretical concepts",
+  "Prepare for job interviews",
+  "Build a portfolio of projects",
+  "Network with other developers",
+  "Get mentorship from experts",
+  "Learn industry best practices",
+  "Stay updated with latest technologies",
+  "Improve problem-solving skills",
+  "Learn to work in teams",
+  "Get certification",
+  "Build real-world applications",
+  "Learn from scratch",
+  "Advance my current knowledge",
+  "Other"
+];
+
 const PlacementTest = ({ onComplete }) => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [personal, setPersonal] = useState(personalInitial);
+  const [personal, setPersonal] = useState({
+    job: "",
+    university: "",
+    country: "",
+    experience: "",
+    careerGoals: "",
+    hobbies: [],
+    expectations: [],
+    educationLevel: "",
+    fieldOfStudy: "",
+    studentYear: "",
+    yearsOfExperience: "",
+    specialization: "",
+    teachingSubject: "",
+    researchField: "",
+    companySize: "",
+    industry: "",
+  });
   const [personalError, setPersonalError] = useState("");
   const [year, setYear] = useState(1);
   const [semester, setSemester] = useState(1);
@@ -132,6 +212,28 @@ const PlacementTest = ({ onComplete }) => {
   const [testError, setTestError] = useState("");
   const [skipPlacementTest, setSkipPlacementTest] = useState(false);
   const [showPlacementChoice, setShowPlacementChoice] = useState(false);
+  const [hasCompletedGeneralForm, setHasCompletedGeneralForm] = useState(false);
+  
+  // Individual field error states
+  const [fieldErrors, setFieldErrors] = useState({
+    job: "",
+    country: "",
+    experience: "",
+    careerGoals: "",
+    hobbies: "",
+    expectations: "",
+    university: "",
+    educationLevel: "",
+    fieldOfStudy: "",
+    studentYear: "",
+    yearsOfExperience: "",
+    specialization: "",
+    teachingSubject: "",
+    researchField: "",
+    companySize: "",
+    industry: "",
+    semester: ""
+  });
   
   // Custom dropdown states
   const [showJobDropdown, setShowJobDropdown] = useState(false);
@@ -148,6 +250,9 @@ const PlacementTest = ({ onComplete }) => {
   const [showResearchFieldDropdown, setShowResearchFieldDropdown] = useState(false);
   const [showCompanySizeDropdown, setShowCompanySizeDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
+  const [showCareerGoalsDropdown, setShowCareerGoalsDropdown] = useState(false);
+  const [showHobbiesDropdown, setShowHobbiesDropdown] = useState(false);
+  const [showExpectationsDropdown, setShowExpectationsDropdown] = useState(false);
   
   // Keyboard search states
   const [jobSearch, setJobSearch] = useState("");
@@ -160,6 +265,9 @@ const PlacementTest = ({ onComplete }) => {
   const [researchFieldSearch, setResearchFieldSearch] = useState("");
   const [companySizeSearch, setCompanySizeSearch] = useState("");
   const [industrySearch, setIndustrySearch] = useState("");
+  const [careerGoalsSearch, setCareerGoalsSearch] = useState("");
+  const [hobbiesSearch, setHobbiesSearch] = useState("");
+  const [expectationsSearch, setExpectationsSearch] = useState("");
 
   // Monaco Editor theme state
   const [editorTheme, setEditorTheme] = useState("custom-dark");
@@ -188,80 +296,146 @@ const PlacementTest = ({ onComplete }) => {
 
   // Comprehensive field validation
   const validateFields = () => {
-    const errors = [];
+    const newFieldErrors = {
+      job: "",
+      country: "",
+      experience: "",
+      careerGoals: "",
+      hobbies: "",
+      expectations: "",
+      university: "",
+      educationLevel: "",
+      fieldOfStudy: "",
+      studentYear: "",
+      yearsOfExperience: "",
+      specialization: "",
+      teachingSubject: "",
+      researchField: "",
+      companySize: "",
+      industry: "",
+      semester: ""
+    };
 
-    // Basic required fields
-    if (!personal.job) errors.push("Please select your job/role");
-    if (!personal.university) errors.push("Please enter your university name");
-    if (!personal.country) errors.push("Please select your country");
-    if (!personal.experience) errors.push("Please select your experience level");
-    if (!personal.careerGoals?.trim()) errors.push("Please describe your career goals");
-    if (!personal.hobbies?.trim()) errors.push("Please share your hobbies and interests");
-    if (!personal.expectations?.trim()) errors.push("Please share your expectations for this course");
+    // Basic required fields (always shown)
+    if (!personal.job) newFieldErrors.job = "Please select your job/role";
+    if (!personal.country) newFieldErrors.country = "Please select your country";
+    if (!personal.experience) newFieldErrors.experience = "Please select your experience level";
+    if (!personal.careerGoals?.trim()) newFieldErrors.careerGoals = "Please describe your career goals";
+    if (!personal.hobbies || personal.hobbies.length === 0) newFieldErrors.hobbies = "Please select at least one hobby";
+    if (!personal.expectations || personal.expectations.length === 0) newFieldErrors.expectations = "Please select at least one expectation";
 
-    // Dynamic validation based on job
-    if (personal.job === "Student") {
-      if (!personal.educationLevel) errors.push("Please select your education level");
-      if (!personal.fieldOfStudy) errors.push("Please select your field of study");
-      if (personal.educationLevel === "University" && !personal.studentYear) {
-        errors.push("Please select your university year");
+    // Only validate dynamic fields if a job is selected
+    if (personal.job) {
+      // University field - only required for non-students
+      if (personal.job !== "Student" && !personal.university?.trim()) {
+        newFieldErrors.university = "Please enter your university name";
       }
-    } else if (personal.job === "Software Engineer") {
-      if (!personal.yearsOfExperience) errors.push("Please select your years of experience");
-      if (!personal.specialization) errors.push("Please select your specialization");
-      if (!personal.industry) errors.push("Please select your industry");
-      if (!personal.companySize) errors.push("Please select your company size");
-    } else if (personal.job === "Teacher") {
-      if (!personal.teachingSubject) errors.push("Please select your teaching subject");
-    } else if (personal.job === "Researcher") {
-      if (!personal.researchField) errors.push("Please select your research field");
+
+      // Dynamic validation based on job
+      if (personal.job === "Student") {
+        if (!personal.educationLevel) newFieldErrors.educationLevel = "Please select your education level";
+        if ((personal.educationLevel === "University" || personal.educationLevel === "Master's" || personal.educationLevel === "PhD") && !personal.fieldOfStudy) {
+          newFieldErrors.fieldOfStudy = "Please select your field of study";
+        }
+        if (personal.educationLevel === "University" && !personal.studentYear) {
+          newFieldErrors.studentYear = "Please select your university year";
+        }
+      } else if (personal.job === "Software Engineer") {
+        if (!personal.yearsOfExperience) newFieldErrors.yearsOfExperience = "Please select your years of experience";
+        if (!personal.specialization) newFieldErrors.specialization = "Please select your specialization";
+        if (!personal.industry) newFieldErrors.industry = "Please select your industry";
+        if (!personal.companySize) newFieldErrors.companySize = "Please select your company size";
+      } else if (personal.job === "Teacher") {
+        if (!personal.teachingSubject) newFieldErrors.teachingSubject = "Please select your teaching subject";
+      } else if (personal.job === "Researcher") {
+        if (!personal.researchField) newFieldErrors.researchField = "Please select your research field";
+      }
     }
 
     // Academic fields validation
-    if (!semester) errors.push("Please select semester");
+    if (!semester) newFieldErrors.semester = "Please select semester";
 
-    return errors;
+    setFieldErrors(newFieldErrors);
+    
+    // Return true if there are any errors
+    return Object.values(newFieldErrors).some(error => error !== "");
   };
 
   // Personal survey validation
-  const handlePersonalNext = () => {
-    const errors = validateFields();
+  const handlePersonalNext = async () => {
+    const hasErrors = validateFields();
     
-    if (errors.length > 0) {
-      setPersonalError(errors.join(". "));
+    if (hasErrors) {
       return;
     }
     
     setPersonalError("");
+    setLoading(true);
     
-    // Check if user should skip placement test
-    if (personal.experience === "Newbie (No experience)") {
-      setSkipPlacementTest(true);
+    try {
+      // Save profile information to database
+      const profileData = {
+        job: personal.job,
+        university: personal.university || "",
+        country: personal.country,
+        experience: personal.experience,
+        career_goals: personal.careerGoals || "",
+        hobbies: personal.hobbies && personal.hobbies.length > 0 ? JSON.stringify(personal.hobbies) : "[]",
+        expectations: personal.expectations && personal.expectations.length > 0 ? JSON.stringify(personal.expectations) : "[]",
+        education_level: personal.educationLevel || "",
+        field_of_study: personal.fieldOfStudy || "",
+        student_year: personal.studentYear ? String(personal.studentYear) : "",
+        years_of_experience: personal.yearsOfExperience || "",
+        specialization: personal.specialization || "",
+        teaching_subject: personal.teachingSubject || "",
+        research_field: personal.researchField || "",
+        company_size: personal.companySize || "",
+        industry: personal.industry || "",
+        semester: parseInt(semester),
+      };
+      
+      console.log('Sending profile data:', profileData);
+      
+      await apiClient.post('/profile/general-form', profileData);
+      
+      // Show placement choice for ALL users
       setShowPlacementChoice(true);
-    } else {
-      nextStep();
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      console.error('Error response:', err.response?.data);
+      
+      if (err.response?.data?.errors) {
+        // Show specific validation errors
+        const errorMessages = Object.values(err.response.data.errors).flat();
+        setPersonalError(errorMessages.join(', '));
+      } else {
+        setPersonalError('Failed to save profile information. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   // Handle placement test choice
   const handlePlacementChoice = (choice) => {
-    if (choice === "skip") {
-      // Skip to results or course access
-      setResult({ passed: true, message: "Welcome! You'll start from the beginning." });
-      setStep(3);
-    } else {
-      // Take placement test
+    if (choice === 'start_from_scratch') {
+      // Go directly to course - no placement test needed
+      if (courseId) {
+        navigate(`/course/${courseId}`);
+      } else {
+        navigate("/homevideo");
+      }
+    } else if (choice === 'take_placement_test') {
       setShowPlacementChoice(false);
-      nextStep();
+      setStep(1);
     }
   };
 
   // Academic survey
   const handleAcademicNext = async () => {
-    const errors = validateFields();
+    const hasErrors = validateFields();
     
-    if (errors.length > 0) {
-      setAcademicError(errors.join(". "));
+    if (hasErrors) {
       return;
     }
     
@@ -325,9 +499,24 @@ const PlacementTest = ({ onComplete }) => {
     setPersonal(p => ({ ...p, job }));
     setShowJobDropdown(false);
     setJobSearch("");
+    // Clear job field error
+    setFieldErrors(prev => ({ ...prev, job: "" }));
     // Clear dynamic fields when job changes
     setPersonal(p => ({
       ...p,
+      educationLevel: "",
+      fieldOfStudy: "",
+      studentYear: "",
+      yearsOfExperience: "",
+      specialization: "",
+      teachingSubject: "",
+      researchField: "",
+      companySize: "",
+      industry: "",
+    }));
+    // Clear all dynamic field errors
+    setFieldErrors(prev => ({
+      ...prev,
       educationLevel: "",
       fieldOfStudy: "",
       studentYear: "",
@@ -344,12 +533,14 @@ const PlacementTest = ({ onComplete }) => {
     setPersonal(p => ({ ...p, country }));
     setShowCountryDropdown(false);
     setCountrySearch("");
+    setFieldErrors(prev => ({ ...prev, country: "" }));
   };
 
   const handleExperienceSelect = (experience) => {
     setPersonal(p => ({ ...p, experience }));
     setShowExperienceDropdown(false);
     setExperienceSearch("");
+    setFieldErrors(prev => ({ ...prev, experience: "" }));
   };
 
   const handleYearSelect = (selectedYear) => {
@@ -360,6 +551,7 @@ const PlacementTest = ({ onComplete }) => {
   const handleSemesterSelect = (selectedSemester) => {
     setSemester(selectedSemester);
     setShowSemesterDropdown(false);
+    setFieldErrors(prev => ({ ...prev, semester: "" }));
   };
 
   // Dynamic dropdown handlers
@@ -367,8 +559,10 @@ const PlacementTest = ({ onComplete }) => {
     setPersonal(p => ({ ...p, educationLevel: level }));
     setShowEducationLevelDropdown(false);
     setEducationLevelSearch("");
+    setFieldErrors(prev => ({ ...prev, educationLevel: "" }));
     if (level !== "University") {
       setPersonal(p => ({ ...p, studentYear: "" }));
+      setFieldErrors(prev => ({ ...prev, studentYear: "" }));
     }
   };
 
@@ -376,36 +570,81 @@ const PlacementTest = ({ onComplete }) => {
     setPersonal(p => ({ ...p, fieldOfStudy: field }));
     setShowFieldOfStudyDropdown(false);
     setFieldOfStudySearch("");
+    setFieldErrors(prev => ({ ...prev, fieldOfStudy: "" }));
   };
 
   const handleSpecializationSelect = (specialization) => {
     setPersonal(p => ({ ...p, specialization }));
     setShowSpecializationDropdown(false);
     setSpecializationSearch("");
+    setFieldErrors(prev => ({ ...prev, specialization: "" }));
   };
 
   const handleTeachingSubjectSelect = (subject) => {
     setPersonal(p => ({ ...p, teachingSubject: subject }));
     setShowTeachingSubjectDropdown(false);
     setTeachingSubjectSearch("");
+    setFieldErrors(prev => ({ ...prev, teachingSubject: "" }));
   };
 
   const handleResearchFieldSelect = (field) => {
     setPersonal(p => ({ ...p, researchField: field }));
     setShowResearchFieldDropdown(false);
     setResearchFieldSearch("");
+    setFieldErrors(prev => ({ ...prev, researchField: "" }));
   };
 
   const handleCompanySizeSelect = (size) => {
     setPersonal(p => ({ ...p, companySize: size }));
     setShowCompanySizeDropdown(false);
     setCompanySizeSearch("");
+    setFieldErrors(prev => ({ ...prev, companySize: "" }));
   };
 
   const handleIndustrySelect = (industry) => {
     setPersonal(p => ({ ...p, industry }));
     setShowIndustryDropdown(false);
     setIndustrySearch("");
+    setFieldErrors(prev => ({ ...prev, industry: "" }));
+  };
+
+  const handleCareerGoalsSelect = (goal) => {
+    setPersonal(p => ({ ...p, careerGoals: goal }));
+    setShowCareerGoalsDropdown(false);
+    setCareerGoalsSearch("");
+    setFieldErrors(prev => ({ ...prev, careerGoals: "" }));
+  };
+
+  const handleHobbiesSelect = (hobby) => {
+    setPersonal(p => {
+      const currentHobbies = p.hobbies || [];
+      const isSelected = currentHobbies.includes(hobby);
+      
+      if (isSelected) {
+        // Remove if already selected
+        return { ...p, hobbies: currentHobbies.filter(h => h !== hobby) };
+      } else {
+        // Add if not selected
+        return { ...p, hobbies: [...currentHobbies, hobby] };
+      }
+    });
+    setFieldErrors(prev => ({ ...prev, hobbies: "" }));
+  };
+
+  const handleExpectationsSelect = (expectation) => {
+    setPersonal(p => {
+      const currentExpectations = p.expectations || [];
+      const isSelected = currentExpectations.includes(expectation);
+      
+      if (isSelected) {
+        // Remove if already selected
+        return { ...p, expectations: currentExpectations.filter(e => e !== expectation) };
+      } else {
+        // Add if not selected
+        return { ...p, expectations: [...currentExpectations, expectation] };
+      }
+    });
+    setFieldErrors(prev => ({ ...prev, expectations: "" }));
   };
 
   // Theme toggle function
@@ -446,6 +685,14 @@ const PlacementTest = ({ onComplete }) => {
     );
   };
 
+  // Helper function to format multi-select display text
+  const formatMultiSelectDisplay = (items, maxItems = 2) => {
+    if (!items || items.length === 0) return "";
+    
+    // Always show all items, no truncation
+    return items.join(", ");
+  };
+
   // Render dynamic questions based on job
   const renderDynamicQuestions = () => {
     if (personal.job === "Student") {
@@ -477,35 +724,40 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.educationLevel && <div className="placement-field-error">{fieldErrors.educationLevel}</div>}
           </div>
           
-          <div className="placement-form-group">
-            <label>What are you studying?</label>
-            <div className="placement-custom-dropdown">
-              <button 
-                type="button"
-                className="placement-custom-select"
-                onClick={() => setShowFieldOfStudyDropdown(!showFieldOfStudyDropdown)}
-                onKeyDown={(e) => handleKeyPress(e, fieldOfStudySearch, setFieldOfStudySearch, fieldOfStudyOptions, handleFieldOfStudySelect)}
-              >
-                {personal.fieldOfStudy || "Select field of study"}
-                <span className="placement-arrow">▼</span>
-              </button>
-              {showFieldOfStudyDropdown && (
-                <div className="placement-dropdown-options">
-                  {filterOptions(fieldOfStudyOptions, fieldOfStudySearch).map(field => (
-                    <div 
-                      key={field} 
-                      className="placement-dropdown-option"
-                      onClick={() => handleFieldOfStudySelect(field)}
-                    >
-                      {field}
-                    </div>
-                  ))}
-                </div>
-              )}
+          {/* Field of study - only for University, Master's, and PhD */}
+          {(personal.educationLevel === "University" || personal.educationLevel === "Master's" || personal.educationLevel === "PhD") && (
+            <div className="placement-form-group">
+              <label>What are you studying?</label>
+              <div className="placement-custom-dropdown">
+                <button 
+                  type="button"
+                  className="placement-custom-select"
+                  onClick={() => setShowFieldOfStudyDropdown(!showFieldOfStudyDropdown)}
+                  onKeyDown={(e) => handleKeyPress(e, fieldOfStudySearch, setFieldOfStudySearch, fieldOfStudyOptions, handleFieldOfStudySelect)}
+                >
+                  {personal.fieldOfStudy || "Select field of study"}
+                  <span className="placement-arrow">▼</span>
+                </button>
+                {showFieldOfStudyDropdown && (
+                  <div className="placement-dropdown-options">
+                    {filterOptions(fieldOfStudyOptions, fieldOfStudySearch).map(field => (
+                      <div 
+                        key={field} 
+                        className="placement-dropdown-option"
+                        onClick={() => handleFieldOfStudySelect(field)}
+                      >
+                        {field}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {fieldErrors.fieldOfStudy && <div className="placement-field-error">{fieldErrors.fieldOfStudy}</div>}
             </div>
-          </div>
+          )}
           
           {personal.educationLevel === "University" && (
             <div className="placement-form-group">
@@ -536,6 +788,7 @@ const PlacementTest = ({ onComplete }) => {
                   </div>
                 )}
               </div>
+              {fieldErrors.studentYear && <div className="placement-field-error">{fieldErrors.studentYear}</div>}
             </div>
           )}
         </>
@@ -571,6 +824,7 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.yearsOfExperience && <div className="placement-field-error">{fieldErrors.yearsOfExperience}</div>}
           </div>
           
           <div className="placement-form-group">
@@ -599,6 +853,7 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.specialization && <div className="placement-field-error">{fieldErrors.specialization}</div>}
           </div>
           
           <div className="placement-form-group">
@@ -627,6 +882,7 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.industry && <div className="placement-field-error">{fieldErrors.industry}</div>}
           </div>
           
           <div className="placement-form-group">
@@ -655,6 +911,7 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.companySize && <div className="placement-field-error">{fieldErrors.companySize}</div>}
           </div>
         </>
       );
@@ -687,6 +944,7 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.teachingSubject && <div className="placement-field-error">{fieldErrors.teachingSubject}</div>}
           </div>
         </>
       );
@@ -719,6 +977,7 @@ const PlacementTest = ({ onComplete }) => {
                 </div>
               )}
             </div>
+            {fieldErrors.researchField && <div className="placement-field-error">{fieldErrors.researchField}</div>}
           </div>
         </>
       );
@@ -737,30 +996,30 @@ const PlacementTest = ({ onComplete }) => {
     <div className={`placement-test-page fade-${fade ? "in" : "out"}`}>
       <div className="placement-test-container">
         {renderProgress()}
-        <h2>Learning Path Choice</h2>
+        <h2>Choose Your Learning Path</h2>
         <div className="placement-choice-description">
-          <p>Since you're new to this field, we have two options for you:</p>
-          <div className="placement-choice-options">
-            <div className="placement-choice-option">
-              <h3>Start from Scratch</h3>
-              <p>Begin with the fundamentals and build your knowledge step by step. Perfect for complete beginners.</p>
-              <button 
-                className="placement-choice-btn"
-                onClick={() => handlePlacementChoice("skip")}
-              >
-                Start from Beginning
-              </button>
-            </div>
-            <div className="placement-choice-option">
-              <h3>Take Placement Test</h3>
-              <p>Test your current knowledge to see if you can skip some basic concepts and start from where you're comfortable.</p>
-              <button 
-                className="placement-choice-btn"
-                onClick={() => handlePlacementChoice("test")}
-              >
-                Take Test
-              </button>
-            </div>
+          <p>How would you like to begin your learning journey?</p>
+        </div>
+        <div className="placement-choice-options">
+          <div className="placement-choice-option">
+            <h3>Start from Scratch</h3>
+            <p>Begin your learning journey from the very beginning. Perfect for complete beginners or those who want a fresh start.</p>
+            <button 
+              className="placement-choice-btn"
+              onClick={() => handlePlacementChoice('start_from_scratch')}
+            >
+              Let's Start Your Journey
+            </button>
+          </div>
+          <div className="placement-choice-option">
+            <h3>Take Placement Test</h3>
+            <p>Take a quick assessment to determine your current skill level and get personalized recommendations.</p>
+            <button 
+              className="placement-choice-btn"
+              onClick={() => handlePlacementChoice('take_placement_test')}
+            >
+              Take Test
+            </button>
           </div>
         </div>
       </div>
@@ -804,16 +1063,32 @@ const PlacementTest = ({ onComplete }) => {
             )}
           </div>
           <div className="placement-helper">Choose the closest match to your current role.</div>
+          {fieldErrors.job && <div className="placement-field-error">{fieldErrors.job}</div>}
         </div>
         
         {/* Dynamic questions based on job selection */}
         {renderDynamicQuestions()}
         
-        <div className="placement-form-group">
-          <label>Which university are you affiliated with?</label>
-          <input className="placement-input" value={personal.university} onChange={e => setPersonal(p => ({ ...p, university: e.target.value }))} placeholder="Enter your university name" />
-          <div className="placement-helper">Type your university name.</div>
-        </div>
+        {/* University field - only for non-students */}
+        {personal.job && personal.job !== "Student" && (
+          <div className="placement-form-group">
+            <label>Which university are you affiliated with?</label>
+            <input 
+              className="placement-input" 
+              value={personal.university} 
+              onChange={e => {
+                setPersonal(p => ({ ...p, university: e.target.value }));
+                if (e.target.value.trim()) {
+                  setFieldErrors(prev => ({ ...prev, university: "" }));
+                }
+              }} 
+              placeholder="Enter your university name" 
+            />
+            <div className="placement-helper">Type your university name.</div>
+            {fieldErrors.university && <div className="placement-field-error">{fieldErrors.university}</div>}
+          </div>
+        )}
+        
         <div className="placement-form-group">
           <label>Which country are you from?</label>
           <div className="placement-custom-dropdown">
@@ -840,6 +1115,7 @@ const PlacementTest = ({ onComplete }) => {
               </div>
             )}
           </div>
+          {fieldErrors.country && <div className="placement-field-error">{fieldErrors.country}</div>}
         </div>
         <div className="placement-form-group">
           <label>What is your experience level in this field?</label>
@@ -867,11 +1143,15 @@ const PlacementTest = ({ onComplete }) => {
               </div>
             )}
           </div>
+          {fieldErrors.experience && <div className="placement-field-error">{fieldErrors.experience}</div>}
         </div>
+        
+        {/* Simple gold line */}
+        <div className="placement-simple-line"></div>
         
         {/* Academic Information */}
         <div className="placement-section-divider">
-          <h3>Academic Information</h3>
+          <span>Academic Information</span>
         </div>
         
         <div className="placement-form-group">
@@ -899,22 +1179,109 @@ const PlacementTest = ({ onComplete }) => {
               </div>
             )}
           </div>
+          {fieldErrors.semester && <div className="placement-field-error">{fieldErrors.semester}</div>}
         </div>
         
         <div className="placement-form-group">
           <label>What are your career goals?</label>
-          <input className="placement-input" value={personal.careerGoals} onChange={e => setPersonal(p => ({ ...p, careerGoals: e.target.value }))} placeholder="e.g. Become a software engineer, researcher, etc." />
+          <div className="placement-custom-dropdown">
+            <button 
+              type="button"
+              className="placement-custom-select"
+              onClick={() => setShowCareerGoalsDropdown(!showCareerGoalsDropdown)}
+              onKeyDown={(e) => handleKeyPress(e, careerGoalsSearch, setCareerGoalsSearch, careerGoalsOptions, handleCareerGoalsSelect)}
+            >
+              {personal.careerGoals || "Select career goals"}
+              <span className="placement-arrow">▼</span>
+            </button>
+            {showCareerGoalsDropdown && (
+              <div className="placement-dropdown-options">
+                {filterOptions(careerGoalsOptions, careerGoalsSearch).map(goal => (
+                  <div 
+                    key={goal} 
+                    className="placement-dropdown-option"
+                    onClick={() => handleCareerGoalsSelect(goal)}
+                  >
+                    {goal}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {fieldErrors.careerGoals && <div className="placement-field-error">{fieldErrors.careerGoals}</div>}
         </div>
         <div className="placement-form-group">
           <label>What are your hobbies and interests?</label>
-          <input className="placement-input" value={personal.hobbies} onChange={e => setPersonal(p => ({ ...p, hobbies: e.target.value }))} placeholder="e.g. Reading, Football, Coding" />
+          <div className="placement-custom-dropdown">
+            <button 
+              type="button"
+              className="placement-custom-select"
+              onClick={() => setShowHobbiesDropdown(!showHobbiesDropdown)}
+              onKeyDown={(e) => handleKeyPress(e, hobbiesSearch, setHobbiesSearch, hobbiesOptions, handleHobbiesSelect)}
+              title={personal.hobbies && personal.hobbies.length > 0 ? personal.hobbies.join(", ") : "Select hobbies"}
+            >
+              {personal.hobbies && personal.hobbies.length > 0 
+                ? formatMultiSelectDisplay(personal.hobbies, 2)
+                : "Select hobbies"}
+              <span className="placement-arrow">▼</span>
+            </button>
+            {showHobbiesDropdown && (
+              <div className="placement-dropdown-options">
+                {filterOptions(hobbiesOptions, hobbiesSearch).map(hobby => {
+                  const isSelected = personal.hobbies && personal.hobbies.includes(hobby);
+                  return (
+                    <div 
+                      key={hobby} 
+                      className={`placement-dropdown-option ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleHobbiesSelect(hobby)}
+                    >
+                      <span className="option-text">{hobby}</span>
+                      {isSelected && <span className="checkmark">✓</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {fieldErrors.hobbies && <div className="placement-field-error">{fieldErrors.hobbies}</div>}
         </div>
         <div className="placement-form-group">
           <label>What are your expectations for this course?</label>
-          <input className="placement-input" value={personal.expectations} onChange={e => setPersonal(p => ({ ...p, expectations: e.target.value }))} placeholder="What do you hope to achieve?" />
+          <div className="placement-custom-dropdown">
+            <button 
+              type="button"
+              className="placement-custom-select"
+              onClick={() => setShowExpectationsDropdown(!showExpectationsDropdown)}
+              onKeyDown={(e) => handleKeyPress(e, expectationsSearch, setExpectationsSearch, expectationsOptions, handleExpectationsSelect)}
+              title={personal.expectations && personal.expectations.length > 0 ? personal.expectations.join(", ") : "Select expectations"}
+            >
+              {personal.expectations && personal.expectations.length > 0 
+                ? formatMultiSelectDisplay(personal.expectations, 2)
+                : "Select expectations"}
+              <span className="placement-arrow">▼</span>
+            </button>
+            {showExpectationsDropdown && (
+              <div className="placement-dropdown-options">
+                {filterOptions(expectationsOptions, expectationsSearch).map(expectation => {
+                  const isSelected = personal.expectations && personal.expectations.includes(expectation);
+                  return (
+                    <div 
+                      key={expectation} 
+                      className={`placement-dropdown-option ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleExpectationsSelect(expectation)}
+                    >
+                      <span className="option-text">{expectation}</span>
+                      {isSelected && <span className="checkmark">✓</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {fieldErrors.expectations && <div className="placement-field-error">{fieldErrors.expectations}</div>}
         </div>
         {personalError && <div className="placement-error">{personalError}</div>}
-        <button className="placement-submit-btn placement-animated-btn" onClick={handleAcademicNext}>Continue</button>
+        <button className="placement-submit-btn placement-animated-btn" onClick={handlePersonalNext}>Continue</button>
       </div>
     </div>
   );
@@ -1077,8 +1444,25 @@ const PlacementTest = ({ onComplete }) => {
         <h2>Welcome to Your Learning Journey!</h2>
         {result ? (
           <div>
-            <div className="placement-result-message">{result.passed ? "Congratulations! You're all set to start learning." : "Don't worry! We'll help you build a strong foundation."}</div>
-            <button className="placement-submit-btn placement-animated-btn" onClick={() => navigate("/home")}>Start Learning</button>
+            <div className="placement-result-message">
+              {result.passed 
+                ? "Congratulations! You're all set to start learning." 
+                : "Don't worry! We'll help you build a strong foundation."}
+            </div>
+            <button 
+              className="placement-submit-btn placement-animated-btn" 
+              onClick={() => {
+                if (courseId) {
+                  // Redirect to the specific course
+                  navigate(`/course/${courseId}`);
+                } else {
+                  // Fallback to homepage if no courseId
+                  navigate("/home");
+                }
+              }}
+            >
+              {courseId ? "Start Learning" : "Go to Homepage"}
+            </button>
           </div>
         ) : (
           <div>Loading result...</div>
@@ -1087,14 +1471,92 @@ const PlacementTest = ({ onComplete }) => {
     </div>
   );
 
+  // Check if user has completed general form on component mount
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      try {
+        const response = await apiClient.get('/profile');
+        const user = response.data.user;
+        
+        if (user.has_completed_general_form) {
+          setHasCompletedGeneralForm(true);
+          // If they've completed the general form, go directly to placement test
+          if (courseId) {
+            // This is a course-specific placement test
+            setStep(2);
+            // Load placement test questions
+            setLoading(true);
+            try {
+              const res = await apiClient.post(`/placement-test/start`, {
+                course_id: courseId,
+                year: 1,
+                semester: 1,
+              });
+              setQuestions(res.data.questions || []);
+            } catch (err) {
+              console.error("Error loading placement test:", err);
+              setTestError("Failed to load placement test questions.");
+              setLoading(false);
+            }
+          } else {
+            // This is the general form, redirect to home
+            navigate('/home');
+          }
+        }
+      } catch (err) {
+        console.error('Error checking user profile:', err);
+      }
+    };
+    
+    checkUserProfile();
+  }, [courseId, navigate]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.placement-custom-dropdown')) {
+        setShowJobDropdown(false);
+        setShowCountryDropdown(false);
+        setShowExperienceDropdown(false);
+        setShowEducationLevelDropdown(false);
+        setShowFieldOfStudyDropdown(false);
+        setShowSpecializationDropdown(false);
+        setShowTeachingSubjectDropdown(false);
+        setShowResearchFieldDropdown(false);
+        setShowCompanySizeDropdown(false);
+        setShowIndustryDropdown(false);
+        setShowCareerGoalsDropdown(false);
+        setShowHobbiesDropdown(false);
+        setShowExpectationsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div>
-      {step === 1 && renderPersonalSurvey()}
-      {step === 1 && showPlacementChoice && renderPlacementChoice()}
-      {step === 2 && renderTest()}
-      {step === 3 && renderResult()}
+      {hasCompletedGeneralForm && !courseId ? (
+        <div className="placement-test-page">
+          <div className="placement-test-container">
+            <div className="placement-loading">
+              <div>Redirecting to home...</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {step === 1 && !showPlacementChoice && renderPersonalSurvey()}
+          {step === 1 && showPlacementChoice && renderPlacementChoice()}
+          {step === 2 && renderTest()}
+          {step === 3 && renderResult()}
+        </>
+      )}
     </div>
   );
 };
 
-export default PlacementTest; 
+export default PlacementTest;

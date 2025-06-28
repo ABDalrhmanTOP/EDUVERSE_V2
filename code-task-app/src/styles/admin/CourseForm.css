@@ -494,23 +494,24 @@
 }
 
 .remove-option-btn {
-  background: #dc3545;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
   color: white;
   border: none;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 12px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .remove-option-btn:hover:not(:disabled) {
-  background: #c82333;
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
 .remove-option-btn:disabled {
@@ -621,47 +622,46 @@
 }
 
 .add-test-case-btn {
-  background: #b8860b;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  align-self: flex-start;
-}
-
-.add-test-case-btn:hover {
-  background: #d4a574;
-  transform: translateY(-1px);
-}
-
-/* Add Another Task Button - positioned after all tasks */
-.course-form-add-another-task-btn {
   background: linear-gradient(135deg, #b8860b 0%, #d4a574 100%);
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 25px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s ease;
+  font-size: 14px;
   box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3);
-  margin-top: 20px;
+}
+
+.add-test-case-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(184, 134, 11, 0.4);
+}
+
+/* Add Another Task Button - positioned after all tasks */
+.course-form-add-another-task-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f5e9c7;
+  color: #b8860b;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0.5rem 0 0.5rem 0;
+  cursor: pointer;
+  transition: background 0.18s;
   align-self: flex-start;
 }
 
 .course-form-add-another-task-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(184, 134, 11, 0.4);
+  background: #ffe9a7;
 }
 
 /* Form Actions */
@@ -809,24 +809,24 @@
   align-items: center;
   gap: 4px;
   background: linear-gradient(145deg, #f8f9fa, #ffffff);
-  border: 2px solid #e9ecef;
+  border: 2px solid #e8dcc0;
   border-radius: 12px;
   padding: 8px 12px;
   width: 100%;
   max-width: 280px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(184, 134, 11, 0.1);
   transition: all 0.3s ease;
   position: relative;
 }
 
 .timestamp-input-container:hover {
-  border-color: #007bff;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+  border-color: #b8860b;
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
 }
 
 .timestamp-input-container:focus-within {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: #b8860b;
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15);
 }
 
 .timestamp-input-group {
@@ -837,61 +837,80 @@
   position: relative;
 }
 
-.timestamp-arrow-btn {
-  background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
+.timestamp-btn {
+  background: linear-gradient(145deg, #f5e9c7, #ffe9a7);
+  border: 1.5px solid #b8860b;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 4px 6px;
-  color: #6c757d;
-  transition: all 0.2s ease;
+  padding: 6px 8px;
+  color: #8b4513;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  width: 24px;
-  height: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  font-weight: 600;
+  width: 28px;
+  height: 24px;
+  box-shadow: 0 2px 6px rgba(184, 134, 11, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-.timestamp-arrow-btn:hover {
-  background: linear-gradient(145deg, #007bff, #0056b3);
+.timestamp-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.timestamp-btn:hover {
+  background: linear-gradient(145deg, #b8860b, #d4a574);
   color: white;
-  border-color: #007bff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+  border-color: #8b4513;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.4);
 }
 
-.timestamp-arrow-btn:active {
+.timestamp-btn:hover::before {
+  left: 100%;
+}
+
+.timestamp-btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(184, 134, 11, 0.3);
 }
 
 .timestamp-input {
   width: 45px;
   height: 32px;
-  border: 2px solid #e9ecef;
+  border: 2px solid #e8dcc0;
   border-radius: 8px;
   text-align: center;
   font-size: 14px;
   font-weight: 600;
   background: #ffffff;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   padding: 0;
-  color: #495057;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #8b4513;
+  box-shadow: inset 0 1px 3px rgba(184, 134, 11, 0.1);
 }
 
 .timestamp-input:focus {
   outline: none;
-  border-color: #007bff;
-  background: #f8fbff;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(0, 123, 255, 0.1);
+  border-color: #b8860b;
+  background: #fffbe6;
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15);
 }
 
 .timestamp-input:hover {
-  border-color: #007bff;
-  background: #f8fbff;
+  border-color: #b8860b;
+  background: #fffbe6;
+  box-shadow: 0 2px 6px rgba(184, 134, 11, 0.15);
 }
 
 .timestamp-input::-webkit-inner-spin-button,
@@ -907,10 +926,10 @@
 .timestamp-separator {
   font-size: 16px;
   font-weight: 700;
-  color: #007bff;
+  color: #b8860b;
   margin: 0 2px;
   user-select: none;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px rgba(184, 134, 11, 0.2);
 }
 
 /* Validation styles for video input */

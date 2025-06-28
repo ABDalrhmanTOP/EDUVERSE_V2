@@ -27,6 +27,30 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.courses-list-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #b8860b 0%, #d4a574 100%);
+  color: white;
+}
+
+.courses-list-refresh-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(184, 134, 11, 0.4);
+}
+
+.courses-list-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .user-refresh-btn {
   background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
   color: white;
@@ -73,6 +97,10 @@
   border: 4px solid #e8dcc0;
   border-top: 4px solid #b8860b;
   border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinning {
   animation: spin 1s linear infinite;
 }
 

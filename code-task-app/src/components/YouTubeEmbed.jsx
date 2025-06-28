@@ -31,16 +31,16 @@ const convertSecondsToTimestamp = (seconds) => {
   return `${hrs}:${mins}:${secs}`;
 };
 
-const YouTubeEmbed = ({ playlistId }) => {
-  const navigate = useNavigate(); // useNavigate replaces useHistory
-  const [tasks, setTasks] = useState([]);
-  const [completedTasks, setCompletedTasks] = useState([]);
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
+const YouTubeEmbed = ({ videoId, playlistId, tasks = [], onTaskComplete }) => {
+  const navigate = useNavigate();
   const [playerReady, setPlayerReady] = useState(false);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
+  const [completedTasks, setCompletedTasks] = useState([]);
   const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState("00:00:00");
   const [maxTimeReached, setMaxTimeReached] = useState(0);
-  const [playerVideoId, setPlayerVideoId] = useState(null);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [showFinalProjectButton, setShowFinalProjectButton] = useState(false);
+  const [playerVideoId, setPlayerVideoId] = useState(videoId);
 
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
@@ -84,74 +84,10 @@ const YouTubeEmbed = ({ playlistId }) => {
     };
   }, [debouncedSaveProgress]);
 
-  // Fetch Progress
-  const fetchProgress = async (videoId) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const response = await axios.get("/user-progress", {
-        params: {
-          video_id: String(videoId),
-          playlist_id: playlistId,
-        },
-        headers,
-      });
-      if (response.data && response.data.data) {
-        const data = response.data.data;
-        setCompletedTasks(data.completed_tasks || []);
-        setLastWatchedTimestamp(data.last_timestamp || "00:00:00");
-      }
-    } catch (error) {
-      console.error("Error fetching progress:", error);
-    }
-  };
-
-  // Fetch tasks & progress on mount
+  // Set video ID when prop changes
   useEffect(() => {
-    const fetchTasksAndProgress = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-        // Get playlist info => videoId
-        const playlistResponse = await axios.get(`/playlists/${playlistId}`, { headers });
-        const videoId = String(playlistResponse.data.video_id);
-
-        // Get tasks & progress in parallel
-        const [tasksResponse, progressResponse] = await Promise.all([
-          axios.get(`/tasks/${playlistId}`, { headers }),
-          axios.get("/user-progress", {
-            params: { video_id: videoId, playlist_id: playlistId },
-            headers,
-          }),
-        ]);
-
-        const tasksData = tasksResponse.data || [];
-        tasksData.sort(
-          (a, b) =>
-            convertTimestampToSeconds(a.timestamp) - convertTimestampToSeconds(b.timestamp)
-        );
-        setTasks(tasksData);
-
-        if (progressResponse.data && progressResponse.data.data) {
-          const p = progressResponse.data.data;
-          setCompletedTasks(p.completed_tasks || []);
-          setLastWatchedTimestamp(p.last_timestamp || "00:00:00");
-        } else {
-          setCompletedTasks([]);
-          setLastWatchedTimestamp("00:00:00");
-        }
-
-        setPlayerVideoId(videoId);
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          window.location.href = "/login";
-        }
-      }
-    };
-
-    fetchTasksAndProgress();
-  }, [playlistId]);
+    setPlayerVideoId(videoId);
+  }, [videoId]);
 
   // Initialize YouTube Player
   useEffect(() => {
@@ -254,35 +190,16 @@ const YouTubeEmbed = ({ playlistId }) => {
   const handleTaskComplete = useCallback(async () => {
     if (currentTaskIndex !== null) {
       const currentTask = tasks[currentTaskIndex];
-      try {
-        const token = localStorage.getItem("authToken");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const res = await axios.post(
-          "/user-progress/tasks",
-          {
-            video_id: String(playerVideoId),
-            playlist_id: playlistId,
-            task_id: String(currentTask.id),
-          },
-          { headers }
-        );
-        if (res.data && res.data.data) {
-          setCompletedTasks(res.data.data.completed_tasks || []);
-        } else {
-          setCompletedTasks((prev) => [...prev, String(currentTask.id)]);
-        }
-        await fetchProgress(playerVideoId);
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          window.location.href = "/login";
-        }
+      if (onTaskComplete) {
+        onTaskComplete(currentTask.id);
       }
+      setCompletedTasks((prev) => [...prev, String(currentTask.id)]);
       setCurrentTaskIndex(null);
       if (playerReady && playerInstanceRef.current) {
         playerInstanceRef.current.playVideo();
       }
     }
-  }, [currentTaskIndex, tasks, playerVideoId, playlistId, playerReady]);
+  }, [currentTaskIndex, tasks, playerReady, onTaskComplete]);
 
   // When video is finished, show button to navigate to Final Project
   const handleGoToFinalProject = () => {
@@ -338,6 +255,27 @@ const YouTubeEmbed = ({ playlistId }) => {
 
   const VIDEO_DURATION = 112049;
   const progressPercent = Math.round((maxTimeReached * 100) / VIDEO_DURATION);
+
+  // Save progress to backend
+  const saveProgress = async (timestamp) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      const headers = { Authorization: `Bearer ${token}` };
+      await axios.post(
+        "/user-progress",
+        {
+          video_id: String(playerVideoId),
+          playlist_id: playlistId,
+          last_timestamp: timestamp,
+        },
+        { headers }
+      );
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    }
+  };
 
   return (
     <div className="youtube-layout-container">

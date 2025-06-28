@@ -7,14 +7,35 @@ use App\Models\Playlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\NotificationService;
 
 class CourseController extends Controller
 {
     // Fetch all courses
     public function index()
     {
-        $playlists = Playlist::with('tasks')->get();
-        return response()->json($playlists);
+        $courses = Playlist::with('tasks')->get();
+        return response()->json($courses);
+    }
+
+    public function adminIndex()
+    {
+        $courses = Playlist::with('tasks')->get();
+        return response()->json($courses);
+    }
+
+    // Fetch single course by ID
+    public function show($id)
+    {
+        $playlist = Playlist::with('tasks')->find($id);
+
+        if (!$playlist) {
+            return response()->json([
+                'message' => 'Course not found'
+            ], 404);
+        }
+
+        return response()->json($playlist);
     }
 
     // Add new course
@@ -88,6 +109,9 @@ class CourseController extends Controller
                 $task->save();
             }
         }
+
+        // Create notification for new course
+        NotificationService::courseCreated($playlist);
 
         return response()->json($playlist->load('tasks'), 201);
     }

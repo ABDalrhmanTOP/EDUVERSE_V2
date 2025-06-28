@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import apiClient from "../api/axios";
+import axios from "../api/axios";
 import "../styles/Profile.css";
 import "bootstrap/dist/css/bootstrap-grid.min.css";
 import { useParams } from "react-router-dom";
@@ -25,6 +25,26 @@ const Profile = () => {
   const [joinDate, setJoinDate] = useState("");
   const [profilePhotoPath, setProfilePhotoPath] = useState(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+  
+  // Additional profile information
+  const [job, setJob] = useState("");
+  const [university, setUniversity] = useState("");
+  const [country, setCountry] = useState("");
+  const [experience, setExperience] = useState("");
+  const [careerGoals, setCareerGoals] = useState("");
+  const [hobbies, setHobbies] = useState("");
+  const [expectations, setExpectations] = useState("");
+  const [educationLevel, setEducationLevel] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [studentYear, setStudentYear] = useState("");
+  const [yearsOfExperience, setYearsOfExperience] = useState("");
+  const [specialization, setSpecialization] = useState("");
+  const [teachingSubject, setTeachingSubject] = useState("");
+  const [researchField, setResearchField] = useState("");
+  const [companySize, setCompanySize] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [semester, setSemester] = useState("");
+  const [hasCompletedGeneralForm, setHasCompletedGeneralForm] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -125,7 +145,7 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      const response = await apiClient.get("/profile");
+      const response = await axios.get("/profile", { withCredentials: true });
       const userData = response.data.user;
       setUser_id(userData?.id);
       setName(userData?.name || "N/A");
@@ -134,6 +154,38 @@ const Profile = () => {
       setJoinDate(userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : "N/A");
       setProfilePhotoPath(userData?.profile_photo_path || null);
       updateUser(userData);
+      setJob(userData?.job || "N/A");
+      setUniversity(userData?.university || "N/A");
+      setCountry(userData?.country || "N/A");
+      setExperience(userData?.experience || "N/A");
+      setCareerGoals(userData?.career_goals || "N/A");
+      
+      // Parse JSON strings for arrays
+      try {
+        const hobbiesArray = userData?.hobbies ? JSON.parse(userData.hobbies) : [];
+        setHobbies(Array.isArray(hobbiesArray) ? hobbiesArray.join(", ") : "N/A");
+      } catch (e) {
+        setHobbies(userData?.hobbies || "N/A");
+      }
+      
+      try {
+        const expectationsArray = userData?.expectations ? JSON.parse(userData.expectations) : [];
+        setExpectations(Array.isArray(expectationsArray) ? expectationsArray.join(", ") : "N/A");
+      } catch (e) {
+        setExpectations(userData?.expectations || "N/A");
+      }
+      
+      setEducationLevel(userData?.education_level || "N/A");
+      setFieldOfStudy(userData?.field_of_study || "N/A");
+      setStudentYear(userData?.student_year || "N/A");
+      setYearsOfExperience(userData?.years_of_experience || "N/A");
+      setSpecialization(userData?.specialization || "N/A");
+      setTeachingSubject(userData?.teaching_subject || "N/A");
+      setResearchField(userData?.research_field || "N/A");
+      setCompanySize(userData?.company_size || "N/A");
+      setIndustry(userData?.industry || "N/A");
+      setSemester(userData?.semester || "N/A");
+      setHasCompletedGeneralForm(userData?.has_completed_general_form || false);
     } catch (err) {
       setError("Failed to load profile. Please try again.");
     } finally {
@@ -146,7 +198,7 @@ const Profile = () => {
     setCoursesLoading(true);
     setErrorCourses("");
     try {
-      const response = await apiClient.get(`/user-progress/course-progress/${user.id}`);
+      const response = await axios.get(`/user-progress/course-progress/${user.id}`, { withCredentials: true });
       const info = response.data;
       setNameCourses(info?.course_title || "Your Course");
       setProgress(info?.progress_percentage || 0);
@@ -173,7 +225,7 @@ const Profile = () => {
     setMessage("");
     setError("");
     try {
-      const response = await apiClient.put("/profile", { name, username, email });
+      const response = await axios.put("/profile", { name, username, email }, { withCredentials: true });
       setMessage("Profile updated successfully!");
       setIsEditing(false);
       updateUser(response.data.user);
@@ -198,7 +250,7 @@ const Profile = () => {
     }
     setPasswordLoading(true);
     try {
-      await apiClient.post("/change-password", { currentPassword, newPassword });
+      await axios.post("/change-password", { currentPassword, newPassword }, { withCredentials: true });
       setMessage("Password updated successfully!");
       setCurrentPassword("");
       setNewPassword("");
@@ -225,8 +277,9 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      const response = await apiClient.post("/profile/picture", formData, {
+      const response = await axios.post("/profile/picture", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
       });
       if (response.data.profile_photo_path) {
         setProfilePhotoPath(response.data.profile_photo_path);
@@ -250,7 +303,7 @@ const Profile = () => {
     setError("");
     setMessage("");
     try {
-      await apiClient.delete("/profile/picture");
+      await axios.delete("/profile/picture", { withCredentials: true });
       setProfilePhotoPath(null);
       updateUser({ ...user, profile_photo_path: null });
     } catch (err) {
@@ -350,6 +403,9 @@ const Profile = () => {
           <button className={`tab-button ${activeTab === "profile" ? "active" : ""}`} onClick={() => setActiveTab("profile")}>
             Profile Settings
           </button>
+          <button className={`tab-button ${activeTab === "info" ? "active" : ""}`} onClick={() => setActiveTab("info")}>
+            Profile Information
+          </button>
           <button className={`tab-button ${activeTab === "course" ? "active" : ""}`} onClick={() => setActiveTab("course")}>
             Course Progress
           </button>
@@ -414,6 +470,122 @@ const Profile = () => {
                         {passwordLoading ? "Changing..." : "Change Password"}
                       </button>
                     </form>
+                  </section>
+                )}
+                {activeTab === "info" && (
+                  <section className="profile-info-section">
+                    <h2>Profile Information</h2>
+                    <div className="profile-info-grid">
+                      <div className="info-section">
+                        <h3>Basic Information</h3>
+                        <div className="info-item">
+                          <label>Job/Role:</label>
+                          <span>{job}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Country:</label>
+                          <span>{country}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Experience Level:</label>
+                          <span>{experience}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>University:</label>
+                          <span>{university}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Semester:</label>
+                          <span>{semester}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="info-section">
+                        <h3>Career & Interests</h3>
+                        <div className="info-item">
+                          <label>Career Goals:</label>
+                          <span>{careerGoals}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Hobbies:</label>
+                          <span>{hobbies}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Expectations:</label>
+                          <span>{expectations}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Education Level:</label>
+                          <span>{educationLevel}</span>
+                        </div>
+                        <div className="info-item">
+                          <label>Field of Study:</label>
+                          <span>{fieldOfStudy}</span>
+                        </div>
+                      </div>
+                      
+                      {job === 'Student' && (
+                        <div className="info-section">
+                          <h3>Student Information</h3>
+                          <div className="info-item">
+                            <label>Student Year:</label>
+                            <span>{studentYear}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {job === 'Software Engineer' && (
+                        <div className="info-section">
+                          <h3>Professional Information</h3>
+                          <div className="info-item">
+                            <label>Years of Experience:</label>
+                            <span>{yearsOfExperience}</span>
+                          </div>
+                          <div className="info-item">
+                            <label>Specialization:</label>
+                            <span>{specialization}</span>
+                          </div>
+                          <div className="info-item">
+                            <label>Industry:</label>
+                            <span>{industry}</span>
+                          </div>
+                          <div className="info-item">
+                            <label>Company Size:</label>
+                            <span>{companySize}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {job === 'Teacher' && (
+                        <div className="info-section">
+                          <h3>Teaching Information</h3>
+                          <div className="info-item">
+                            <label>Teaching Subject:</label>
+                            <span>{teachingSubject}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {job === 'Researcher' && (
+                        <div className="info-section">
+                          <h3>Research Information</h3>
+                          <div className="info-item">
+                            <label>Research Field:</label>
+                            <span>{researchField}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="info-section">
+                        <h3>Form Status</h3>
+                        <div className="info-item">
+                          <label>General Form Completed:</label>
+                          <span className={`status-badge ${hasCompletedGeneralForm ? 'completed' : 'pending'}`}>
+                            {hasCompletedGeneralForm ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </section>
                 )}
                 {activeTab === "course" && (

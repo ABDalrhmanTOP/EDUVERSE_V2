@@ -1,0 +1,557 @@
+/* Language Switcher Styles - Professional Design */
+.language-switcher {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.language-switcher__container {
+  display: flex;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 241, 235, 0.95) 100%);
+  border-radius: 20px;
+  padding: 8px;
+  box-shadow: 
+    0 10px 30px rgba(139, 115, 85, 0.12),
+    0 4px 12px rgba(184, 134, 11, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(184, 134, 11, 0.15);
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.language-switcher__container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(184, 134, 11, 0.03) 0%, 
+    rgba(212, 165, 116, 0.03) 50%,
+    rgba(139, 115, 85, 0.02) 100%);
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+.language-switcher__toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  color: #8b7355;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 80px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.language-switcher__toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(184, 134, 11, 0.06) 0%, 
+    rgba(212, 165, 116, 0.06) 100%);
+  border-radius: 16px;
+  opacity: 0;
+  transition: all 0.4s ease;
+  transform: scale(0.9);
+}
+
+.language-switcher__toggle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.4) 0%, 
+    rgba(255, 255, 255, 0.1) 100%);
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.language-switcher__toggle:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.language-switcher__toggle:hover::after {
+  opacity: 1;
+}
+
+.language-switcher__toggle:hover {
+  color: #b8860b;
+  transform: translateY(-3px);
+}
+
+.language-switcher__toggle--active {
+  background: linear-gradient(135deg, 
+    #8b7355 0%, 
+    #a0522d 50%,
+    #8b7355 100%);
+  color: #f5f1eb;
+  box-shadow: 
+    0 8px 25px rgba(139, 115, 85, 0.3),
+    0 4px 12px rgba(184, 134, 11, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.language-switcher__toggle--active::before,
+.language-switcher__toggle--active::after {
+  display: none;
+}
+
+.language-switcher__toggle--active:hover {
+  background: linear-gradient(135deg, 
+    #a0522d 0%, 
+    #8b7355 50%,
+    #a0522d 100%);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 35px rgba(139, 115, 85, 0.4),
+    0 6px 18px rgba(184, 134, 11, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.language-switcher__toggle-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+.language-switcher__flag {
+  font-size: 1.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(139, 115, 85, 0.15));
+  transition: all 0.4s ease;
+  transform-origin: center;
+}
+
+.language-switcher__toggle:hover .language-switcher__flag {
+  transform: scale(1.15) rotate(2deg);
+  filter: drop-shadow(0 4px 8px rgba(184, 134, 11, 0.2));
+}
+
+.language-switcher__toggle--active .language-switcher__flag {
+  filter: drop-shadow(0 3px 8px rgba(139, 115, 85, 0.3));
+  transform: scale(1.1);
+}
+
+.language-switcher__short-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  transition: all 0.4s ease;
+  color: inherit;
+}
+
+.language-switcher__toggle:hover .language-switcher__short-name {
+  opacity: 1;
+  transform: scale(1.08);
+  letter-spacing: 1.2px;
+}
+
+.language-switcher__toggle--active .language-switcher__short-name {
+  opacity: 1;
+  color: #f5f1eb;
+  text-shadow: 0 1px 2px rgba(139, 115, 85, 0.3);
+}
+
+.language-switcher__active-indicator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, 
+    #22c55e 0%, 
+    #16a34a 50%,
+    #15803d 100%);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 12px rgba(34, 197, 94, 0.4),
+    0 2px 6px rgba(22, 163, 74, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: pulse 2.5s infinite;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  z-index: 3;
+}
+
+.language-switcher__check-icon {
+  color: white;
+  stroke-width: 2.5;
+  width: 11px;
+  height: 11px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] .language-switcher__active-indicator {
+  right: auto;
+  left: -4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .language-switcher__container {
+    padding: 6px;
+    gap: 6px;
+  }
+  
+  .language-switcher__toggle {
+    padding: 10px 14px;
+    min-width: 70px;
+  }
+  
+  .language-switcher__flag {
+    font-size: 1.4rem;
+  }
+  
+  .language-switcher__short-name {
+    font-size: 0.75rem;
+  }
+  
+  .language-switcher__active-indicator {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .language-switcher__check-icon {
+    width: 9px;
+    height: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-switcher__toggle {
+    padding: 8px 12px;
+    min-width: 65px;
+  }
+  
+  .language-switcher__flag {
+    font-size: 1.3rem;
+  }
+  
+  .language-switcher__short-name {
+    font-size: 0.7rem;
+  }
+}
+
+/* Hover effects for better UX */
+.language-switcher__toggle:active {
+  transform: translateY(-1px);
+  transition: transform 0.1s ease;
+}
+
+.language-switcher__toggle--active:active {
+  transform: translateY(-2px);
+}
+
+/* Focus styles for accessibility */
+.language-switcher__toggle:focus {
+  outline: 2px solid rgba(184, 134, 11, 0.4);
+  outline-offset: 3px;
+}
+
+.language-switcher__toggle--active:focus {
+  outline: 2px solid rgba(245, 241, 235, 0.8);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .language-switcher__container {
+    background: linear-gradient(135deg, 
+      rgba(45, 45, 45, 0.98) 0%, 
+      rgba(35, 35, 35, 0.95) 100%);
+    border-color: rgba(184, 134, 11, 0.3);
+    box-shadow: 
+      0 10px 30px rgba(139, 115, 85, 0.2),
+      0 4px 12px rgba(184, 134, 11, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .language-switcher__toggle {
+    color: #d4a574;
+  }
+  
+  .language-switcher__toggle:hover {
+    color: #f5f1eb;
+  }
+  
+  .language-switcher__toggle--active {
+    background: linear-gradient(135deg, 
+      #8b7355 0%, 
+      #a0522d 50%,
+      #8b7355 100%);
+    color: #f5f1eb;
+  }
+  
+  .language-switcher__toggle--active:hover {
+    background: linear-gradient(135deg, 
+      #a0522d 0%, 
+      #8b7355 50%,
+      #a0522d 100%);
+  }
+}
+
+/* --- Minimalist Pill Toggle Language Switcher --- */
+.language-switcher-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.language-switcher-track {
+  position: relative;
+  display: flex;
+  width: 160px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(139, 115, 85, 0.25);
+  border-radius: 30px;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+/* Sliding thumb */
+.language-switcher-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
+  border-radius: inherit;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 8px rgba(184, 134, 11, 0.25);
+}
+
+/* Toggle buttons */
+.language-switcher-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8b7355;
+  font-weight: 600;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.language-switcher-btn:hover {
+  color: #b8860b;
+}
+
+.language-switcher-btn.active {
+  color: #fff;
+}
+
+.lang-flag {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.lang-code {
+  font-size: 0.65rem;
+  line-height: 1;
+  margin-top: 2px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .language-switcher-track {
+    width: 140px;
+  }
+  .lang-flag { font-size: 1rem; }
+  .lang-code { font-size: 0.6rem; }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .language-switcher-track {
+    background: rgba(50, 50, 50, 0.8);
+    border-color: rgba(184, 134, 11, 0.3);
+  }
+  .language-switcher-thumb {
+    background: linear-gradient(135deg, #b8860b 0%, #d4a574 100%);
+  }
+  .language-switcher-btn {
+    color: #d4a574;
+  }
+  .language-switcher-btn.active { color: #fff; }
+}
+
+/* --- Elegant Button Language Switcher --- */
+.lang-switcher {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(139, 115, 85, 0.15);
+  box-shadow: 0 4px 15px rgba(139, 115, 85, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.lang-switcher__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 1;
+}
+
+/* Inactive button style */
+.lang-switcher__btn {
+  color: #8b7355;
+}
+
+/* Hover on inactive button */
+.lang-switcher__btn:not(.lang-switcher__btn--active):hover {
+  background-color: rgba(184, 134, 11, 0.08);
+  transform: translateY(-2px);
+  border-color: rgba(184, 134, 11, 0.1);
+}
+
+/* Active button style */
+.lang-switcher__btn--active {
+  background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(184, 134, 11, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lang-switcher__flag {
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: transform 0.3s ease;
+}
+
+.lang-switcher__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.lang-switcher__btn:hover .lang-switcher__flag {
+  transform: scale(1.1);
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  .lang-switcher {
+    background: rgba(45, 45, 45, 0.9);
+    border-color: rgba(184, 134, 11, 0.2);
+  }
+
+  .lang-switcher__btn {
+    color: #d4a574;
+  }
+
+  .lang-switcher__btn:not(.lang-switcher__btn--active):hover {
+    background-color: rgba(184, 134, 11, 0.15);
+    border-color: rgba(184, 134, 11, 0.2);
+  }
+
+  .lang-switcher__btn--active {
+    color: #1a1a1a;
+    background: linear-gradient(135deg, #d4a574 0%, #b8860b 100%);
+  }
+}
+
+/* --- Clean & Modern Language Toggle --- */
+.language-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Space between the two buttons */
+}
+
+.language-toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* Match the refresh button's gap */
+  padding: 0.75rem 1.5rem; /* Match the refresh button's padding */
+  border-radius: 12px; /* Match the refresh button's border radius */
+  border: none; /* Match the refresh button's border */
+  background: linear-gradient(135deg, #C89F9C 0%, #A97C78 100%); /* Match the refresh button's background */
+  color: #4A3F3F; /* Match the refresh button's text color */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600; /* Match the refresh button's font weight */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.language-toggle-button:hover {
+  transform: translateY(-2px) scale(1.05); /* Match hover effect */
+  box-shadow: 0 4px 15px rgba(169, 124, 120, 0.3); /* Add a subtle shadow on hover */
+}
+
+.language-toggle-button:active {
+  transform: translateY(0) scale(0.95); /* Match active effect */
+  box-shadow: none;
+}
+
+/* Dark Mode - a slightly adjusted look for better contrast in dark theme */
+@media (prefers-color-scheme: dark) {
+  .language-toggle-button {
+    background: linear-gradient(135deg, #A97C78 0%, #8A635F 100%);
+    color: #F5E9E8;
+  }
+
+  .language-toggle-button:hover {
+    box-shadow: 0 4px 15px rgba(138, 99, 95, 0.4);
+  }
+} 

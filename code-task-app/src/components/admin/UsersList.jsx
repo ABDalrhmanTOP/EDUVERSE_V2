@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaUsers, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus, FaEnvelope, FaCalendar } from 'react-icons/fa';
+import { FaUsers, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus, FaEnvelope, FaCalendar, FaCheckCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/axios';
 import UserForm from './UserForm';
+import ConfirmationModal from './ConfirmationModal';
+import SuccessNotification from './SuccessNotification';
 import '../../styles/admin/UsersList.css';
 
 const UsersList = () => {
+  const { t, i18n } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, userId: null, userName: '' });
+  const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
@@ -21,10 +29,10 @@ const UsersList = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await apiClient.get('/users');
+      const response = await apiClient.get('/admin/users');
       setUsers(response.data || []);
     } catch (error) {
-      setError('Failed to load users. Please try again.');
+      setError(t('admin.users.failedToLoadUsers'));
     } finally {
       setLoading(false);
     }
@@ -46,15 +54,29 @@ const UsersList = () => {
     setShowForm(true);
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await apiClient.delete(`/users/${userId}`);
-        setUsers(users.filter(user => user.id !== userId));
-      } catch (error) {
-        alert('Failed to delete user. Please try again.');
-      }
+  const handleDeleteUser = (userId, userName) => {
+    setDeleteModal({
+      isOpen: true,
+      userId: userId,
+      userName: userName
+    });
+  };
+
+  const confirmDeleteUser = async () => {
+    try {
+      await apiClient.delete(`/admin/users/${deleteModal.userId}`);
+      setUsers(users.filter(user => user.id !== deleteModal.userId));
+      setDeleteModal({ isOpen: false, userId: null, userName: '' });
+      setSuccessMessage(t('admin.users.userDeletedSuccessfully'));
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      setError(t('admin.users.failedToDeleteUser'));
+      setDeleteModal({ isOpen: false, userId: null, userName: '' });
     }
+  };
+
+  const handleViewUserDetails = (userId) => {
+    navigate(`/AdminDashboard/userdetail/${userId}`);
   };
 
   const handleUserSuccess = () => {
@@ -69,11 +91,12 @@ const UsersList = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not specified';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return t('admin.users.notSpecified');
+    return new Date(dateString).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
       year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      month: 'long',
+      day: 'numeric',
+      calendar: 'gregory'
     });
   };
 
@@ -81,31 +104,31 @@ const UsersList = () => {
     return (
       <div className="users-list-loading">
         <div className="users-list-spinner"></div>
-        <p>Loading users...</p>
+        <p>{t('admin.users.loadingUsers')}</p>
       </div>
     );
   }
 
   return (
-    <div className="users-list-container">
+    <div className="users-list-container" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="users-list-header">
         <div className="users-list-title-section">
           <h1 className="users-list-title">
             <FaUsers className="users-list-icon" />
-            User Management
+            {t('admin.users.title')}
           </h1>
-          <p className="users-list-subtitle">Manage all user accounts and permissions in one place.</p>
+          <p className="users-list-subtitle">{t('admin.users.subtitle')}</p>
         </div>
         <div className="users-list-actions">
           <motion.button
-            className="users-list-refresh-btn"
+            className="courses-list-refresh-btn"
             onClick={handleRefresh}
             disabled={refreshing}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <FaSync className={refreshing ? 'spinning' : ''} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? t('admin.users.refreshing') : t('admin.users.refresh')}
           </motion.button>
           <motion.button
             className="users-list-add-btn"
@@ -114,7 +137,7 @@ const UsersList = () => {
             whileTap={{ scale: 0.95 }}
           >
             <FaUserPlus />
-            Add User
+            {t('admin.users.addUser')}
           </motion.button>
         </div>
       </div>
@@ -133,8 +156,8 @@ const UsersList = () => {
         {users.length === 0 ? (
           <div className="users-list-empty">
             <FaUsers className="users-list-empty-icon" />
-            <h3>No users available</h3>
-            <p>Start by adding your first user to the platform.</p>
+            <h3>{t('admin.users.noUsersAvailable')}</h3>
+            <p>{t('admin.users.noUsersAvailableDesc')}</p>
             <motion.button
               className="users-list-add-btn"
               onClick={handleAddUser}
@@ -142,7 +165,7 @@ const UsersList = () => {
               whileTap={{ scale: 0.95 }}
             >
               <FaUserPlus />
-              Add Your First User
+              {t('admin.users.addYourFirstUser')}
             </motion.button>
           </div>
         ) : (
@@ -150,12 +173,12 @@ const UsersList = () => {
             <table className="users-list-table">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Joined</th>
-                  <th>Actions</th>
+                  <th>{t('admin.users.user')}</th>
+                  <th>{t('admin.users.email')}</th>
+                  <th>{t('admin.users.role')}</th>
+                  <th>{t('admin.users.status')}</th>
+                  <th>{t('admin.users.joined')}</th>
+                  <th>{t('admin.users.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -173,7 +196,7 @@ const UsersList = () => {
                           {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div className="users-list-details">
-                          <strong>{user.name || 'Unnamed User'}</strong>
+                          <strong>{user.name || t('admin.users.unnamedUser')}</strong>
                           <span className="users-list-id">ID: {user.id}</span>
                         </div>
                       </div>
@@ -191,7 +214,7 @@ const UsersList = () => {
                     </td>
                     <td className="users-list-cell users-list-status">
                       <span className={`users-list-status-badge ${user.email_verified_at ? 'verified' : 'pending'}`}>
-                        {user.email_verified_at ? 'Verified' : 'Pending'}
+                        {user.email_verified_at ? t('admin.users.verified') : t('admin.users.pending')}
                       </span>
                     </td>
                     <td className="users-list-cell users-list-date">
@@ -204,10 +227,10 @@ const UsersList = () => {
                       <div className="users-list-action-buttons">
                         <motion.button
                           className="users-list-action-btn users-list-view-btn"
-                          onClick={() => window.open(`/AdminDashboard/user/${user.id}`, '_blank')}
+                          onClick={() => handleViewUserDetails(user.id)}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          title="View Details"
+                          title={t('admin.users.viewDetails')}
                         >
                           <FaEye />
                         </motion.button>
@@ -216,19 +239,21 @@ const UsersList = () => {
                           onClick={() => handleEditUser(user)}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          title="Edit User"
+                          title={t('admin.users.editUser')}
                         >
                           <FaEdit />
                         </motion.button>
-                        <motion.button
-                          className="users-list-action-btn users-list-delete-btn"
-                          onClick={() => handleDeleteUser(user.id)}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          title="Delete User"
-                        >
-                          <FaTrash />
-                        </motion.button>
+                        {user.role !== 'admin' && (
+                          <motion.button
+                            className="users-list-action-btn users-list-delete-btn"
+                            onClick={() => handleDeleteUser(user.id, user.name || user.email)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            title={t('admin.users.deleteUser')}
+                          >
+                            <FaTrash />
+                          </motion.button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>
@@ -244,6 +269,25 @@ const UsersList = () => {
           editingUser={editingUser}
           onSuccess={handleUserSuccess}
           onClose={handleCloseForm}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, userId: null, userName: '' })}
+        onConfirm={confirmDeleteUser}
+        title={t('admin.users.deleteUserTitle')}
+        message={t('admin.users.deleteUserConfirm', { userName: deleteModal.userName })}
+        confirmText={t('admin.users.deleteUser')}
+        cancelText={t('common.cancel')}
+        type="danger"
+      />
+
+      {successMessage && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => setSuccessMessage('')}
         />
       )}
     </div>

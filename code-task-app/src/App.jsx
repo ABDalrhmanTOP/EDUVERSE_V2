@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,15 +8,20 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
+// i18n
+import { initializeLanguage } from "./i18n";
+
 // Your components
 import Navbar from "./components/navbar";
 import Homepage from "./components/Homepage";
 import HomeVideo from "./pages/HomeVideo";
 import VideoPage from "./pages/VideoPage";
+import CoursePage from "./pages/CoursePage";
 import Profile from "./pages/Profile";
 import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
 import PlacementTest from "./pages/PlacementTest";
+import NotificationsPage from "./pages/NotificationsPage";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -58,6 +63,11 @@ const AdminProtectedRoute = ({ children }) => {
 const App = () => {
   const [formType, setFormType] = useState(null);
 
+  // Initialize i18n and language settings
+  useEffect(() => {
+    initializeLanguage();
+  }, []);
+
   return (
     <>
       <Navbar setFormType={setFormType} />
@@ -85,6 +95,15 @@ const App = () => {
           element={
             <ProtectedRoute>
               <VideoPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/course/:courseId"
+          element={
+            <ProtectedRoute>
+              <CoursePage />
             </ProtectedRoute>
           }
         />
@@ -123,6 +142,15 @@ const App = () => {
           }
         />
 
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Admin */}
         <Route
           path="/AdminDashboard"
@@ -132,7 +160,6 @@ const App = () => {
             </AdminProtectedRoute>
           }
         >
-          <Route index element={<div />} />
           <Route path="users" element={<UsersList />} />
           <Route path="userdetail/:user_id" element={<UserDetail />} />
           <Route path="courses" element={<CoursesList />} />
@@ -142,6 +169,7 @@ const App = () => {
           <Route path="settings" element={<div>Settings Page - Coming Soon</div>} />
           <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
           <Route path="edubot" element={<div>EduBot Settings - Coming Soon</div>} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* Catch-all */}

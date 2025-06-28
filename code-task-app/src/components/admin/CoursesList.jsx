@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaBook, FaSync, FaTasks } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/axios';
 import CourseForm from './CourseForm';
 import ConfirmationModal from './ConfirmationModal';
@@ -26,6 +27,7 @@ const CoursesList = () => {
     type: 'success'
   });
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     fetchCourses();
@@ -35,22 +37,22 @@ const CoursesList = () => {
     const handleErrorNotification = (e) => {
       setSuccessNotification({
         isVisible: true,
-        message: e.detail?.message || 'Save failed. Please check the form for errors.',
+        message: e.detail?.message || t('common.saveFailed'),
         type: 'error',
       });
     };
     window.addEventListener('showErrorNotification', handleErrorNotification);
     return () => window.removeEventListener('showErrorNotification', handleErrorNotification);
-  }, []);
+  }, [t]);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      setError('');
-      const response = await apiClient.get('/courses');
+      const response = await apiClient.get('/admin/courses');
       setCourses(response.data || []);
     } catch (error) {
-      setError('Failed to load courses. Please try again.');
+      console.error('Error fetching courses:', error);
+      setError('Failed to fetch courses');
     } finally {
       setLoading(false);
     }
@@ -77,24 +79,26 @@ const CoursesList = () => {
     setDeleteModal({
       isOpen: true,
       courseId: courseId,
-      courseName: course ? course.name : 'this course'
+      courseName: course ? course.name : t('common.deleteCourse')
     });
   };
 
   const confirmDeleteCourse = async () => {
     try {
-      await apiClient.delete(`/courses/${deleteModal.courseId}`);
+      await apiClient.delete(`/admin/courses/${deleteModal.courseId}`);
       setCourses(courses.filter(course => course.id !== deleteModal.courseId));
       setDeleteModal({ isOpen: false, courseId: null, courseName: '' });
       
       // Show success notification
       setSuccessNotification({
         isVisible: true,
-        message: `Course "${deleteModal.courseName}" has been successfully deleted.`,
+        message: t('common.courseDeletedSuccess', { courseName: deleteModal.courseName }),
         type: 'deleted'
       });
     } catch (error) {
-      alert('Failed to delete course. Please try again.');
+      console.error('Error deleting course:', error);
+      setError('Failed to delete course');
+      setTimeout(() => setError(''), 3000);
       setDeleteModal({ isOpen: false, courseId: null, courseName: '' });
     }
   };
@@ -108,8 +112,8 @@ const CoursesList = () => {
     setSuccessNotification({
       isVisible: true,
       message: editingCourse 
-        ? `Course "${editingCourse.name}" has been successfully updated.`
-        : 'New course has been successfully created.',
+        ? t('common.courseUpdatedSuccess', { courseName: editingCourse.name })
+        : t('common.courseAddedSuccess'),
       type: editingCourse ? 'updated' : 'added'
     });
   };
@@ -139,7 +143,7 @@ const CoursesList = () => {
   const groupCourses = (courses) => {
     const grouped = {};
     courses.forEach(course => {
-      const key = `Year ${course.year} - Semester ${course.semester}`;
+      const key = t('admin.courses.yearSemester', { year: course.year, semester: course.semester });
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(course);
     });
@@ -150,22 +154,22 @@ const CoursesList = () => {
 
   if (loading) {
     return (
-      <div className="courses-list-loading">
+      <div className="courses-list-loading" style={{ direction: 'rtl' }}>
         <div className="courses-list-spinner"></div>
-        <p>Loading courses...</p>
+        <p>{t('common.loadingCourses')}</p>
       </div>
     );
   }
 
   return (
-    <div className="courses-list-container">
+    <div className="courses-list-container" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="courses-list-header" style={{background: 'linear-gradient(135deg, #fffbe6 0%, #f3e8d3 100%)', borderRadius: '18px', boxShadow: '0 2px 12px rgba(184,134,11,0.08)', padding: '2rem 2rem 1.5rem 2rem', marginBottom: '2.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <div className="courses-list-title-section">
           <h1 className="courses-list-title" style={{fontWeight: 800, fontSize: '2.1rem', color: '#b8860b', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.7rem'}}>
             <FaBook className="courses-list-icon" />
-            Course Management
+            {t('common.courseManagement')}
           </h1>
-          <p className="courses-list-subtitle" style={{fontSize: '1.1rem', color: '#8b4513', opacity: 0.85}}>Overview of all courses in the platform</p>
+          <p className="courses-list-subtitle" style={{fontSize: '1.1rem', color: '#8b4513', opacity: 0.85}}>{t('common.overviewOfAllCourses')}</p>
         </div>
         <div className="courses-list-actions">
           <motion.button
@@ -174,10 +178,9 @@ const CoursesList = () => {
             disabled={refreshing}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            style={{background: 'linear-gradient(135deg, #b8860b 0%, #d4a574 100%)', color: 'white'}}
           >
             <FaSync className={refreshing ? 'spinning' : ''} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? t('common.refreshing') : t('common.refresh')}
           </motion.button>
           <motion.button
             className="courses-list-add-btn"
@@ -186,7 +189,7 @@ const CoursesList = () => {
             whileTap={{ scale: 0.95 }}
           >
             <FaPlus />
-            Add Course
+            {t('admin.courses.addCourse')}
           </motion.button>
         </div>
       </div>
@@ -205,8 +208,8 @@ const CoursesList = () => {
         {Object.keys(groupedCourses).length === 0 ? (
           <div className="courses-list-empty">
             <FaBook className="courses-list-empty-icon" />
-            <h3>No courses available</h3>
-            <p>Start by adding your first course to the platform.</p>
+            <h3>{t('common.noCoursesAvailable')}</h3>
+            <p>{t('common.noCoursesAvailableDesc')}</p>
             <motion.button
               className="courses-list-add-btn"
               onClick={handleAddCourse}
@@ -214,7 +217,7 @@ const CoursesList = () => {
               whileTap={{ scale: 0.95 }}
             >
               <FaPlus />
-              Add Your First Course
+              {t('common.addYourFirstCourse')}
             </motion.button>
           </div>
         ) : (
@@ -232,12 +235,12 @@ const CoursesList = () => {
                   <table className="courses-list-table">
                     <thead>
                       <tr>
-                        <th className="courses-list-table-th">Course Name</th>
-                        <th className="courses-list-table-th">Description</th>
-                        <th className="courses-list-table-th">Video ID</th>
-                        <th className="courses-list-table-th">Tasks</th>
-                        <th className="courses-list-table-th">Course Type</th>
-                        <th className="courses-list-table-th">Actions</th>
+                        <th className="courses-list-table-th">{t('admin.courses.courseName')}</th>
+                        <th className="courses-list-table-th">{t('admin.courses.description')}</th>
+                        <th className="courses-list-table-th">{t('admin.courses.videoId')}</th>
+                        <th className="courses-list-table-th">{t('admin.courses.tasks')}</th>
+                        <th className="courses-list-table-th">{t('admin.courses.courseType')}</th>
+                        <th className="courses-list-table-th">{t('common.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -253,12 +256,12 @@ const CoursesList = () => {
                             <div className="courses-list-name-content">
                               <strong>{course.name}</strong>
                               <span className="courses-list-meta">
-                                Year {course.year} • Semester {course.semester}
+                                {t('admin.courses.year')} {course.year} • {t('admin.courses.semester')} {course.semester}
                               </span>
                             </div>
                           </td>
                           <td className="courses-list-cell courses-list-description">
-                            {course.description || 'No description available'}
+                            {course.description || t('common.noDescriptionAvailable')}
                           </td>
                           <td className="courses-list-cell courses-list-video">
                             <div className="courses-list-video-content">
@@ -276,7 +279,7 @@ const CoursesList = () => {
                             <span className="tasks-number-container">{course.tasks ? course.tasks.length : 0}</span>
                           </td>
                           <td className="courses-list-cell courses-list-type" style={{textAlign: 'center'}}>
-                            <span className={`course-type-badge ${(course.paid === true || course.paid === 1) ? 'paid' : 'free'}`}>{(course.paid === true || course.paid === 1) ? 'Paid' : 'Free'}</span>
+                            <span className={`course-type-badge ${(course.paid === true || course.paid === 1) ? 'paid' : 'free'}`}>{(course.paid === true || course.paid === 1) ? t('common.paid') : t('common.free')}</span>
                           </td>
                           <td className="courses-list-cell courses-list-actions-cell">
                             <div className="courses-list-action-buttons" style={{flexWrap: 'nowrap', minHeight: '48px'}}>
@@ -285,7 +288,7 @@ const CoursesList = () => {
                                 onClick={() => window.open(`https://youtube.com/watch?v=${extractVideoId(course.video_id)}`, '_blank')}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                title="View Video"
+                                title={t('admin.courses.viewVideo')}
                               >
                                 <FaEye />
                               </motion.button>
@@ -294,7 +297,7 @@ const CoursesList = () => {
                                 onClick={() => handleEditCourse(course)}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                title="Edit Course"
+                                title={t('admin.courses.editCourse')}
                               >
                                 <FaEdit />
                               </motion.button>
@@ -303,7 +306,7 @@ const CoursesList = () => {
                                 onClick={() => handleDeleteCourse(course.id)}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                title="Delete Course"
+                                title={t('admin.courses.deleteCourse')}
                               >
                                 <FaTrash />
                               </motion.button>
@@ -312,7 +315,7 @@ const CoursesList = () => {
                                 onClick={() => handleManageTasks(course.id)}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                title="Manage Tasks"
+                                title={t('admin.courses.manageTasks')}
                                 style={{background: 'linear-gradient(135deg, #C89F9C 0%, #A97C78 100%)', color: 'white'}}
                               >
                                 <FaTasks />
@@ -347,10 +350,10 @@ const CoursesList = () => {
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, courseId: null, courseName: '' })}
         onConfirm={confirmDeleteCourse}
-        title="Delete Course"
-        message={`Are you sure you want to delete "${deleteModal.courseName}"? This action cannot be undone and will also remove all associated tasks.`}
-        confirmText="Delete Course"
-        cancelText="Cancel"
+        title={t('common.deleteCourse')}
+        message={t('common.deleteCourseConfirm', { courseName: deleteModal.courseName })}
+        confirmText={t('common.deleteCourse')}
+        cancelText={t('common.cancel')}
         type="danger"
       />
 

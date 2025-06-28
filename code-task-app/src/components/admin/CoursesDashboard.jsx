@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import Slider from "react-slick";
 import { ProgressBar } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
+import { FaSync } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "../../styles/admin/CoursesDashboard.css"; // custom CSS for dashboard
@@ -18,6 +20,7 @@ const UserProgressTable = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     apiClient.get(`user-progress/user/all`)
@@ -26,11 +29,11 @@ const UserProgressTable = () => {
         setError(null);
       })
       .catch(error => {
-        setError("Failed to fetch user progress. Please try again.");
+        setError(t('common.failedToLoad'));
         setUsersProgress([]);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   // Converts a timestamp string (d:hh:mm:ss, hh:mm:ss, etc.) to seconds.
   const convertToSeconds = (timeString) => {
@@ -58,10 +61,10 @@ const UserProgressTable = () => {
   };
 
   return (
-    <div className="admin-progress-table container my-4 p-4 bg-white rounded shadow">
-      <h2 className="mb-4 text-center text-primary fw-bold">User Progress Management</h2>
+    <div className="admin-progress-table container my-4 p-4 bg-white rounded shadow" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+      <h2 className="mb-4 text-center text-primary fw-bold">{t('common.userProgressManagement')}</h2>
       {loading ? (
-        <div className="alert alert-info text-center">Loading data...</div>
+        <div className="alert alert-info text-center">{t('common.loading')}</div>
       ) : error ? (
         <div className="alert alert-danger text-center">{error}</div>
       ) : (
@@ -69,17 +72,17 @@ const UserProgressTable = () => {
           <table className="table table-striped table-hover table-bordered text-center">
             <thead className="table-dark">
               <tr>
-                <th>User ID</th>
-                <th>Video ID</th>
-                <th>Last Timestamp</th>
-                <th>Completion (%)</th>
-                <th>Completed Tasks</th>
+                <th>{t('common.userId')}</th>
+                <th>{t('common.videoId')}</th>
+                <th>{t('common.lastTimestamp')}</th>
+                <th>{t('common.completion')}</th>
+                <th>{t('common.completedTasks')}</th>
               </tr>
             </thead>
             <tbody>
               {usersProgress.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center text-muted">No data available</td>
+                  <td colSpan="5" className="text-center text-muted">{t('common.noDataAvailable')}</td>
                 </tr>
               ) : (
                 usersProgress.map((user, index) => {
@@ -99,7 +102,7 @@ const UserProgressTable = () => {
                           />
                         </div>
                       </td>
-                      <td>{user.completed_tasks?.length > 0 ? user.completed_tasks.join(", ") : "No tasks completed"}</td>
+                      <td>{user.completed_tasks?.length > 0 ? user.completed_tasks.join(", ") : t('common.noTasksCompleted')}</td>
                     </tr>
                   );
                 })
@@ -110,7 +113,7 @@ const UserProgressTable = () => {
       )}
       <div className="text-center mt-4">
         <button className="btn btn-secondary px-4 py-2" onClick={() => navigate(`/AdminDashboard/users`)}>
-          Back to Users
+          {t('common.backToUsers')}
         </button>
       </div>
     </div>
@@ -125,15 +128,16 @@ const Playlists = () => {
   const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { t, i18n } = useTranslation();
 
   const fetchPlaylists = async () => {
     try {
       setLoading(true);
       setError("");
-      const response = await apiClient.get("/courses");
+      const response = await apiClient.get("/admin/courses");
       setPlaylists(response.data || []);
     } catch (err) {
-      setError("Failed to load courses, please try again later.");
+      setError(t('common.failedToLoadCourses'));
     } finally {
       setLoading(false);
     }
@@ -147,13 +151,13 @@ const Playlists = () => {
 
   useEffect(() => {
     fetchPlaylists();
-  }, []);
+  }, [t]);
 
   // Group courses by year and semester
   const groupCourses = (courses) => {
     const grouped = {};
     courses.forEach(course => {
-      const key = `Year ${course.year} - Semester ${course.semester}`;
+      const key = t('admin.courses.yearSemester', { year: course.year, semester: course.semester });
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(course);
     });
@@ -163,23 +167,25 @@ const Playlists = () => {
   const groupedCourses = groupCourses(playlists);
 
   return (
-    <div className="user-courses-container">
+    <div className="user-courses-container" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="user-courses-header">
         <h2 className="user-courses-title">
-          Available Courses
+          {t('common.availableCourses')}
         </h2>
         <button 
-          className="user-refresh-btn"
+          className="courses-list-refresh-btn"
           onClick={refreshPlaylists}
           disabled={refreshing}
         >
-          {refreshing ? 'Refreshing...' : '🔄 Refresh'}
+          <FaSync className={refreshing ? 'spinning' : ''} />
+          {refreshing ? t('common.refreshing') : t('common.refresh')}
         </button>
       </div>
       {error && <p className="user-error-message">{error}</p>}
       {loading ? (
         <div className="user-loading-container">
           <div className="user-loading-spinner"></div>
+          <p>{t('common.loadingCourses')}</p>
         </div>
       ) : (
         <div className="user-courses-grid">
@@ -203,7 +209,7 @@ const Playlists = () => {
           ))}
           {Object.keys(groupedCourses).length === 0 && (
             <p className="user-no-courses-message">
-              No courses available at the moment.
+              {t('common.noCoursesAvailable')}
             </p>
           )}
         </div>
@@ -215,6 +221,7 @@ const Playlists = () => {
 const PlaylistCard = ({ playlist }) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleCourses = () => {
     if (!isAuthenticated) {
@@ -253,7 +260,7 @@ const PlaylistCard = ({ playlist }) => {
         <div className="user-card-overlay">
           <div className="user-card-content">
             <h3 className="user-card-title">{playlist.name}</h3>
-            <p className="user-card-description">{playlist.description}</p>
+            <p className="user-card-description">{playlist.description || t('common.noDescriptionAvailable')}</p>
             <div className="user-card-rating">
               ⭐ {playlist.average_rating ? playlist.average_rating.toFixed(1) : "N/A"}
             </div>
@@ -264,7 +271,7 @@ const PlaylistCard = ({ playlist }) => {
               }}
               className="user-watch-btn"
             >
-              🎬 Watch Course
+              🎬 {t('common.watchCourse')}
             </button>
           </div>
         </div>

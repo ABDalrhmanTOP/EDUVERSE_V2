@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserProgressController;
 use App\Http\Controllers\TaskController;
@@ -19,6 +18,9 @@ use App\Http\Controllers\FinalProjectController;
 use App\Http\Controllers\TaskPlaylistVideoController;
 use App\Http\Controllers\EduBotController;
 use App\Http\Controllers\PlacementTestController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +41,11 @@ Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
 Route::get('/youtube/video-duration/{videoId}', [CourseController::class, 'getVideoDuration']);
 Route::get('/youtube/test/{videoId}', [CourseController::class, 'testVideoDuration']);
 
+// Test route for debugging
+Route::get('/test-admin', function () {
+    return response()->json(['message' => 'Admin route test successful']);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (Sanctum Auth)
@@ -48,27 +55,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
     // User progress
-    Route::post('/user-progress', [UserProgressController::class, 'saveProgress'])->name('user-progress.save');
-    Route::get('/user-progress', [UserProgressController::class, 'getProgress'])->name('user-progress.get');
-    Route::post('/user-progress/tasks', [UserProgressController::class, 'completeTask'])->name('user-progress.completeTask');
-
-    // <-- THE NEW ROUTE:
-    Route::post('/user-progress/completeUpToTimestamp', [UserProgressController::class, 'completeUpToTimestamp'])
-        ->name('user-progress.completeUpToTimestamp');
-
-    // Normal user course progress route
+    Route::post('/user-progress', [UserProgressController::class, 'saveProgress']);
+    Route::get('/user-progress', [UserProgressController::class, 'getProgress']);
+    Route::post('/user-progress/tasks', [UserProgressController::class, 'completeTask']);
+    Route::post('/user-progress/completeUpToTimestamp', [UserProgressController::class, 'completeUpToTimestamp']);
     Route::get('/user-progress/course-progress/{userId}', [UserProgressController::class, 'getCourseProgress']);
+    Route::post('/user-progress/update', [UserProgressController::class, 'updateProgress']);
 
     // Profile
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/profile', [ProfileController::class, 'show']);
-        Route::put('/profile', [ProfileController::class, 'update']);
-        Route::post('/profile/picture', [ProfileController::class, 'updatePicture']);
-        Route::delete('/profile/picture', [ProfileController::class, 'removePicture']);
-    });
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/picture', [ProfileController::class, 'updatePicture']);
+    Route::delete('/profile/picture', [ProfileController::class, 'removePicture']);
+    Route::post('/profile/general-form', [ProfileController::class, 'saveGeneralForm']);
 
     // Test & Course
     Route::get('/showTest/{levelId}', [TestController::class, 'showTest']);
@@ -83,6 +87,50 @@ Route::middleware('auth:sanctum')->group(function () {
     // Placement Test
     Route::post('/placement-test/start', [PlacementTestController::class, 'start']);
     Route::post('/placement-test/submit', [PlacementTestController::class, 'submit']);
+
+    // Course routes
+    Route::get('/courses', [CourseController::class, 'index']);
+    Route::get('/courses/{id}', [CourseController::class, 'show']);
+
+    // Playlist routes
+    Route::get('/playlists/{id}/videos', [PlaylistController::class, 'getVideos']);
+
+    // Task routes
+    Route::get('/tasks', [TaskController::class, 'index']);
+    Route::get('/tasks/{id}', [TaskController::class, 'show']);
+    Route::post('/tasks/{id}/submit', [TaskController::class, 'submit']);
+
+    // User progress routes
+    Route::get('/user-progress', [UserProgressController::class, 'index']);
+    Route::post('/user-progress', [UserProgressController::class, 'store']);
+    Route::put('/user-progress/{id}', [UserProgressController::class, 'update']);
+
+    // User rating routes
+    Route::get('/user-ratings', [UserRatingController::class, 'index']);
+    Route::post('/user-ratings', [UserRatingController::class, 'store']);
+    Route::put('/user-ratings/{id}', [UserRatingController::class, 'update']);
+
+    // Final project routes
+    Route::get('/final-projects', [FinalProjectController::class, 'index']);
+    Route::post('/final-projects', [FinalProjectController::class, 'store']);
+    Route::get('/final-projects/{id}', [FinalProjectController::class, 'show']);
+
+    // EduBot routes
+    Route::post('/edubot/chat', [EduBotController::class, 'chat']);
+    Route::get('/edubot/history', [EduBotController::class, 'getHistory']);
+
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/notifications', [NotificationController::class, 'deleteAll']);
+    Route::get('/notifications/settings', [NotificationController::class, 'settings']);
+    Route::put('/notifications/settings', [NotificationController::class, 'updateSettings']);
+
+    // Return all course progress for the authenticated user
+    Route::get('/user-progress/all', [UserProgressController::class, 'getAllCourseProgress']);
 });
 
 /*
@@ -91,23 +139,43 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
-    Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [UserController::class, 'store']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    // Admin User Management
+    Route::get('/admin/users', [UserController::class, 'index']);
+    Route::get('/admin/users/{id}', [UserController::class, 'show']);
+    Route::post('/admin/users', [UserController::class, 'store']);
+    Route::put('/admin/users/{id}', [UserController::class, 'update']);
+    Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
+    Route::post('/admin/users/{id}/profile-picture', [UserController::class, 'uploadProfilePicture']);
 
-    Route::get('/user-progress/user/{user_id}', [UserDetailController::class, 'getAllByUserId']);
+    // Admin Course Management
+    Route::get('/admin/courses', [CourseController::class, 'adminIndex']);
+    Route::post('/admin/courses', [CourseController::class, 'store']);
+    Route::put('/admin/courses/{id}', [CourseController::class, 'update']);
+    Route::delete('/admin/courses/{id}', [CourseController::class, 'destroy']);
 
-    Route::post('/courses', [CourseController::class, 'store']);
-    Route::put('/courses/{id}', [CourseController::class, 'update']);
-    Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+    // Admin Playlist Management
+    Route::get('/admin/playlists', [PlaylistController::class, 'adminIndex']);
+    Route::post('/admin/playlists', [PlaylistController::class, 'store']);
+    Route::put('/admin/playlists/{id}', [PlaylistController::class, 'update']);
+    Route::delete('/admin/playlists/{id}', [PlaylistController::class, 'destroy']);
+
+    // Admin Task Management
+    Route::get('/admin/tasks', [TaskController::class, 'adminIndex']);
+    Route::post('/admin/tasks', [TaskController::class, 'store']);
+    Route::put('/admin/tasks/{id}', [TaskController::class, 'update']);
+    Route::delete('/admin/tasks/{id}', [TaskController::class, 'destroy']);
+
+    // User Progress Management
+    Route::get('/admin/user-progress/user/{user_id}', [UserDetailController::class, 'getAllByUserId']);
 
     // Task management routes
-    Route::get('/tasks', [TaskController::class, 'index']);
-    Route::get('/task/{id}', [TaskPlaylistVideoController::class, 'show']);
-    Route::post('/task', [TaskPlaylistVideoController::class, 'store']);
-    Route::put('/task/{id}', [TaskPlaylistVideoController::class, 'update']);
-    Route::delete('/task/{id}', [TaskPlaylistVideoController::class, 'destroy']);
+    Route::get('/admin/task/{id}', [TaskPlaylistVideoController::class, 'show']);
+    Route::post('/admin/task', [TaskPlaylistVideoController::class, 'store']);
+    Route::put('/admin/task/{id}', [TaskPlaylistVideoController::class, 'update']);
+    Route::delete('/admin/task/{id}', [TaskPlaylistVideoController::class, 'destroy']);
+
+    // Admin Notification routes
+    Route::get('/admin/notifications', [NotificationController::class, 'adminIndex']);
 });
 
 /*
@@ -122,29 +190,9 @@ Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);
 
 /*
 |--------------------------------------------------------------------------
-| Return all course progress for the authenticated user
-|--------------------------------------------------------------------------
-*/
-Route::middleware('auth:sanctum')->get('/user-progress/all', [UserProgressController::class, 'getAllCourseProgress'])
-    ->name('user-progress.getAll');
-
-/*
-|--------------------------------------------------------------------------
 | Fallback
 |--------------------------------------------------------------------------
 */
 Route::fallback(function () {
     return response()->json(['error' => 'API endpoint not found'], 404);
 });
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/user-progress/update', [UserProgressController::class, 'updateProgress']);
-});
-
-Route::get('/edubot', [EduBotController::class, 'index']);
-Route::post('/edubot', [EduBotController::class, 'store']);
-Route::get('/edubot/{id}', [EduBotController::class, 'show']);
-Route::put('/edubot/{id}', [EduBotController::class, 'update']);
-Route::delete('/edubot/{id}', [EduBotController::class, 'destroy']);
-
-// Public GET route for courses
-Route::get('/courses', [CourseController::class, 'index']);

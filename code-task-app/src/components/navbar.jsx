@@ -7,6 +7,8 @@ import { FaChevronDown } from 'react-icons/fa';
 import "../styles/Navbar.css"; // <-- Use the NEW Navbar.css
 import eduverseLogo from "../assets/1.png"; // Make sure path is correct
 import defaultProfile from "../assets/user.png";
+import NotificationDropdown from "./admin/NotificationDropdown";
+import apiClient from "../api/axios";
 
 const Navbar = ({ setFormType }) => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -121,28 +123,32 @@ const Navbar = ({ setFormType }) => {
         {/* Right: Auth/Profile & Mobile Menu Toggle */}
         <div className="navbar-right">
            {isAuthenticated ? (
-             <div className="profile-container" ref={profileMenuRef}>
-               <button className="profile-button" onClick={toggleProfileMenu} aria-label="User Menu">
-                 <img src={profileImageUrl} alt="Profile" className="navbar-profile-picture" />
-                 <span className="profile-username-desktop">{username}</span>
-               </button>
-                {showProfileMenu && (
-                    <motion.div
-                        className="profile-dropdown-menu"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }} // Needs AnimatePresence in parent if used
-                        transition={{ duration: 0.2 }}
-                    >
-                        <button className="profile-dropdown-item" onClick={handleProfileLink}>
-                            <FiUser className="dropdown-icon" /> My Profile
-                        </button>
-                        <button className="profile-dropdown-item logout" onClick={handleLogout}>
-                            <FiLogOut className="dropdown-icon" /> Logout
-                        </button>
-                    </motion.div>
-                )}
-             </div>
+             <>
+               {/* Notification Bell for All Authenticated Users */}
+               <NotificationDropdown />
+               <div className="profile-container" ref={profileMenuRef}>
+                 <button className="profile-button" onClick={toggleProfileMenu} aria-label="User Menu">
+                   <img src={profileImageUrl} alt="Profile" className="navbar-profile-picture" />
+                   <span className="profile-username-desktop">{username}</span>
+                 </button>
+                  {showProfileMenu && (
+                      <motion.div
+                          className="profile-dropdown-menu"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }} // Needs AnimatePresence in parent if used
+                          transition={{ duration: 0.2 }}
+                      >
+                          <button className="profile-dropdown-item" onClick={handleProfileLink}>
+                              <FiUser className="dropdown-icon" /> My Profile
+                          </button>
+                          <button className="profile-dropdown-item logout" onClick={handleLogout}>
+                              <FiLogOut className="dropdown-icon" /> Logout
+                          </button>
+                      </motion.div>
+                  )}
+               </div>
+             </>
            ) : (
              <div className="auth-buttons-desktop">
                <button onClick={() => handleAuthButtonClick("login")} className="navbar-button btn-secondary">Login</button>
@@ -165,6 +171,10 @@ const Navbar = ({ setFormType }) => {
         >
             {isAuthenticated ? (
                 <>
+                    {/* Notification Bell for All Authenticated Users on Mobile */}
+                    <div className="mobile-notification-container">
+                        <NotificationDropdown />
+                    </div>
                     <button onClick={() => handleNavLinkClick('/homevideo')} className="mobile-nav-link">Courses</button>
                     <button onClick={() => handleNavLinkClick('/chat')} className="mobile-nav-link">EduBot</button>
                     {userRole === 'admin' && <button onClick={() => handleNavLinkClick('/AdminDashboard')} className="mobile-nav-link">Admin Panel</button>}

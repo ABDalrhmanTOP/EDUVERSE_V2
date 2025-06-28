@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
   FaPlus, 
   FaEdit, 
@@ -22,6 +23,7 @@ import { useLocation } from 'react-router-dom';
 import '../../styles/admin/TasksDashboard.css';
 
 const TasksDashboard = () => {
+  const { t, i18n } = useTranslation();
   const [tasks, setTasks] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,14 @@ const TasksDashboard = () => {
   });
   const location = useLocation();
 
+  // Function to format numbers in Arabic
+  const formatNumber = (num) => {
+    if (i18n.language === 'ar') {
+      return num.toLocaleString('ar-EG');
+    }
+    return num.toLocaleString();
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const courseParam = params.get('course');
@@ -57,13 +67,13 @@ const TasksDashboard = () => {
     try {
       setLoading(true);
       const [tasksRes, coursesRes] = await Promise.all([
-        apiClient.get('/tasks'),
-        apiClient.get('/courses')
+        apiClient.get('/admin/tasks'),
+        apiClient.get('/admin/courses')
       ]);
       setTasks(tasksRes.data || []);
       setCourses(coursesRes.data || []);
     } catch (error) {
-      setError('Failed to load tasks and courses');
+      setError(t('admin.tasks.failedToLoadTasks'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +99,7 @@ const TasksDashboard = () => {
     setDeleteModal({
       isOpen: true,
       taskId: taskId,
-      taskTitle: task ? task.title : 'this task'
+      taskTitle: task ? task.title : t('admin.tasks.editTaskTitle')
     });
   };
 
@@ -102,11 +112,11 @@ const TasksDashboard = () => {
       // Show success notification
       setSuccessNotification({
         isVisible: true,
-        message: `Task "${deleteModal.taskTitle}" has been successfully deleted.`,
+        message: t('admin.tasks.taskDeletedSuccess', { taskTitle: deleteModal.taskTitle }),
         type: 'deleted'
       });
     } catch (error) {
-      setError('Failed to delete task');
+      setError(t('admin.tasks.failedToLoadTasks'));
       setDeleteModal({ isOpen: false, taskId: null, taskTitle: '' });
     }
   };
@@ -124,8 +134,8 @@ const TasksDashboard = () => {
     setSuccessNotification({
       isVisible: true,
       message: editingTask 
-        ? `Task "${editingTask.title}" has been successfully updated.`
-        : 'New task has been successfully created.',
+        ? t('admin.tasks.taskUpdatedSuccess', { taskTitle: editingTask.title })
+        : t('admin.tasks.taskAddedSuccess'),
       type: editingTask ? 'updated' : 'added'
     });
   };
@@ -133,44 +143,46 @@ const TasksDashboard = () => {
   const isCodingType = (type) => {
     if (!type) return false;
     const t = type.toLowerCase();
-    return t === 'coding' || t === 'code';
+    return t === 'coding' || t === 'code' || t === 'CODE';
   };
 
   const isTrueFalseType = (type) => {
     if (!type) return false;
     const t = type.toLowerCase();
-    return t === 'true_false' || t === 'truefalse';
+    return t === 'true_false' || t === 'truefalse' || t === 'TRUE_FALSE';
   };
 
   const getTaskTypeIcon = (type) => {
-    if (isCodingType(type)) return <FaCode className="task-type-icon coding" />;
-    switch (type?.toLowerCase()) {
-      case 'mcq':
-        return <FaListUl className="task-type-icon mcq" />;
-      case 'true_false':
-      case 'truefalse':
-        return <FaCheckCircle className="task-type-icon tf" />;
-      default:
-        return null;
+    if (!type) {
+      return <FaQuestionCircle style={{color: '#6B7280', fontSize: '1.2rem'}} />;
     }
+    const t = type.toLowerCase();
+    
+    if (t === 'coding' || t === 'code' || t === 'CODE') {
+      return <FaCode style={{color: '#F59E0B', fontSize: '1.2rem', marginRight: i18n.language === 'ar' ? '0' : '8px', marginLeft: i18n.language === 'ar' ? '8px' : '0'}} />;
+    }
+    if (t === 'mcq') {
+      return <FaListUl style={{color: '#3B82F6', fontSize: '1.2rem', marginRight: i18n.language === 'ar' ? '0' : '8px', marginLeft: i18n.language === 'ar' ? '8px' : '0'}} />;
+    }
+    if (t === 'true_false' || t === 'truefalse' || t === 'TRUE_FALSE') {
+      return <FaCheckCircle style={{color: '#10B981', fontSize: '1.2rem', marginRight: i18n.language === 'ar' ? '0' : '8px', marginLeft: i18n.language === 'ar' ? '8px' : '0'}} />;
+    }
+    return <FaQuestionCircle style={{color: '#6B7280', fontSize: '1.2rem'}} />;
   };
 
-  const getTaskTypeLabel = (type) => {
-    if (isCodingType(type)) return 'Coding';
-    switch (type?.toLowerCase()) {
-      case 'mcq':
-        return 'Multiple Choice';
-      case 'true_false':
-        return 'True/False';
-      default:
-        return type;
-    }
+  const getTaskTypeLabel = (taskType) => {
+    if (!taskType) return '';
+    const type = taskType.toLowerCase();
+    if (type === 'coding' || type === 'code' || type === 'CODE') return t('admin.tasks.coding');
+    if (type === 'mcq') return t('admin.tasks.multipleChoice');
+    if (type === 'true_false' || type === 'truefalse' || type === 'TRUE_FALSE') return t('admin.tasks.trueFalse');
+    return taskType;
   };
 
   const getCourseName = (courseId, playlist) => {
     if (playlist && playlist.name) return playlist.name;
     const course = courses.find(c => c.id === courseId || c.id === (playlist && playlist.id));
-    return course ? course.name : 'Unknown Course';
+    return course ? course.name : t('admin.tasks.unknownCourse');
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -220,7 +232,7 @@ const TasksDashboard = () => {
       </div>
       <div className="tasks-stat-content">
         <h3 className="tasks-stat-value">
-          {loading ? <span className="stat-loading">...</span> : value}
+          {loading ? <span className="stat-loading">...</span> : formatNumber(value)}
         </h3>
         <p className="tasks-stat-title">{title}</p>
       </div>
@@ -228,193 +240,197 @@ const TasksDashboard = () => {
   );
 
   return (
-    <div className="tasks-dashboard-container">
-      <div className="tasks-dashboard-header">
-        <div className="tasks-dashboard-title">
-          <h1>Tasks Management</h1>
-          <p>Overview of all tasks across all courses</p>
+    <div className="tasks-dashboard-container" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+      {loading ? (
+        <div className="tasks-dashboard-loading">
+          <div className="tasks-loading-spinner"></div>
+          <p>{t('admin.tasks.loading')}</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={fetchData}
-          disabled={loading}
-          className="tasks-refresh-btn"
-          style={{marginLeft: 0, marginRight: '1rem'}}
-        >
-          <FaSync className={loading ? 'spinning' : ''} />
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleAddTask}
-          className="add-task-btn"
-        >
-          <FaPlus /> Add New Task
-        </motion.button>
-      </div>
+      ) : (
+        <>
+          <div className="tasks-dashboard-header">
+            <div className="tasks-dashboard-title">
+              <h1>{t('admin.tasks.title')}</h1>
+              <p>{t('admin.tasks.subtitle')}</p>
+            </div>
+            <div className="tasks-header-actions">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fetchData}
+                disabled={loading}
+                className="courses-list-refresh-btn"
+              >
+                <FaSync className={loading ? 'spinning' : ''} />
+                {loading ? t('admin.tasks.refreshing') : t('common.refresh')}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAddTask}
+                className="add-task-btn"
+              >
+                <FaPlus /> {t('admin.tasks.addTask')}
+              </motion.button>
+            </div>
+          </div>
 
-      {error && (
-        <div className="tasks-error">
-          {error}
-        </div>
-      )}
+          {error && (
+            <div className="tasks-error">
+              {error}
+            </div>
+          )}
 
-      <div className="tasks-stats-grid">
-        <StatCard
-          title="Total Tasks"
-          value={tasks.length}
-          icon={FaTasks}
-          color="#C89F9C"
-          delay={0.1}
-        />
-        <StatCard
-          title="MCQ Tasks"
-          value={tasks.filter(t => (t.type?.toLowerCase?.() === 'mcq')).length}
-          icon={FaListUl}
-          color="#3B82F6"
-          delay={0.2}
-        />
-        <StatCard
-          title="True/False Tasks"
-          value={tasks.filter(t => isTrueFalseType(t.type)).length}
-          icon={FaCheckCircle}
-          color="#10B981"
-          delay={0.3}
-        />
-        <StatCard
-          title="Coding Tasks"
-          value={tasks.filter(t => isCodingType(t.type)).length}
-          icon={FaCode}
-          color="#F59E0B"
-          delay={0.4}
-        />
-      </div>
-
-      <div className="tasks-filters">
-        <div className="search-section">
-          <div className="search-input">
-            <FaSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+          <div className="tasks-stats-grid">
+            <StatCard
+              title={t('admin.tasks.totalTasks')}
+              value={tasks.length}
+              icon={FaTasks}
+              color="#C89F9C"
+              delay={0.1}
+            />
+            <StatCard
+              title={t('admin.tasks.mcqTasks')}
+              value={tasks.filter(t => (t.type?.toLowerCase?.() === 'mcq')).length}
+              icon={FaListUl}
+              color="#3B82F6"
+              delay={0.2}
+            />
+            <StatCard
+              title={t('admin.tasks.trueFalseTasks')}
+              value={tasks.filter(t => isTrueFalseType(t.type)).length}
+              icon={FaCheckCircle}
+              color="#10B981"
+              delay={0.3}
+            />
+            <StatCard
+              title={t('admin.tasks.codingTasks')}
+              value={tasks.filter(t => isCodingType(t.type)).length}
+              icon={FaCode}
+              color="#F59E0B"
+              delay={0.4}
             />
           </div>
-        </div>
-        <div className="filter-section">
-          <div className="filter-group">
-            <label>Course:</label>
-            <select
-              className="custom-select"
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-            >
-              <option value="">All Courses</option>
-              {courses.map(course => (
-                <option key={course.id} value={course.id}>
-                  {course.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label>Type:</label>
-            <select
-              className="custom-select"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="all">All Types</option>
-              <option value="mcq">Multiple Choice</option>
-              <option value="true_false">True/False</option>
-              <option value="coding">Coding</option>
-            </select>
-          </div>
-        </div>
-      </div>
 
-      <div className="tasks-content">
-        <div className="tasks-table-container">
-          <table className="tasks-table">
-            <thead>
-              <tr>
-                <th>Task</th>
-                <th>Course</th>
-                <th>Type</th>
-                <th>Timestamp</th>
-                <th>Points</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 4 }).map((_, idx) => (
-                  <tr key={idx} className="tasks-row loading-row">
-                    <td colSpan={6}><div className="loading-skeleton" style={{height:'24px',width:'100%'}} /></td>
+          <div className="tasks-filters">
+            <div className="search-section">
+              <div className="search-input">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder={t('admin.tasks.searchTasks')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="filter-section">
+              <div className="filter-group">
+                <label>{t('admin.tasks.course')}:</label>
+                <select
+                  className="custom-select"
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                >
+                  <option value="">{t('admin.tasks.allCourses')}</option>
+                  {courses.map(course => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>{t('admin.tasks.type')}:</label>
+                <select
+                  className="custom-select"
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                >
+                  <option value="all">{t('admin.tasks.allTypes')}</option>
+                  <option value="mcq">{t('admin.tasks.multipleChoice')}</option>
+                  <option value="true_false">{t('admin.tasks.trueFalse')}</option>
+                  <option value="coding">{t('admin.tasks.coding')}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="tasks-content">
+            <div className="tasks-table-container">
+              <table className="tasks-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.tasks.taskName')}</th>
+                    <th>{t('admin.tasks.course')}</th>
+                    <th>{t('admin.tasks.type')}</th>
+                    <th>{t('admin.tasks.timestamp')}</th>
+                    <th>{t('admin.tasks.points')}</th>
+                    <th>{t('admin.tasks.actions')}</th>
                   </tr>
-                ))
-              ) : filteredTasks.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="tasks-empty">
-                    <p>{searchTerm || filterType !== 'all' ? 'Try adjusting your search or filters.' : 'No tasks have been created yet.'}</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredTasks.map((task, index) => {
-                  return (
-                    <motion.tr
-                      key={task.id}
-                      className="tasks-row"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <td>
-                        <div className="task-title">{task.title}</div>
-                        {task.description && (
-                          <div className="task-description">{task.description}</div>
-                        )}
+                </thead>
+                <tbody>
+                  {filteredTasks.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="tasks-empty">
+                        <p>{searchTerm || filterType !== 'all' ? t('admin.tasks.adjustSearchFilters') : t('admin.tasks.noTasksCreated')}</p>
                       </td>
-                      <td className="task-course">{getCourseName(task.course_id, task.playlist)}</td>
-                      <td>
-                        <div className="task-type">
-                          {getTaskTypeIcon(task.type)}
-                          <span>{getTaskTypeLabel(task.type)}</span>
-                        </div>
-                      </td>
-                      <td className="task-timestamp">{formatTimestamp(task.timestamp)}</td>
-                      <td className="points">{task.points || 1} pts</td>
-                      <td className="actions">
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleEditTask(task)}
-                          className="action-btn edit-btn"
-                          title="Edit Task"
+                    </tr>
+                  ) : (
+                    filteredTasks.map((task, index) => {
+                      return (
+                        <motion.tr
+                          key={task.id}
+                          className="tasks-row"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
                         >
-                          <FaEdit />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="action-btn delete-btn"
-                          title="Delete Task"
-                        >
-                          <FaTrash />
-                        </motion.button>
-                      </td>
-                    </motion.tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                          <td>
+                            <div className="task-title">{task.title}</div>
+                            {task.description && (
+                              <div className="task-description">{task.description}</div>
+                            )}
+                          </td>
+                          <td className="task-course">{getCourseName(task.course_id, task.playlist)}</td>
+                          <td>
+                            <div className="task-type">
+                              {getTaskTypeIcon(task.type)}
+                              <span>{getTaskTypeLabel(task.type)}</span>
+                            </div>
+                          </td>
+                          <td className="task-timestamp">{formatTimestamp(task.timestamp)}</td>
+                          <td className="points">{task.points || 1} pts</td>
+                          <td className="actions">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleEditTask(task)}
+                              className="action-btn edit-btn"
+                              title={t('admin.tasks.editTaskTitle')}
+                            >
+                              <FaEdit />
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="action-btn delete-btn"
+                              title={t('admin.tasks.deleteTaskTitle')}
+                            >
+                              <FaTrash />
+                            </motion.button>
+                          </td>
+                        </motion.tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       <AnimatePresence>
         {showTaskForm && (
@@ -447,10 +463,10 @@ const TasksDashboard = () => {
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, taskId: null, taskTitle: '' })}
         onConfirm={confirmDeleteTask}
-        title="Delete Task"
-        message={`Are you sure you want to delete "${deleteModal.taskTitle}"? This action cannot be undone.`}
-        confirmText="Delete Task"
-        cancelText="Cancel"
+        title={t('admin.tasks.deleteTaskTitle')}
+        message={t('admin.tasks.deleteTaskConfirm', { taskTitle: deleteModal.taskTitle })}
+        confirmText={t('admin.tasks.deleteTaskTitle')}
+        cancelText={t('common.cancel')}
         type="danger"
       />
 

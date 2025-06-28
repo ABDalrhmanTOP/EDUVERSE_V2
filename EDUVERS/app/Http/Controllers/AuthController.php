@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Services\NotificationService;
 
 class AuthController extends Controller
 {
@@ -27,6 +28,12 @@ class AuthController extends Controller
             'role' => $request->role ?? 'user',
         ]);
 
+        // Create welcome notification for new user
+        NotificationService::welcomeUser($user);
+
+        // Create admin notification about new user registration
+        NotificationService::userRegistered($user);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -37,35 +44,35 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
 
-    if (!Auth::attempt($request->only('email', 'password'))) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Auth::user() returned null'], 500);
+        }
+
+        if (!$user instanceof User) {
+            return response()->json(['message' => 'Auth::user() is not an instance of User'], 500);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => $user,
+            'token' => $token,
+
+        ]);
     }
-
-    $user = Auth::user();
-
-    if (!$user) {
-        return response()->json(['message' => 'Auth::user() returned null'], 500);
-    }
-
-    if (!$user instanceof User) {
-        return response()->json(['message' => 'Auth::user() is not an instance of User'], 500);
-    }
-
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'message' => 'Login successful',
-        'user' => $user,
-        'token' => $token,
-
-    ]);
-}
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();

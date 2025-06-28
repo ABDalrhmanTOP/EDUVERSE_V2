@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory,Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +23,27 @@ class User extends Authenticatable
         'last_task_completed',
         'profile_photo_path',
         'test_taken',
-        'role'
+        'role',
+        'placement_score',
+        'placement_level',
+        'job',
+        'university',
+        'country',
+        'experience',
+        'career_goals',
+        'hobbies',
+        'expectations',
+        'education_level',
+        'field_of_study',
+        'student_year',
+        'years_of_experience',
+        'specialization',
+        'teaching_subject',
+        'research_field',
+        'company_size',
+        'industry',
+        'semester',
+        'has_completed_general_form',
     ];
 
     /**
@@ -64,7 +84,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Result::class);
     }
-
-
-
 }

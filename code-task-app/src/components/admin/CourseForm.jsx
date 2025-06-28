@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from '../../api/axios.js';
+import apiClient from '../../api/axios.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaTimes, FaSave, FaYoutube, FaTasks, FaTrash, FaExclamationTriangle, FaCode, FaListUl, FaCheckCircle, FaSpinner, FaChevronUp, FaChevronDown, FaCheck } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaSave, FaYoutube, FaTasks, FaTrash, FaExclamationTriangle, FaCode, FaListUl, FaCheckCircle, FaSpinner, FaChevronUp, FaChevronDown, FaCheck, FaClock, FaInfoCircle } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import '../../styles/admin/CourseForm.css';
+import '../../styles/admin/TaskForm.css';
 
 const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const [video_id, setVideo_id] = useState('');
@@ -25,6 +27,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const [durationAutoFetched, setDurationAutoFetched] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [paid, setPaid] = useState(false);
+  const { t, i18n } = useTranslation();
 
   // Real-time validation state
   const [videoValidation, setVideoValidation] = useState({
@@ -66,7 +69,19 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
       populateFormData(editingCourse);
     }
     setIsInitialized(true);
-  }, [editingCourse]);
+
+    // Add ESC key listener
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [editingCourse, onClose]);
 
   useEffect(() => {
     setTaskError('');
@@ -74,7 +89,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
 
   const fetchExistingCourses = async () => {
     try {
-      const response = await axios.get('/courses');
+      const response = await apiClient.get('/admin/courses');
       setExistingCourses(response.data || []);
     } catch (error) {
       // Error fetching courses
@@ -88,8 +103,17 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     setSemester(course.semester?.toString() || '');
     setVideo_id(course.video_id || '');
     setVideoDuration(course.video_duration || '00:10:00');
-    setTasks(course.tasks || []);
-    setShowTaskSection(course.tasks && course.tasks.length > 0);
+    
+    // Ensure tasks have proper structure
+    const processedTasks = (course.tasks || []).map(task => ({
+      ...createEmptyTask(),
+      ...task,
+      options: Array.isArray(task.options) ? task.options : ['', '', '', ''],
+      coding_test_cases: Array.isArray(task.coding_test_cases) ? task.coding_test_cases : [{ input: '', output: '', description: '' }]
+    }));
+    
+    setTasks(processedTasks);
+    setShowTaskSection(processedTasks.length > 0);
     setPaid(!!course.paid);
   };
 
@@ -100,50 +124,50 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     switch (fieldName) {
       case 'name':
         if (!value || !value.trim()) {
-          errors.name = 'Course name is required';
+          errors.name = t('common.courseNameRequired');
         } else if (value.trim().length < 3) {
-          errors.name = 'Course name must be at least 3 characters';
+          errors.name = t('common.courseNameMinLength');
         } else {
           delete errors.name;
         }
         break;
       case 'description':
         if (!value || !value.trim()) {
-          errors.description = 'Course description is required';
+          errors.description = t('common.descriptionRequired');
         } else if (value.trim().length < 10) {
-          errors.description = 'Description must be at least 10 characters';
+          errors.description = t('common.descriptionMinLength');
         } else {
           delete errors.description;
         }
         break;
       case 'video_id':
         if (!value || !value.trim()) {
-          errors.video_id = 'Video ID is required';
+          errors.video_id = t('common.videoIdRequired');
         } else if (!/^[a-zA-Z0-9_-]{11}$/.test(value)) {
-          errors.video_id = 'Please enter a valid YouTube video ID (11 characters)';
+          errors.video_id = t('common.videoIdInvalid');
         } else {
           delete errors.video_id;
         }
         break;
       case 'videoDuration':
         if (!value || !value.trim()) {
-          errors.videoDuration = 'Video duration is required';
+          errors.videoDuration = t('common.durationRequired');
         } else if (!/^\d{2}:\d{2}:\d{2}$/.test(value)) {
-          errors.videoDuration = 'Please enter duration in format hh:mm:ss';
+          errors.videoDuration = t('common.durationInvalid');
         } else {
           delete errors.videoDuration;
         }
         break;
       case 'year':
         if (!value || value === '') {
-          errors.year = 'Please select a year';
+          errors.year = t('common.yearRequired');
         } else {
           delete errors.year;
         }
         break;
       case 'semester':
         if (!value || value === '') {
-          errors.semester = 'Please select a semester';
+          errors.semester = t('common.semesterRequired');
         } else {
           delete errors.semester;
         }
@@ -191,7 +215,6 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     setTasks(updated);
   };
 
-  // Handle MCQ option changes
   const handleOptionChange = (taskIdx, optionIdx, value) => {
     const updated = [...tasks];
     updated[taskIdx].options[optionIdx] = value;
@@ -206,19 +229,13 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
 
   const removeOption = (taskIdx, optionIdx) => {
     const updated = [...tasks];
-    if (updated[taskIdx].options.length <= 2) {
-      setTaskError('MCQ must have at least 2 options');
-      return;
-    }
     updated[taskIdx].options.splice(optionIdx, 1);
     if (updated[taskIdx].correct_answer >= optionIdx) {
       updated[taskIdx].correct_answer = Math.max(0, updated[taskIdx].correct_answer - 1);
     }
     setTasks(updated);
-    setTaskError('');
   };
 
-  // Handle coding test cases
   const handleTestCaseChange = (taskIdx, caseIdx, field, value) => {
     const updated = [...tasks];
     updated[taskIdx].coding_test_cases[caseIdx][field] = value;
@@ -239,255 +256,204 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
 
   // Enhanced task validation
   const validateTask = (task, index) => {
+    const errors = [];
+    
     if (!task.title || !task.title.trim()) {
-      return `Task ${index + 1}: Title is required`;
+      errors.push(`Task ${index + 1}: Title is required`);
     }
-
-    switch (task.type) {
-      case 'mcq':
-        if (!task.question || !task.question.trim()) {
-          return `Task ${index + 1}: Question is required for MCQ`;
-        }
-        if (task.options.some(opt => !opt.trim())) {
-          return `Task ${index + 1}: All MCQ options must be filled`;
-        }
-        break;
-      case 'true_false':
-        if (!task.tf_question || !task.tf_question.trim()) {
-          return `Task ${index + 1}: Question is required for True/False`;
-        }
-        break;
-      case 'CODE':
-        if (!task.coding_question || !task.coding_question.trim()) {
-          return `Task ${index + 1}: Question is required for Coding task`;
-        }
-        if (task.coding_test_cases.some(tc => !tc.input.trim() || !tc.output.trim())) {
-          return `Task ${index + 1}: All test cases must have input and output`;
-        }
-        break;
+    
+    if (!task.description || !task.description.trim()) {
+      errors.push(`Task ${index + 1}: Description is required`);
     }
-    return null;
+    
+    if (task.type === 'mcq') {
+      if (!task.question || !task.question.trim()) {
+        errors.push(`Task ${index + 1}: Question is required`);
+      }
+      
+      const validOptions = task.options.filter(opt => opt && opt.trim());
+      if (validOptions.length < 2) {
+        errors.push(`Task ${index + 1}: At least 2 options are required`);
+      }
+      
+      if (task.correct_answer < 0 || task.correct_answer >= validOptions.length) {
+        errors.push(`Task ${index + 1}: Please select a valid correct answer`);
+      }
+    }
+    
+    if (task.type === 'true_false') {
+      if (!task.tf_question || !task.tf_question.trim()) {
+        errors.push(`Task ${index + 1}: Question is required`);
+      }
+    }
+    
+    if (task.type === 'CODE') {
+      if (!task.coding_question || !task.coding_question.trim()) {
+        errors.push(`Task ${index + 1}: Coding question is required`);
+      }
+      
+      if (!task.coding_solution || !task.coding_solution.trim()) {
+        errors.push(`Task ${index + 1}: Coding solution is required`);
+      }
+      
+      const validTestCases = task.coding_test_cases.filter(tc => tc.input && tc.input.trim() && tc.output && tc.output.trim());
+      if (validTestCases.length === 0) {
+        errors.push(`Task ${index + 1}: At least one test case is required`);
+      }
+    }
+    
+    return errors;
   };
 
   const validateTasks = () => {
-    if (tasks.length === 0) return true;
+    const allErrors = [];
+    tasks.forEach((task, index) => {
+      const taskErrors = validateTask(task, index);
+      allErrors.push(...taskErrors);
+    });
     
-    for (let i = 0; i < tasks.length; i++) {
-      const error = validateTask(tasks[i], i);
-      if (error) {
-        setTaskError(error);
-        return false;
-      }
+    if (allErrors.length > 0) {
+      setTaskError(allErrors.join('\n'));
+      return false;
     }
     
     setTaskError('');
     return true;
   };
 
-  // Enhanced validateForm to return first error field name
   const validateForm = () => {
-    const fields = [
-      { name: 'name', value: name, ref: nameRef },
-      { name: 'description', value: description, ref: descriptionRef },
-      { name: 'video_id', value: video_id, ref: videoIdRef },
-      { name: 'videoDuration', value: videoDuration, ref: videoDurationRef },
-      { name: 'year', value: year, ref: yearRef },
-      { name: 'semester', value: semester, ref: semesterRef }
-    ];
-    let isValid = true;
-    let firstErrorField = null;
-    fields.forEach(field => {
-      if (!validateField(field.name, field.value)) {
-        isValid = false;
-        if (!firstErrorField) firstErrorField = field.ref;
-      }
-    });
-    return { isValid, firstErrorField };
+    const isNameValid = validateField('name', name);
+    const isDescriptionValid = validateField('description', description);
+    const isVideoIdValid = validateField('video_id', video_id);
+    const isDurationValid = validateField('videoDuration', videoDuration);
+    const isYearValid = validateField('year', year);
+    const isSemesterValid = validateField('semester', semester);
+    
+    return isNameValid && isDescriptionValid && isVideoIdValid && isDurationValid && isYearValid && isSemesterValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      setFormError('Please fix the form errors before submitting.');
+      return;
+    }
+    
+    if (!validateTasks()) {
+      setFormError('Please fix the task errors before submitting.');
+      return;
+    }
+    
     setLoading(true);
     setFormError('');
-    let errorNotification = false;
-    // Validate form fields and get first error ref
-    const { isValid, firstErrorField } = validateForm();
-    if (!isValid) {
-      setFormError('Please fix the errors in the form fields.');
-      setTimeout(() => {
-        if (firstErrorField && firstErrorField.current) {
-          firstErrorField.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          firstErrorField.current.focus();
-        } else if (formErrorRef.current) {
-          formErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
-      setLoading(false);
-      errorNotification = true;
-      return;
-    }
-    // Validate tasks
-    if (!validateTasks()) {
-      setTimeout(() => {
-        if (taskErrorRef.current) {
-          taskErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
-      setLoading(false);
-      errorNotification = true;
-      return;
-    }
-
-    // Check real-time validation results
-    if (videoValidation.isChecking) {
-      setFormError('Please wait for course validation to complete.');
-      setLoading(false);
-      return;
-    }
-
-    if (videoValidation.error) {
-      setFormError(`Course validation failed: ${videoValidation.error}`);
-      setLoading(false);
-      return;
-    }
-
-    if (videoValidation.isDuplicate) {
-      setFormError('This video ID is already used in another course. Please use a different video.');
-      setLoading(false);
-      return;
-    }
-
-    if (!videoValidation.isValid) {
-      setFormError('Please ensure all course details are valid before submitting.');
-      setLoading(false);
-      return;
-    }
-
-    const data = { 
-      video_id, 
-      name, 
-      description, 
-      year: Number(year), 
-      semester: Number(semester), 
-      video_duration: videoDuration, 
-      paid,
-      tasks: tasks.map(t => {
-        const taskData = {
-          title: t.title,
-          description: t.description,
-          type: t.type,
-          timestamp: t.timestamp,
-          points: t.points
-        };
-
-        switch (t.type) {
-          case 'mcq':
-            taskData.question = t.question;
-            taskData.options = t.options;
-            taskData.correct_answer = t.correct_answer;
-            break;
-          case 'true_false':
-            taskData.tf_question = t.tf_question;
-            taskData.tf_answer = t.tf_answer;
-            break;
-          case 'CODE':
-            taskData.coding_question = t.coding_question;
-            taskData.coding_test_cases = t.coding_test_cases;
-            taskData.coding_solution = t.coding_solution;
-            taskData.coding_language = t.coding_language;
-            break;
-        }
-
-        return taskData;
-      })
-    };
-
+    
     try {
+      const formData = {
+        name: name.trim(),
+        description: description.trim(),
+        video_id: video_id.trim(),
+        video_duration: videoDuration,
+        year: parseInt(year),
+        semester: parseInt(semester),
+        paid: paid,
+        tasks: tasks.map(task => ({
+          ...task,
+          title: task.title.trim(),
+          description: task.description.trim(),
+          options: task.options.filter(opt => opt && opt.trim()),
+          coding_test_cases: task.coding_test_cases.filter(tc => tc.input && tc.input.trim() && tc.output && tc.output.trim())
+        }))
+      };
+      
       if (editingCourse) {
-        await axios.put(`/courses/${editingCourse.id}`, data);
+        await apiClient.put(`/admin/courses/${editingCourse.id}`, formData);
       } else {
-        await axios.post('/courses', data);
+        await apiClient.post('/admin/courses', formData);
       }
+      
       onSuccess();
     } catch (error) {
-      setTimeout(() => {
-        if (formErrorRef.current) {
-          formErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
-      if (error.response && error.response.data) {
-        const { error: errorType, message } = error.response.data;
-        if (errorType === 'duplicate_video_id') {
-          setFormError('A course with this video ID already exists. Please use a different video.');
-          setFieldErrors(prev => ({
-            ...prev,
-            video_id: 'This video ID is already used by another course.'
-          }));
-        } else {
-          setFormError(message || 'Error saving course. Please try again.');
-        }
+      console.error('Error saving course:', error);
+      
+      if (error.response?.data?.message) {
+        setFormError(error.response.data.message);
+      } else if (error.response?.data?.errors) {
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        setFormError(errorMessages.join('\n'));
       } else {
-        setFormError('Error saving course. Please try again.');
+        setFormError('An error occurred while saving the course. Please try again.');
       }
-      errorNotification = true;
+      
+      // Dispatch custom event for error notification
+      window.dispatchEvent(new CustomEvent('showErrorNotification', {
+        detail: { message: error.response?.data?.message || 'Save failed. Please check the form for errors.' }
+      }));
     } finally {
       setLoading(false);
-      if (errorNotification && window && window.dispatchEvent) {
-        // Custom event for error notification (to be handled by parent or notification system)
-        window.dispatchEvent(new CustomEvent('showErrorNotification', { detail: { message: 'Save failed. Please check the form for errors.' } }));
-      }
     }
   };
 
+  // Extract video ID from URL
   const extractVideoId = (url) => {
     if (!url) return '';
     const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
     return match ? match[1] : url;
   };
 
-  // Function to convert ISO 8601 duration to HH:MM:SS format
+  // Convert ISO duration to hh:mm:ss format
   const convertDuration = (isoDuration) => {
+    if (!isoDuration) return '00:10:00';
+    
+    // Handle ISO 8601 duration format (PT10M30S)
     const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return '00:00:00';
+    if (match) {
+      const hours = parseInt(match[1] || '0');
+      const minutes = parseInt(match[2] || '0');
+      const seconds = parseInt(match[3] || '0');
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
     
-    const hours = parseInt(match[1] || 0);
-    const minutes = parseInt(match[2] || 0);
-    const seconds = parseInt(match[3] || 0);
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return isoDuration;
   };
 
-  // Function to fetch video duration from YouTube API
+  // Fetch video duration from YouTube API
   const fetchVideoDuration = async (videoId) => {
-    if (!videoId) {
-      // Keep the default duration and don't show error to user
-      return;
-    }
-
+    if (!videoId || videoId.length !== 11) return;
+    
     setFetchingDuration(true);
-    setDurationAutoFetched(false);
-
     try {
-      const response = await axios.get(`youtube/video-duration/${videoId}`);
-      if (response.data && response.data.duration) {
-        const convertedDuration = convertDuration(response.data.duration);
-        setVideoDuration(convertedDuration);
+      const response = await apiClient.get(`/youtube/video-duration/${videoId}`);
+      if (response.data.duration) {
+        const duration = convertDuration(response.data.duration);
+        setVideoDuration(duration);
         setDurationAutoFetched(true);
       }
     } catch (error) {
-      // Error fetching video duration
+      console.error('Error fetching video duration:', error);
     } finally {
       setFetchingDuration(false);
     }
   };
 
-  // Enhanced video URL change handler with duration fetching
   const handleVideoUrlChange = (e) => {
     const value = e.target.value;
+    setVideo_id(value);
     
-    // Clear validation if field is empty
-    if (!value.trim()) {
-      setVideo_id('');
+    // Extract video ID if it's a URL
+    const extractedId = extractVideoId(value);
+    if (extractedId && extractedId.length === 11) {
+      setVideo_id(extractedId);
+      validateField('video_id', extractedId);
+      validateCourseInRealTime(extractedId);
+      
+      // Auto-fetch duration if not already fetched
+      if (!durationAutoFetched && !fetchingDuration) {
+        fetchVideoDuration(extractedId);
+      }
+    } else {
+      setVideo_id(value);
+      validateField('video_id', value);
       setVideoValidation({
         isValid: false,
         isChecking: false,
@@ -495,55 +461,19 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
         isDuplicate: false,
         duplicateCourse: null
       });
-      return;
-    }
-    
-    // If it looks like a full URL, extract video ID
-    if (value.includes('youtube.com') || value.includes('youtu.be')) {
-      const videoId = extractVideoId(value);
-      setVideo_id(videoId);
-      if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-        fetchVideoDuration(videoId);
-      }
-    } else {
-      // If it's just a video ID, set it directly
-      const videoId = value.trim();
-      setVideo_id(videoId);
-      if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-        fetchVideoDuration(videoId);
-      }
     }
   };
-
-  // Validate video_id whenever it changes
-  useEffect(() => {
-    if (!isInitialized) return; // Don't validate on initial load
-    
-    // Add a small delay to ensure state is updated before validation
-    const timeoutId = setTimeout(() => {
-      if (video_id !== undefined && video_id !== '') {
-        validateField('video_id', video_id);
-      } else if (video_id === '') {
-        // Clear the error when field is empty
-        const errors = { ...fieldErrors };
-        delete errors.video_id;
-        setFieldErrors(errors);
-      }
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [video_id, isInitialized]);
 
   const getTaskTypeIcon = (type) => {
     switch (type) {
       case 'mcq':
-        return <FaListUl className="task-type-icon mcq" />;
+        return <FaListUl className="task-type-icon mcq" title="Multiple Choice" />;
       case 'true_false':
-        return <FaCheckCircle className="task-type-icon tf" />;
+        return <FaCheckCircle className="task-type-icon tf" title="True/False" />;
       case 'CODE':
-        return <FaCode className="task-type-icon coding" />;
+        return <FaCode className="task-type-icon coding" title="Coding" />;
       default:
-        return null;
+        return <FaTasks className="task-type-icon" />;
     }
   };
 
@@ -551,56 +481,33 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     <motion.div
       initial={{ opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="field-error-message"
+      className="course-form-field-error"
     >
       <FaExclamationTriangle className="error-icon" />
       {message}
     </motion.div>
   );
 
-  // Custom timestamp input component with increment/decrement arrows
   const TimestampInput = ({ value, onChange, placeholder = "00:00:00" }) => {
-    const [hours, setHours] = useState(0);
-    const [minutes, setMinutes] = useState(0);
-    const [seconds, setSeconds] = useState(0);
-
-    // Parse timestamp on mount and when value changes
-    useEffect(() => {
-      if (value) {
-        const parts = value.split(':');
-        if (parts.length === 3) {
-          setHours(parseInt(parts[0]) || 0);
-          setMinutes(parseInt(parts[1]) || 0);
-          setSeconds(parseInt(parts[2]) || 0);
-        } else if (parts.length === 2) {
-          setHours(0);
-          setMinutes(parseInt(parts[0]) || 0);
-          setSeconds(parseInt(parts[1]) || 0);
-        }
-      }
-    }, [value]);
-
+    // Handle undefined, null, or empty values
+    const safeValue = value || "00:00:00";
+    const [hours, minutes, seconds] = safeValue.split(':').map(Number);
+    
     const updateParent = (h, m, s) => {
-      const timestamp = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-      onChange(timestamp);
+      const newValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      onChange(newValue);
     };
 
     const increment = (type) => {
       switch (type) {
         case 'hours':
-          const newHours = Math.min(hours + 1, 23);
-          setHours(newHours);
-          updateParent(newHours, minutes, seconds);
+          updateParent((hours + 1) % 24, minutes, seconds);
           break;
         case 'minutes':
-          const newMinutes = Math.min(minutes + 1, 59);
-          setMinutes(newMinutes);
-          updateParent(hours, newMinutes, seconds);
+          updateParent(hours, (minutes + 1) % 60, seconds);
           break;
         case 'seconds':
-          const newSeconds = Math.min(seconds + 1, 59);
-          setSeconds(newSeconds);
-          updateParent(hours, minutes, newSeconds);
+          updateParent(hours, minutes, (seconds + 1) % 60);
           break;
       }
     };
@@ -608,43 +515,36 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     const decrement = (type) => {
       switch (type) {
         case 'hours':
-          const newHours = Math.max(hours - 1, 0);
-          setHours(newHours);
-          updateParent(newHours, minutes, seconds);
+          updateParent((hours - 1 + 24) % 24, minutes, seconds);
           break;
         case 'minutes':
-          const newMinutes = Math.max(minutes - 1, 0);
-          setMinutes(newMinutes);
-          updateParent(hours, newMinutes, seconds);
+          updateParent(hours, (minutes - 1 + 60) % 60, seconds);
           break;
         case 'seconds':
-          const newSeconds = Math.max(seconds - 1, 0);
-          setSeconds(newSeconds);
-          updateParent(hours, minutes, newSeconds);
+          updateParent(hours, minutes, (seconds - 1 + 60) % 60);
           break;
       }
     };
 
     const handleInputChange = (type, newValue) => {
       const numValue = parseInt(newValue) || 0;
-      let h = hours, m = minutes, s = seconds;
+      let clampedValue = numValue;
       
       switch (type) {
         case 'hours':
-          h = Math.min(Math.max(numValue, 0), 23);
-          setHours(h);
+          clampedValue = Math.max(0, Math.min(23, numValue));
+          updateParent(clampedValue, minutes, seconds);
           break;
         case 'minutes':
-          m = Math.min(Math.max(numValue, 0), 59);
-          setMinutes(m);
-          break;
         case 'seconds':
-          s = Math.min(Math.max(numValue, 0), 59);
-          setSeconds(s);
+          clampedValue = Math.max(0, Math.min(59, numValue));
+          if (type === 'minutes') {
+            updateParent(hours, clampedValue, seconds);
+          } else {
+            updateParent(hours, minutes, clampedValue);
+          }
           break;
       }
-      
-      updateParent(h, m, s);
     };
 
     return (
@@ -652,7 +552,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
         <div className="timestamp-input-group">
           <button
             type="button"
-            className="timestamp-arrow-btn"
+            className="timestamp-btn timestamp-up"
             onClick={() => increment('hours')}
           >
             <FaChevronUp />
@@ -664,21 +564,22 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
             value={hours.toString().padStart(2, '0')}
             onChange={(e) => handleInputChange('hours', e.target.value)}
             className="timestamp-input"
-            placeholder="00"
           />
           <button
             type="button"
-            className="timestamp-arrow-btn"
+            className="timestamp-btn timestamp-down"
             onClick={() => decrement('hours')}
           >
             <FaChevronDown />
           </button>
         </div>
+        
         <span className="timestamp-separator">:</span>
+        
         <div className="timestamp-input-group">
           <button
             type="button"
-            className="timestamp-arrow-btn"
+            className="timestamp-btn timestamp-up"
             onClick={() => increment('minutes')}
           >
             <FaChevronUp />
@@ -690,21 +591,22 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
             value={minutes.toString().padStart(2, '0')}
             onChange={(e) => handleInputChange('minutes', e.target.value)}
             className="timestamp-input"
-            placeholder="00"
           />
           <button
             type="button"
-            className="timestamp-arrow-btn"
+            className="timestamp-btn timestamp-down"
             onClick={() => decrement('minutes')}
           >
             <FaChevronDown />
           </button>
         </div>
+        
         <span className="timestamp-separator">:</span>
+        
         <div className="timestamp-input-group">
           <button
             type="button"
-            className="timestamp-arrow-btn"
+            className="timestamp-btn timestamp-up"
             onClick={() => increment('seconds')}
           >
             <FaChevronUp />
@@ -716,11 +618,10 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
             value={seconds.toString().padStart(2, '0')}
             onChange={(e) => handleInputChange('seconds', e.target.value)}
             className="timestamp-input"
-            placeholder="00"
           />
           <button
             type="button"
-            className="timestamp-arrow-btn"
+            className="timestamp-btn timestamp-down"
             onClick={() => decrement('seconds')}
           >
             <FaChevronDown />
@@ -733,40 +634,43 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const renderMCQFields = (task, index) => (
     <div className="task-type-fields mcq-fields">
       <div className="form-group">
-        <label>MCQ Question *</label>
+        <label>{t('admin.tasks.mcqQuestion')} *</label>
         <input
           type="text"
           value={task.question}
           onChange={(e) => handleTaskChange(index, 'question', e.target.value)}
-          placeholder="Enter MCQ question..."
-          className="course-form-input"
+          placeholder={t('admin.tasks.enterMCQQuestion')}
+          required
         />
       </div>
       <div className="mcq-options-list">
-        {task.options.map((option, optionIdx) => (
-          <div className="mcq-option-card" key={optionIdx}>
+        {task.options.map((option, optionIndex) => (
+          <div className="mcq-option-card" key={optionIndex}>
             <input
               type="radio"
-              name={`correct_answer_${index}`}
-              checked={task.correct_answer === optionIdx}
-              onChange={(e) => handleTaskChange(index, 'correct_answer', Number(e.target.value))}
+              name={`correct-${index}`}
+              checked={task.correct_answer === optionIndex}
+              onChange={() => handleTaskChange(index, 'correct_answer', optionIndex)}
               className="mcq-correct-radio"
             />
             <input
               type="text"
               value={option}
-              onChange={(e) => handleOptionChange(index, optionIdx, e.target.value)}
-              placeholder={`Option ${optionIdx + 1}`}
+              onChange={(e) => handleOptionChange(index, optionIndex, e.target.value)}
+              placeholder={t('admin.tasks.enterOption')}
               className="mcq-option-input"
+              required
             />
-            <button
-              type="button"
-              onClick={() => removeOption(index, optionIdx)}
-              className="remove-option-btn"
-              disabled={task.options.length <= 2}
-            >
-              <FaTrash />
-            </button>
+            {task.options.length > 2 && (
+              <button
+                type="button"
+                onClick={() => removeOption(index, optionIndex)}
+                className="remove-option-btn"
+                title={t('admin.tasks.removeOption')}
+              >
+                <FaTrash />
+              </button>
+            )}
           </div>
         ))}
         <button
@@ -774,7 +678,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
           onClick={() => addOption(index)}
           className="add-option-btn"
         >
-          <FaPlus /> Add Option
+          <FaPlus /> {t('admin.tasks.addOption')}
         </button>
       </div>
     </div>
@@ -783,25 +687,34 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const renderTrueFalseFields = (task, index) => (
     <div className="task-type-fields tf-fields">
       <div className="form-group">
-        <label>True/False Question *</label>
+        <label>{t('admin.tasks.trueFalseQuestion')} *</label>
         <input
           type="text"
           value={task.tf_question}
           onChange={(e) => handleTaskChange(index, 'tf_question', e.target.value)}
-          placeholder="Enter True/False question..."
-          className="course-form-input"
+          placeholder={t('admin.tasks.enterTrueFalseQuestion')}
+          required
         />
       </div>
-      <div className="form-group">
-        <label>Correct Answer *</label>
-        <select
-          value={task.tf_answer}
-          onChange={(e) => handleTaskChange(index, 'tf_answer', e.target.value === 'true')}
-          className="course-form-select"
-        >
-          <option value="true">True</option>
-          <option value="false">False</option>
-        </select>
+      <div className="tf-radio-group">
+        <label className="tf-radio-option">
+          <input
+            type="radio"
+            name={`tf-${index}`}
+            checked={task.tf_answer === true}
+            onChange={() => handleTaskChange(index, 'tf_answer', true)}
+          />
+          {t('admin.tasks.true')}
+        </label>
+        <label className="tf-radio-option">
+          <input
+            type="radio"
+            name={`tf-${index}`}
+            checked={task.tf_answer === false}
+            onChange={() => handleTaskChange(index, 'tf_answer', false)}
+          />
+          {t('admin.tasks.false')}
+        </label>
       </div>
     </div>
   );
@@ -809,149 +722,123 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const renderCodingFields = (task, index) => (
     <div className="task-type-fields coding-fields">
       <div className="form-group">
-        <label>Programming Language *</label>
+        <label>{t('admin.tasks.codingQuestion')} *</label>
+        <input
+          type="text"
+          value={task.coding_question}
+          onChange={(e) => handleTaskChange(index, 'coding_question', e.target.value)}
+          placeholder={t('admin.tasks.enterCodingQuestion')}
+          required
+        />
+      </div>
+      <div className="form-group">
+        <label>{t('admin.tasks.programmingLanguage')} *</label>
         <select
           value={task.coding_language}
           onChange={(e) => handleTaskChange(index, 'coding_language', e.target.value)}
-          className="course-form-select"
+          required
         >
-          {languageOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+          {languageOptions.map(lang => (
+            <option key={lang.value} value={lang.value}>{lang.label}</option>
           ))}
         </select>
       </div>
       <div className="form-group">
-        <label>Coding Question *</label>
-        <textarea
-          value={task.coding_question}
-          onChange={(e) => handleTaskChange(index, 'coding_question', e.target.value)}
-          placeholder="Enter the coding problem..."
-          rows="4"
-          className="course-form-textarea"
-        />
-      </div>
-      <div className="form-group">
-        <label>Test Cases *</label>
-        <div className="test-cases-list">
-          {task.coding_test_cases.map((testCase, caseIdx) => (
-            <div className="test-case-card" key={caseIdx}>
-              <div className="test-case-header">
-                <h5>Test Case {caseIdx + 1}</h5>
-                <button
-                  type="button"
-                  onClick={() => removeTestCase(index, caseIdx)}
-                  className="remove-test-case-btn"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-              <div className="test-case-inputs">
-                <input
-                  type="text"
-                  value={testCase.input}
-                  onChange={(e) => handleTestCaseChange(index, caseIdx, 'input', e.target.value)}
-                  placeholder="Input"
-                  className="course-form-input"
-                />
-                <input
-                  type="text"
-                  value={testCase.output}
-                  onChange={(e) => handleTestCaseChange(index, caseIdx, 'output', e.target.value)}
-                  placeholder="Expected Output"
-                  className="course-form-input"
-                />
-                <input
-                  type="text"
-                  value={testCase.description}
-                  onChange={(e) => handleTestCaseChange(index, caseIdx, 'description', e.target.value)}
-                  placeholder="Description (optional)"
-                  className="course-form-input"
-                />
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => addTestCase(index)}
-            className="add-test-case-btn"
-          >
-            <FaPlus /> Add Test Case
-          </button>
-        </div>
-      </div>
-      <div className="form-group">
-        <label>Solution Code</label>
+        <label>{t('admin.tasks.codingSolution')} ({t('common.optional')})</label>
         <textarea
           value={task.coding_solution}
           onChange={(e) => handleTaskChange(index, 'coding_solution', e.target.value)}
-          placeholder="Enter the solution code..."
-          rows="6"
-          className="course-form-textarea"
+          placeholder={t('admin.tasks.enterCodingSolution')}
         />
+      </div>
+      <div className="coding-test-cases-list">
+        <label style={{fontWeight:600,marginBottom:'0.5rem'}}>{t('admin.tasks.testCases')}</label>
+        {task.coding_test_cases.map((tc, idx) => (
+          <div className="test-case-card" key={idx}>
+            <input
+              type="text"
+              value={tc.input}
+              onChange={(e) => handleTestCaseChange(index, idx, 'input', e.target.value)}
+              placeholder={t('admin.tasks.input')}
+              className="test-case-input"
+              required
+            />
+            <input
+              type="text"
+              value={tc.output}
+              onChange={(e) => handleTestCaseChange(index, idx, 'output', e.target.value)}
+              placeholder={t('admin.tasks.output')}
+              className="test-case-input"
+              required
+            />
+            <input
+              type="text"
+              value={tc.description}
+              onChange={(e) => handleTestCaseChange(index, idx, 'description', e.target.value)}
+              placeholder={t('admin.tasks.testCaseDescription')}
+              className="test-case-input"
+            />
+            {task.coding_test_cases.length > 1 && (
+              <button
+                type="button"
+                className="remove-btn"
+                onClick={() => removeTestCase(index, idx)}
+                title={t('admin.tasks.removeTestCase')}
+              >
+                <FaTrash />
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          className="add-test-case-btn"
+          onClick={() => addTestCase(index)}
+        >
+          <FaPlus /> {t('admin.tasks.addTestCase')}
+        </button>
       </div>
     </div>
   );
 
-  // Real-time course validation - only checks video ID
   const validateCourseInRealTime = async (videoId) => {
-    if (!videoId) {
+    if (!videoId || videoId.length !== 11) {
       setVideoValidation({
         isValid: false,
         isChecking: false,
-        error: null,
+        error: 'Invalid video ID format',
         isDuplicate: false,
         duplicateCourse: null
       });
       return;
     }
 
-    setVideoValidation(prev => ({ ...prev, isChecking: true, error: null, isDuplicate: false }));
+    setVideoValidation({
+      isValid: false,
+      isChecking: true,
+      error: null,
+      isDuplicate: false,
+      duplicateCourse: null
+    });
 
     try {
-      // Validate video ID format first
-      if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-        setVideoValidation({
-          isValid: false,
-          isChecking: false,
-          error: 'Please enter a valid YouTube video ID (11 characters)',
-          isDuplicate: false,
-          duplicateCourse: null
-        });
-        return;
-      }
-
-      // Check for duplicate video ID (regardless of other fields)
-      const duplicate = existingCourses.find(c =>
-        c.video_id === videoId &&
-        (!editingCourse || c.id !== editingCourse.id)
+      // Check if video ID already exists in another course
+      const duplicateCourse = existingCourses.find(course => 
+        course.video_id === videoId && course.id !== editingCourse?.id
       );
 
-      if (duplicate) {
+      if (duplicateCourse) {
         setVideoValidation({
           isValid: false,
           isChecking: false,
           error: null,
           isDuplicate: true,
-          duplicateCourse: duplicate
+          duplicateCourse: duplicateCourse
         });
         return;
       }
 
-      // Check if video exists and is accessible
-      const response = await fetch(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
-      if (!response.ok) {
-        setVideoValidation({
-          isValid: false,
-          isChecking: false,
-          error: 'Video not found or not accessible',
-          isDuplicate: false,
-          duplicateCourse: null
-        });
-        return;
-      }
-
+      // Here you could add YouTube API validation if needed
       setVideoValidation({
         isValid: true,
         isChecking: false,
@@ -959,7 +846,6 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
         isDuplicate: false,
         duplicateCourse: null
       });
-
     } catch (error) {
       setVideoValidation({
         isValid: false,
@@ -971,28 +857,13 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     }
   };
 
-  // Debounced validation - only triggers when video_id changes
-  useEffect(() => {
-    let isMounted = true;
-    
-    const timeoutId = setTimeout(() => {
-      if (video_id && isMounted) {
-        validateCourseInRealTime(video_id);
-      }
-    }, 300); // Reduced delay for faster response
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-    };
-  }, [video_id]); // Only depend on video_id
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       className="course-form-overlay"
+      dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
     >
       <motion.div
         initial={{ y: 50, opacity: 0 }}
@@ -1003,7 +874,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
         <div className="course-form-header">
           <h2 className="course-form-title">
             <FaPlus className="course-form-icon" />
-            {editingCourse ? 'Edit Course' : 'Add New Course'}
+            {editingCourse ? t('admin.courses.editCourse') : t('admin.courses.addCourse')}
           </h2>
           <button
             className="course-form-close-btn"
@@ -1029,7 +900,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
 
           <div className="course-form-group">
             <label className="course-form-label">
-              Course Name *
+              {t('admin.courses.courseName')} *
             </label>
             <input
               type="text"
@@ -1040,7 +911,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 validateField('name', e.target.value);
               }}
               className={`course-form-input ${fieldErrors.name ? 'error' : ''}`}
-              placeholder="Enter course name"
+              placeholder={t('common.enterCourseName')}
               ref={nameRef}
             />
             {fieldErrors.name && <ErrorMessage message={fieldErrors.name} />}
@@ -1048,7 +919,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
 
           <div className="course-form-group">
             <label className="course-form-label">
-              Description *
+              {t('admin.courses.description')} *
             </label>
             <textarea
               name="description"
@@ -1058,7 +929,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 validateField('description', e.target.value);
               }}
               className={`course-form-textarea ${fieldErrors.description ? 'error' : ''}`}
-              placeholder="Enter course description"
+              placeholder={t('common.enterCourseDescription')}
               rows="4"
               ref={descriptionRef}
             />
@@ -1068,7 +939,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
           <div className="course-form-row">
             <div className="course-form-group">
               <label className="course-form-label">
-                Year *
+                {t('admin.courses.year')} *
               </label>
               <select
                 name="year"
@@ -1080,18 +951,18 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 className={`course-form-select ${fieldErrors.year ? 'error' : ''}`}
                 ref={yearRef}
               >
-                <option value="">Select Year</option>
-                <option value="1">Year 1</option>
-                <option value="2">Year 2</option>
-                <option value="3">Year 3</option>
-                <option value="4">Year 4</option>
+                <option value="">{t('common.selectYear')}</option>
+                <option value="1">{t('common.year1')}</option>
+                <option value="2">{t('common.year2')}</option>
+                <option value="3">{t('common.year3')}</option>
+                <option value="4">{t('common.year4')}</option>
               </select>
               {fieldErrors.year && <ErrorMessage message={fieldErrors.year} />}
             </div>
 
             <div className="course-form-group">
               <label className="course-form-label">
-                Semester *
+                {t('admin.courses.semester')} *
               </label>
               <select
                 name="semester"
@@ -1103,16 +974,16 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 className={`course-form-select ${fieldErrors.semester ? 'error' : ''}`}
                 ref={semesterRef}
               >
-                <option value="">Select Semester</option>
-                <option value="1">Semester 1</option>
-                <option value="2">Semester 2</option>
+                <option value="">{t('common.selectSemester')}</option>
+                <option value="1">{t('common.semester1')}</option>
+                <option value="2">{t('common.semester2')}</option>
               </select>
               {fieldErrors.semester && <ErrorMessage message={fieldErrors.semester} />}
             </div>
 
             <div className="course-form-group">
               <label className="course-form-label">
-                Course Type *
+                {t('admin.courses.courseType')} *
               </label>
               <select
                 name="paid"
@@ -1120,8 +991,8 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 onChange={e => setPaid(e.target.value === 'paid')}
                 className="course-form-select"
               >
-                <option value="free">Free</option>
-                <option value="paid">Paid</option>
+                <option value="free">{t('common.free')}</option>
+                <option value="paid">{t('common.paid')}</option>
               </select>
             </div>
           </div>
@@ -1129,7 +1000,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
           <div className="course-form-group">
             <label className="course-form-label">
               <FaYoutube className="course-form-label-icon" />
-              YouTube Video URL or ID *
+              {t('common.youtubeVideoUrlOrId')} *
             </label>
             <input
               type="text"
@@ -1139,7 +1010,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
               className={`course-form-input ${fieldErrors.video_id ? 'error' : ''} ${
                 videoValidation.isValid ? 'valid' : videoValidation.error ? 'error' : ''
               }`}
-              placeholder="Enter YouTube URL or video ID"
+              placeholder={t('common.enterYouTubeUrlOrId')}
               ref={videoIdRef}
             />
             {fieldErrors.video_id && <ErrorMessage message={fieldErrors.video_id} />}
@@ -1148,7 +1019,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
             {videoValidation.isChecking && (
               <div className="course-form-validation-loading">
                 <FaSpinner className="spinning" />
-                <span>Validating video...</span>
+                <span>{t('common.validatingVideo')}</span>
               </div>
             )}
             
@@ -1163,8 +1034,11 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
               <div className="course-form-validation-error">
                 <FaExclamationTriangle className="error-icon" />
                 <span>
-                  Video ID already exists in course: "{videoValidation.duplicateCourse.name}" 
-                  (Year {videoValidation.duplicateCourse.year}, Semester {videoValidation.duplicateCourse.semester})
+                  {t('common.videoIdAlreadyExists', { 
+                    courseName: videoValidation.duplicateCourse.name,
+                    year: videoValidation.duplicateCourse.year,
+                    semester: videoValidation.duplicateCourse.semester
+                  })}
                 </span>
               </div>
             )}
@@ -1172,7 +1046,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
             {!videoValidation.isChecking && !videoValidation.error && !videoValidation.isDuplicate && videoValidation.isValid && (
               <div className="course-form-validation-success">
                 <FaCheck className="success-icon" />
-                <span>Video validation successful!</span>
+                <span>{t('common.videoValidationSuccessful')}</span>
               </div>
             )}
             
@@ -1183,14 +1057,14 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                   alt="Video thumbnail"
                   className="course-form-thumbnail"
                 />
-                <span className="course-form-video-id">Video ID: {video_id}</span>
+                <span className="course-form-video-id">{t('common.videoId')}: {video_id}</span>
               </div>
             )}
           </div>
 
           <div className="course-form-group">
             <label className="course-form-label">
-              Video Duration (hh:mm:ss) *
+              {t('common.videoDuration')} *
             </label>
             <div className="course-form-duration-container">
             <input
@@ -1203,18 +1077,18 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                   validateField('videoDuration', e.target.value);
                 }}
                 className={`course-form-input ${fieldErrors.videoDuration ? 'error' : ''}`}
-              placeholder="e.g., 00:10:00 for 10 minutes"
+              placeholder={t('common.enterDuration')}
               ref={videoDurationRef}
             />
               {fetchingDuration && (
                 <div className="course-form-duration-loading">
                   <FaSpinner className="spinning" />
-                  <span>Fetching duration...</span>
+                  <span>{t('common.fetchingDuration')}</span>
                 </div>
               )}
               {video_id && !fetchingDuration && !fieldErrors.video_id && (
                 <div className="course-form-duration-info">
-                  <span>{durationAutoFetched ? 'Duration auto-fetched from YouTube' : 'Duration will be auto-fetched'}</span>
+                  <span>{durationAutoFetched ? t('common.durationAutoFetched') : t('common.durationWillBeAutoFetched')}</span>
                 </div>
               )}
             </div>
@@ -1226,7 +1100,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
             <div className="course-form-tasks-header">
               <h3 className="course-form-tasks-title">
                 <FaTasks className="course-form-tasks-icon" />
-                Course Tasks
+                {t('common.courseTasks')}
               </h3>
               <motion.button
                 type="button"
@@ -1236,7 +1110,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 whileTap={{ scale: 0.95 }}
               >
                 <FaPlus />
-                Add Task
+                {t('common.addTask')}
               </motion.button>
             </div>
 
@@ -1262,7 +1136,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                 >
             {tasks.length === 0 ? (
               <div className="course-form-no-tasks">
-                <p>No tasks added yet. Click "Add Task" to create your first task.</p>
+                <p>{t('common.noTasksAddedYet')}</p>
               </div>
             ) : (
               <div className="course-form-tasks-list">
@@ -1271,105 +1145,99 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                    className="course-form-task-item"
+                    exit={{ opacity: 0, y: -20 }}
+                    className="multi-task-card"
                   >
-                    <div className="course-form-task-header">
-                            <div className="task-header-left">
-                      <h4>Task {index + 1}</h4>
-                              {getTaskTypeIcon(task.type)}
-                            </div>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
+                      <span style={{fontWeight:700,fontSize:'1.1rem',color:'#b8860b'}}>{t('common.task')} {index + 1}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveTask(index)}
-                        className="course-form-remove-task-btn"
+                        className="remove-btn"
+                        title={t('admin.tasks.removeTask')}
                       >
                         <FaTrash />
                       </button>
                     </div>
 
-                    <div className="course-form-task-fields">
-                      <div className="course-form-task-row">
-                        <div className="course-form-task-group">
-                                <label>Task Title *</label>
-                            <input
-                              type="text"
-                                  value={task.title}
-                                  onChange={(e) => handleTaskChange(index, 'title', e.target.value)}
-                                  placeholder="Enter task title..."
-                                  className="course-form-input"
-                                />
-                        </div>
+                    <div className="form-group">
+                      <label>{t('common.taskTitle')} *</label>
+                      <input
+                        type="text"
+                        value={task.title}
+                        onChange={(e) => handleTaskChange(index, 'title', e.target.value)}
+                        placeholder={t('common.enterTaskTitle')}
+                        className="course-form-input"
+                      />
+                    </div>
 
-                        <div className="course-form-task-group">
-                                <label>Task Type *</label>
-                          <select
-                            value={task.type}
-                            onChange={(e) => handleTaskChange(index, 'type', e.target.value)}
-                            className="course-form-select"
-                          >
-                            <option value="mcq">Multiple Choice</option>
-                                  <option value="true_false">True/False</option>
-                            <option value="CODE">Coding</option>
-                          </select>
-                        </div>
-                      </div>
+                    <div className="form-group">
+                      <label>{t('common.taskType')} *</label>
+                      <select
+                        value={task.type}
+                        onChange={(e) => handleTaskChange(index, 'type', e.target.value)}
+                        className="course-form-select"
+                      >
+                        <option value="mcq">{t('common.multipleChoice')}</option>
+                        <option value="true_false">{t('common.trueFalse')}</option>
+                        <option value="CODE">{t('common.coding')}</option>
+                      </select>
+                    </div>
 
-                      <div className="course-form-task-group">
-                              <label>Task Description</label>
-                        <textarea
-                                value={task.description}
-                                onChange={(e) => handleTaskChange(index, 'description', e.target.value)}
-                                placeholder="Enter task description..."
-                                rows="2"
-                          className="course-form-textarea"
+                    <div className="form-group">
+                      <label>{t('common.taskDescription')}</label>
+                      <textarea
+                        value={task.description}
+                        onChange={(e) => handleTaskChange(index, 'description', e.target.value)}
+                        placeholder={t('common.enterTaskDescription')}
+                        rows="2"
+                        className="course-form-textarea"
+                      />
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>{t('common.timestamp')} {t('common.timestampFormat')}</label>
+                        <TimestampInput
+                          value={task.timestamp}
+                          onChange={(value) => handleTaskChange(index, 'timestamp', value)}
                         />
                       </div>
 
-                            <div className="course-form-task-row">
-                        <div className="course-form-task-group">
-                                <label>Timestamp (hh:mm:ss)</label>
-                                <TimestampInput
-                                  value={task.timestamp}
-                                  onChange={(value) => handleTaskChange(index, 'timestamp', value)}
-                          />
-                        </div>
-
-                        <div className="course-form-task-group">
-                                <label>Points</label>
-                            <input
-                                  type="number"
-                                  value={task.points}
-                                  onChange={(e) => handleTaskChange(index, 'points', Number(e.target.value))}
-                                  min="1"
-                              className="course-form-input"
-                            />
-                        </div>
-                            </div>
-
-                            {/* Task Type Specific Fields */}
-                            {task.type === 'mcq' && renderMCQFields(task, index)}
-                            {task.type === 'true_false' && renderTrueFalseFields(task, index)}
-                            {task.type === 'CODE' && renderCodingFields(task, index)}
+                      <div className="form-group">
+                        <label>{t('common.points')}</label>
+                        <input
+                          type="number"
+                          value={task.points}
+                          onChange={(e) => handleTaskChange(index, 'points', Number(e.target.value))}
+                          min="1"
+                          className="course-form-input"
+                        />
+                      </div>
                     </div>
+
+                    {/* Task Type Specific Fields */}
+                    {task.type === 'mcq' && renderMCQFields(task, index)}
+                    {task.type === 'true_false' && renderTrueFalseFields(task, index)}
+                    {task.type === 'CODE' && renderCodingFields(task, index)}
                   </motion.div>
                 ))}
 
-                      {/* Add Another Task Button - positioned after all tasks */}
-            <motion.button
-              type="button"
-                        onClick={handleAddTask}
-                        className="course-form-add-another-task-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-                        <FaPlus />
-                        Add Another Task
-            </motion.button>
-                    </div>
-                  )}
-                </motion.div>
-              )}
+                {/* Add Another Task Button - positioned after all tasks */}
+                <motion.button
+                  type="button"
+                  onClick={handleAddTask}
+                  className="multi-task-btn"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <FaPlus />
+                  {t('admin.tasks.addAnotherTask')}
+                </motion.button>
+              </div>
+            )}
+                  </motion.div>
+                )}
             </AnimatePresence>
           </div>
 
@@ -1384,17 +1252,17 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
               {loading ? (
                 <>
                   <FaSpinner className="spinning" />
-                  {editingCourse ? 'Updating...' : 'Creating...'}
+                  {editingCourse ? t('common.updating') : t('common.creating')}
                 </>
               ) : videoValidation.isChecking ? (
                 <>
                   <FaSpinner className="spinning" />
-                  Validating...
+                  {t('common.validating')}
                 </>
               ) : (
                 <>
                   <FaSave />
-                  {editingCourse ? 'Update Course' : 'Create Course'}
+                  {editingCourse ? t('common.updateCourse') : t('common.createCourse')}
                 </>
               )}
             </motion.button>
@@ -1405,7 +1273,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
               disabled={loading || videoValidation.isChecking}
             >
               <FaTimes />
-              Cancel
+              {t('common.cancel')}
             </button>
           </div>
         </form>
