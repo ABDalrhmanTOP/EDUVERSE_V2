@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
 import "../styles/Playlist.css";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe("pk_test_51Re9HPC6InkpE6BbDySFemIfUDICccZwwtm12tvgrAFLhTDkbSM3De6Uy8t3wcuEglqsFHtbrlByLyX2XFDJIXOz00WbzyaYqO");
 
 const Playlists = ({ currentTaskIndex, tasks }) => {
     const [playlists, setPlaylists] = useState([]);

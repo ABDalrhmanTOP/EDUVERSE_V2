@@ -22,6 +22,8 @@ import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
 import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
+import SubscriptionHistory from "./pages/SubscriptionHistory";
+import SubscriptionPlans from "./pages/SubscriptionPlans";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -147,6 +149,24 @@ const App = () => {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subscription-history"
+          element={
+            <ProtectedRoute>
+              <SubscriptionHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subscription-plans"
+          element={
+            <ProtectedRoute>
+              <SubscriptionPlans />
             </ProtectedRoute>
           }
         />

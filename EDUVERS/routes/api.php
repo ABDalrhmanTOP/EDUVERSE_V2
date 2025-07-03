@@ -19,8 +19,9 @@ use App\Http\Controllers\TaskPlaylistVideoController;
 use App\Http\Controllers\EduBotController;
 use App\Http\Controllers\PlacementTestController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\StripeController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -129,6 +130,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/settings', [NotificationController::class, 'settings']);
     Route::put('/notifications/settings', [NotificationController::class, 'updateSettings']);
 
+    // Stripe Payment Routes
+    Route::post('/create-payment-intent', [StripeController::class, 'createPaymentIntent']);
+    Route::post('/update-subscription', [StripeController::class, 'updateSubscription']);
+    Route::get('/subscription-history', [StripeController::class, 'getSubscriptionHistory']);
+    Route::get('/current-subscription', [StripeController::class, 'getCurrentSubscription']);
+    Route::post('/cancel-subscription/{subscriptionId}', [StripeController::class, 'cancelSubscription']);
+    Route::post('/checkout', [StripeController::class, 'checkout']);
+
+    // كورسات الاشتراكات النشطة وحذف اشتراك كورس
+    Route::get('/subscriptions/active-courses', [StripeController::class, 'activeCourses']);
+    Route::delete('/subscriptions/remove/{playlistId}', [StripeController::class, 'removeCourseSubscription']);
+
     // Return all course progress for the authenticated user
     Route::get('/user-progress/all', [UserProgressController::class, 'getAllCourseProgress']);
 });
@@ -188,6 +201,10 @@ Route::post('/evaluate-code', [TaskController::class, 'evaluateCode']);
 Route::post('/send-verification-code', [EmailVerificationController::class, 'sendVerificationCode']);
 Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);
 
+// Stripe Webhook (Public route - no authentication required)
+Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
+
+
 /*
 |--------------------------------------------------------------------------
 | Fallback
@@ -196,3 +213,4 @@ Route::post('/verify-code', [EmailVerificationController::class, 'verifyCode']);
 Route::fallback(function () {
     return response()->json(['error' => 'API endpoint not found'], 404);
 });
+

@@ -45,7 +45,7 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
   color: #FFFFFF; /* White text on image */
   /* Computer science related background with similar colors */
-  background: url('D:\Junior\assets\Untitled design.png') no-repeat center center/cover;
+  /* background: url('D:\Junior\assets\Untitled design.png') no-repeat center center/cover; */
   overflow: hidden;
 }
 
@@ -86,6 +86,13 @@ h1, h2, h3, h4, h5, h6 {
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+.hero-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .hero-cta-button {
   background-color: #C89F9C; /* Dusty Rose/Terracotta */
   color: #4A3F3F; /* Dark Brown */
@@ -100,6 +107,26 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-subscribe-button {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  padding: 15px 40px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Lato', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(99, 102, 241, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
 }
 /* Hover state is handled by framer-motion `whileHover` */
 
@@ -477,7 +504,17 @@ h1, h2, h3, h4, h5, h6 {
       padding: 12px 14px;
     }
     
+    .hero-buttons {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
     .hero-cta-button {
+      padding: 12px 30px;
+      font-size: 1rem;
+    }
+    
+    .hero-subscribe-button {
       padding: 12px 30px;
       font-size: 1rem;
     }
