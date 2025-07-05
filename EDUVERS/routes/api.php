@@ -15,6 +15,7 @@ use App\Http\Controllers\UserDetailController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserRatingController;
 use App\Http\Controllers\FinalProjectController;
+use App\Http\Controllers\FinalTestSubmissionController;
 use App\Http\Controllers\TaskPlaylistVideoController;
 use App\Http\Controllers\EduBotController;
 use App\Http\Controllers\PlacementTestController;
@@ -36,6 +37,10 @@ Route::get('/playlists', [PlaylistController::class, 'index']);
 
 // For showing a single playlist by ID:
 Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
+
+// Public routes for final tests
+Route::get('/final-tests/check/{courseId}', [FinalTestSubmissionController::class, 'checkFinalTest']);
+Route::get('/final-tests/{courseId}/data', [FinalTestSubmissionController::class, 'getFinalTestData']);
 
 // YouTube video duration route (public, no auth required)
 Route::get('/youtube/video-duration/{videoId}', [CourseController::class, 'getVideoDuration']);
@@ -63,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user-progress', [UserProgressController::class, 'saveProgress']);
     Route::get('/user-progress', [UserProgressController::class, 'getProgress']);
     Route::post('/user-progress/tasks', [UserProgressController::class, 'completeTask']);
+    Route::get('/user-progress/tasks', [UserProgressController::class, 'getCompletedTasks']);
     Route::post('/user-progress/completeUpToTimestamp', [UserProgressController::class, 'completeUpToTimestamp']);
     Route::get('/user-progress/course-progress/{userId}', [UserProgressController::class, 'getCourseProgress']);
     Route::post('/user-progress/update', [UserProgressController::class, 'updateProgress']);
@@ -84,7 +90,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/final-project', [FinalProjectController::class, 'submitFinalProject']);
     Route::post('/user-feedback', [UserRatingController::class, 'store']);
 
+    // Final Test Submission
+    Route::post('/final-test/submit', [FinalTestSubmissionController::class, 'submitFinalTest']);
+
     // Placement Test
+    Route::post('/placement-test/check-completion', [PlacementTestController::class, 'checkCompletion']);
     Route::post('/placement-test/start', [PlacementTestController::class, 'start']);
     Route::post('/placement-test/submit', [PlacementTestController::class, 'submit']);
 
@@ -99,11 +109,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks', [TaskController::class, 'index']);
     Route::get('/tasks/{id}', [TaskController::class, 'show']);
     Route::post('/tasks/{id}/submit', [TaskController::class, 'submit']);
-
-    // User progress routes
-    Route::get('/user-progress', [UserProgressController::class, 'index']);
-    Route::post('/user-progress', [UserProgressController::class, 'store']);
-    Route::put('/user-progress/{id}', [UserProgressController::class, 'update']);
 
     // User rating routes
     Route::get('/user-ratings', [UserRatingController::class, 'index']);
@@ -132,6 +137,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Return all course progress for the authenticated user
     Route::get('/user-progress/all', [UserProgressController::class, 'getAllCourseProgress']);
 });
+
+Route::middleware('auth:sanctum')->post('/update-user-profile-for-test', [UserController::class, 'updateProfileForTest']);
 
 /*
 |--------------------------------------------------------------------------
@@ -176,6 +183,12 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
 
     // Admin Notification routes
     Route::get('/admin/notifications', [NotificationController::class, 'adminIndex']);
+
+    // Placement & Final Test Management
+    Route::apiResource('/admin/placement-tests', App\Http\Controllers\Admin\PlacementTestController::class);
+    Route::apiResource('/admin/placement-test-questions', App\Http\Controllers\Admin\PlacementTestQuestionController::class);
+    Route::apiResource('/admin/final-tests', App\Http\Controllers\Admin\FinalTestController::class);
+    Route::apiResource('/admin/final-test-questions', App\Http\Controllers\Admin\FinalTestQuestionController::class);
 });
 
 /*

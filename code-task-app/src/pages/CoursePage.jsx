@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import YouTubeEmbed from "../components/YouTubeEmbed";
-import Playlists from "../components/Playlists";
 import "../App.css";
 
 const CoursePage = () => {
@@ -12,8 +11,8 @@ const CoursePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tasks, setTasks] = useState([]);
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [completedTasks, setCompletedTasks] = useState([]);
+  const [lastTimestamp, setLastTimestamp] = useState("00:00:00");
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -36,6 +35,49 @@ const CoursePage = () => {
         );
         setTasks(sortedTasks);
         
+        // Load user progress (both video progress and completed tasks)
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          const headers = { Authorization: `Bearer ${token}` };
+          
+          try {
+            // Load video progress
+            console.log('Loading progress for course:', courseId, 'video:', courseData.video_id);
+            const progressResponse = await axios.get(
+              `/user-progress?playlist_id=${courseId}&video_id=${courseData.video_id}`, 
+              { headers }
+            );
+            
+            if (progressResponse.data && progressResponse.data.data) {
+              const progress = progressResponse.data.data;
+              console.log('Loaded progress:', progress);
+              if (progress.last_timestamp) {
+                setLastTimestamp(progress.last_timestamp);
+              }
+              if (progress.completed_tasks && Array.isArray(progress.completed_tasks)) {
+                setCompletedTasks(progress.completed_tasks.map(String));
+              }
+            }
+          } catch (progressError) {
+            console.error("Error loading progress:", progressError);
+            // If progress loading fails, try loading just completed tasks
+            try {
+              console.log('Trying to load completed tasks only...');
+              const tasksResponse = await axios.get(
+                `/user-progress/tasks?playlist_id=${courseId}&video_id=${courseData.video_id}`, 
+                { headers }
+              );
+              
+              if (tasksResponse.data && tasksResponse.data.completed_tasks) {
+                console.log('Loaded completed tasks:', tasksResponse.data.completed_tasks);
+                setCompletedTasks(tasksResponse.data.completed_tasks.map(String));
+              }
+            } catch (tasksError) {
+              console.error("Error loading completed tasks:", tasksError);
+            }
+          }
+        }
+        
       } catch (err) {
         console.error("Error fetching course data:", err);
         setError("Failed to load course. Please try again.");
@@ -49,8 +91,40 @@ const CoursePage = () => {
     }
   }, [courseId]);
 
-  const handleTaskComplete = (taskId) => {
-    setCompletedTasks(prev => [...prev, taskId]);
+  const handleTaskComplete = async (taskId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      console.log('Saving completed task:', taskId, 'for course:', courseId);
+      
+      // Save completed task to backend
+      await axios.post(
+        "/user-progress/tasks",
+        {
+          task_id: taskId,
+          playlist_id: courseId,
+          video_id: course.video_id,
+        },
+        { headers }
+      );
+      
+      console.log('Task saved successfully');
+      
+      // Update local state
+      setCompletedTasks(prev => {
+        const taskIdStr = String(taskId);
+        if (!prev.includes(taskIdStr)) {
+          console.log('Updating completed tasks:', [...prev, taskIdStr]);
+          return [...prev, taskIdStr];
+        }
+        return prev;
+      });
+    } catch (error) {
+      console.error("Failed to save completed task:", error);
+    }
   };
 
   if (loading) {
@@ -111,12 +185,10 @@ const CoursePage = () => {
         videoId={course.video_id} 
         playlistId={course.id} 
         tasks={tasks}
+        completedTasks={completedTasks}
         onTaskComplete={handleTaskComplete}
+        initialTimestamp={lastTimestamp}
       />
-      {/* Optionally, you can include the Playlists sidebar if needed */}
-      <div style={{ marginTop: "20px" }}>
-        <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
-      </div>
     </div>
   );
 };

@@ -267,8 +267,24 @@ const HomeVideo = () => {
         navigate("/login");
       } else {
         if (course.id) {
-          // Always redirect to PlacementTest page for now
-          navigate(`/placement-test/${course.id}`);
+          try {
+            // Check if user has already completed placement test for this course
+            const response = await axios.post('/placement-test/check-completion', {
+              course_id: course.id
+            });
+            
+            if (response.data.completed) {
+              // User has already completed placement test, go directly to course
+              navigate(`/course/${course.id}`);
+            } else {
+              // User hasn't completed placement test, go to placement test
+              navigate(`/placement-test/${course.id}`);
+            }
+          } catch (error) {
+            console.error('Error checking placement test completion:', error);
+            // Fallback: go to placement test
+            navigate(`/placement-test/${course.id}`);
+          }
         } else {
           setError("Could not navigate to the course (missing ID).");
         }

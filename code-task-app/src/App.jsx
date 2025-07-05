@@ -20,6 +20,7 @@ import CoursePage from "./pages/CoursePage";
 import Profile from "./pages/Profile";
 import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
+import FinalTest from "./components/FinalTest";
 import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
 
@@ -30,6 +31,7 @@ import UsersList from "./components/admin/UsersList";
 import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
 import TasksDashboard from "./components/admin/TasksDashboard";
+import TestsDashboard from './components/admin/TestsDashboard';
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -134,6 +136,15 @@ const App = () => {
         />
 
         <Route
+          path="/final-test/:courseId"
+          element={
+            <ProtectedRoute>
+              <FinalTest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/placement-test/:courseId"
           element={
             <ProtectedRoute>
@@ -170,6 +181,7 @@ const App = () => {
           <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
           <Route path="edubot" element={<div>EduBot Settings - Coming Soon</div>} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="tests" element={<TestsDashboard />} />
         </Route>
 
         {/* Catch-all */}

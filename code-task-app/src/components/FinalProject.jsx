@@ -3,7 +3,9 @@ import React, { useState } from "react";
 import axios from "../api/axios";
 import MonacoEditor from "@monaco-editor/react";
 import "../styles/FinalProject.css";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaCode, FaCheckCircle, FaListUl, FaTrophy, FaSpinner, FaTimesCircle, FaGraduationCap } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 /* Helper Functions */
 function getGradeColor(grade) {
@@ -69,8 +71,9 @@ const StarRating = ({ onRatingChange }) => {
   );
 };
 
-const FinalProject = () => {
-  const playlistId = 1; // For demonstration
+const FinalProject = ({ courseId, onComplete }) => {
+  const { t, i18n } = useTranslation();
+  
   // State for toggling between user's code and ideal code.
   const [showIdeal, setShowIdeal] = useState(false);
   // States for answers.
@@ -173,321 +176,411 @@ const FinalProject = () => {
     return answer === correct ? "1/1" : "0/1";
   };
 
-  // Submit final project.
+  // Submit final project - FIXED API STRUCTURE
   const handleSubmit = async () => {
     if (!validateSubmission()) return;
     setIsSubmitting(true);
+    setErrorMsg("");
+    
     try {
       const token = localStorage.getItem("authToken");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      // CORRECT API STRUCTURE FOR FINAL PROJECT
+      const submissionData = {
+        code_solution: codeSolution,
+        mcq_answers: mcqAnswers,
+        tf_answers: tfAnswers,
+        playlist_id: courseId || 1,
+        video_id: "8jLOx1hD3_o" // Replace with actual video id if needed
+      };
+      
+      console.log('Submitting final project with data:', submissionData);
+      
       const response = await axios.post(
         "/final-project",
-        {
-          code_solution: codeSolution,
-          mcq_answers: mcqAnswers,
-          tf_answers: tfAnswers,
-          playlist_id: playlistId,
-          video_id: "8jLOx1hD3_o" // Replace with actual video id if needed
-        },
+        submissionData,
         { headers }
       );
+      
       if (response.data.status === "success") {
         setResult(response.data.data);
-        setShowCertificateModal(true); // Automatically show the modal
+        setShowCertificateModal(true);
         if (response.data.data.user_progress_id) {
           setUserProgressId(response.data.data.user_progress_id);
         }
       } else {
-        setResult({ error: response.data.message });
+        setErrorMsg(response.data.message || "Submission failed.");
       }
-    } catch (error) {
-      setResult({ error: "Submission failed. Please try again." });
+    } catch (err) {
+      console.error('API Error Response:', err.response?.data);
+      if (err.response?.status === 422) {
+        setErrorMsg('Validation error: ' + (err.response.data.message || 'Please check your answers.'));
+      } else {
+        setErrorMsg("Submission failed. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
-  // Handle rating changes.
+  // Handle rating changes
   const handleRatingChange = (val) => {
     setUserRating(val);
     setFeedbackSubmitted(false);
   };
 
-  // Submit feedback.
+  // Submit feedback
   const handleFeedbackSubmit = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
       await axios.post(
         "/user-feedback",
         {
-          user_progress_id: userProgressId,
+          user_progress_id: result?.user_progress_id,
           rating: userRating,
           feedback: feedbackNote,
         },
         { headers }
       );
+      
       setFeedbackSubmitted(true);
     } catch (error) {
+      console.error('Feedback submission error:', error.response?.data);
       alert("Error submitting feedback. Please try again later.");
     }
   };
 
-  // Return to courses.
+  // Return to courses
   const returnToCourses = () => {
-    window.location.href = "/homevideo";
+    if (onComplete) {
+      onComplete();
+    } else {
+      window.location.href = "/homevideo";
+    }
   };
 
-  // Close certificate modal.
+  // Close certificate modal
   const closeCertificateModal = () => {
     setShowCertificateModal(false);
   };
 
   return (
     <div className="final-project-container">
-      {/* MCQ Section */}
-      <div className="final-project-section">
-        <h3 className="section-title">Multiple Choice Questions</h3>
-        {/* MCQ Q1 */}
-        <div className="mcq-question">
-          <p>
-            Q1: Which STL container is typically implemented as a red-black tree?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(mcqAnswers.q1, result?.correct_mcq?.q1)) }}
-              >
-                {getQuestionMark(mcqAnswers.q1, result?.correct_mcq?.q1)}
-              </span>
-            )}
-          </p>
-          <div className="mcq-options">
-            {mcqOptionsQ1.map((opt) => (
-              <label key={opt.value} style={{ display: "block", marginBottom: 5 }}>
-                <input
-                  type="radio"
-                  name="mcq_q1"
-                  value={opt.value}
-                  disabled={!!result}
-                  onChange={(e) => handleMCQChange("q1", e.target.value)}
-                />{" "}
-                {opt.value}) {opt.label}
-              </label>
-            ))}
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(mcqAnswers.q1, result?.correct_mcq?.q1)}>
-                {mcqAnswers.q1 || "Not answered"}
-              </span>{" "}
-              | Correct: <span className="correct">{result?.correct_mcq?.q1 || "Not provided"}</span>
-            </p>
-          )}
+      {/* Project Header */}
+      <motion.div 
+        className="final-project-header"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="project-title">
+          <FaGraduationCap size={32} />
+          <h1>{i18n.language === 'ar' ? 'المشروع النهائي' : 'Final Project'}</h1>
         </div>
-        {/* MCQ Q2 */}
-        <div className="mcq-question">
-          <p>
-            Q2: Which container provides constant-time random access?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(mcqAnswers.q2, result?.correct_mcq?.q2)) }}
-              >
-                {getQuestionMark(mcqAnswers.q2, result?.correct_mcq?.q2)}
-              </span>
-            )}
-          </p>
-          <div className="mcq-options">
-            {mcqOptionsQ2.map((opt) => (
-              <label key={opt.value} style={{ display: "block", marginBottom: 5 }}>
-                <input
-                  type="radio"
-                  name="mcq_q2"
-                  value={opt.value}
-                  disabled={!!result}
-                  onChange={(e) => handleMCQChange("q2", e.target.value)}
-                />{" "}
-                {opt.value}) {opt.label}
-              </label>
-            ))}
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(mcqAnswers.q2, result?.correct_mcq?.q2)}>
-                {mcqAnswers.q2 || "Not answered"}
-              </span>{" "}
-              | Correct:{" "}
-              <span className="correct">{result?.correct_mcq?.q2 || "Not provided"}</span>
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* True/False Section */}
-      <div className="final-project-section">
-        <h3 className="section-title">True/False Questions</h3>
-        {/* TF Q1 */}
-        <div className="tf-question">
-          <p>
-            Q1: True or False: std::vector is dynamically resizable?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(tfAnswers.q1, result?.correct_tf?.q1)) }}
-              >
-                {getQuestionMark(tfAnswers.q1, result?.correct_tf?.q1)}
-              </span>
-            )}
-          </p>
-          <div className="tf-options" style={{ display: "flex", flexDirection: "column" }}>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q1"
-                value="true"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q1", e.target.value)}
-              />{" "}
-              True
-            </label>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q1"
-                value="false"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q1", e.target.value)}
-              />{" "}
-              False
-            </label>
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(tfAnswers.q1, result?.correct_tf?.q1)}>
-                {tfAnswers.q1 || "Not answered"}
-              </span>{" "}
-              | Correct: <span className="correct">{result?.correct_tf?.q1 || "Not provided"}</span>
-            </p>
-          )}
-        </div>
-        {/* TF Q2 */}
-        <div className="tf-question">
-          <p>
-            Q2: True or False: std::set allows duplicate elements?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(tfAnswers.q2, result?.correct_tf?.q2)) }}
-              >
-                {getQuestionMark(tfAnswers.q2, result?.correct_tf?.q2)}
-              </span>
-            )}
-          </p>
-          <div className="tf-options" style={{ display: "flex", flexDirection: "column" }}>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q2"
-                value="true"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q2", e.target.value)}
-              />{" "}
-              True
-            </label>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q2"
-                value="false"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q2", e.target.value)}
-              />{" "}
-              False
-            </label>
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(tfAnswers.q2, result?.correct_tf?.q2)}>
-                {tfAnswers.q2 || "Not answered"}
-              </span>{" "}
-              | Correct: <span className="correct">{result?.correct_tf?.q2 || "Not provided"}</span>
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Coding Task Section */}
-      <div className="final-project-section">
-        <h3 className="section-title">Coding Task</h3>
-        <p className="coding-prompt" style={{ whiteSpace: "pre-line" }}>
-          {codingPrompt}
+        <p className="project-description">
+          {i18n.language === 'ar' 
+            ? 'أكمل هذا المشروع لإتمام الدورة بنجاح' 
+            : 'Complete this project to successfully finish the course'}
         </p>
-        <div className="code-task-container dark-mode">
-          {result && (
-            <div className="toggle-ideal-btn-container">
-              <button className="submit-final-button" onClick={toggleIdealCode}>
-                {showIdeal ? "Show Your Code" : "Show Ideal Code"}
-              </button>
-            </div>
-          )}
-          <div className="editor-wrapper">
-            <MonacoEditor
-              width="100%"
-              height="100%"
-              language="cpp"
-              theme="custom-dark"
-              value={result && showIdeal ? result.correct_code : codeSolution}
-              onChange={setCodeSolution}
-              onMount={handleEditorMount}
-              options={{
-                fontSize: 15,
-                lineHeight: 24,
-                fontFamily: "Fira Code, monospace",
-                fontWeight: "500",
-                mouseWheelZoom: true,
-                scrollBeyondLastLine: false,
-                roundedSelection: true,
-                padding: { top: 20 },
-                contextmenu: true,
-                lineNumbers: "on",
-                folding: true,
-                renderLineHighlight: "all",
-                wordWrap: "on",
-                formatOnPaste: true,
-                minimap: { enabled: false },
-                automaticLayout: true,
-                bracketPairColorization: { enabled: true, independentColorPool: true },
-                semanticHighlighting: { enabled: true },
-                scrollbar: { vertical: "auto", horizontal: "auto", handleMouseWheel: true },
-                cursorBlinking: "smooth",
-                cursorSmoothCaretAnimation: "on",
-                cursorStyle: "line",
-                cursorWidth: 2,
-                fontLigatures: true,
-                readOnly: !!(result && showIdeal),
-              }}
-            />
+      </motion.div>
+
+      {/* MCQ Questions */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          className="final-project-section"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="question-header">
+            <span className="question-type-badge">
+              <FaListUl size={20} />
+            </span>
+            <h3 className="section-title">
+              {i18n.language === 'ar' ? 'أسئلة الاختيار المتعدد' : 'Multiple Choice Questions'}
+            </h3>
           </div>
-        </div>
-      </div>
+
+          {/* MCQ Question 1 */}
+          <div className="mcq-question">
+            <p className="question-text">
+              {i18n.language === 'ar' 
+                ? 'أي من هياكل البيانات التالية يوفر البحث الأسرع؟' 
+                : 'Which of the following data structures provides the fastest search?'}
+            </p>
+            <div className="mcq-options">
+              {mcqOptionsQ1.map((option) => (
+                <label key={option.value} className="mcq-option">
+                  <input
+                    type="radio"
+                    name="mcq_q1"
+                    value={option.value}
+                    checked={mcqAnswers.q1 === option.value}
+                    onChange={(e) => handleMCQChange("q1", e.target.value)}
+                    disabled={!!result}
+                  />
+                  <span className="option-text">{option.label}</span>
+                </label>
+              ))}
+            </div>
+            {result && (
+              <div className="answer-review">
+                <p>
+                  {i18n.language === 'ar' ? 'إجابتك:' : 'Your Answer:'}{" "}
+                  <span style={getAnswerStyle(mcqAnswers.q1, "C")}>
+                    {mcqAnswers.q1 || (i18n.language === 'ar' ? 'لم تجب' : 'Not answered')}
+                  </span>
+                </p>
+                <p>
+                  {i18n.language === 'ar' ? 'الإجابة الصحيحة:' : 'Correct Answer:'}{" "}
+                  <span className="correct-answer">C (std::map)</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* MCQ Question 2 */}
+          <div className="mcq-question">
+            <p className="question-text">
+              {i18n.language === 'ar' 
+                ? 'أي من الحاويات التالية يوفر إدراج وحذف سريع من البداية والنهاية؟' 
+                : 'Which of the following containers provides fast insertion and deletion from both ends?'}
+            </p>
+            <div className="mcq-options">
+              {mcqOptionsQ2.map((option) => (
+                <label key={option.value} className="mcq-option">
+                  <input
+                    type="radio"
+                    name="mcq_q2"
+                    value={option.value}
+                    checked={mcqAnswers.q2 === option.value}
+                    onChange={(e) => handleMCQChange("q2", e.target.value)}
+                    disabled={!!result}
+                  />
+                  <span className="option-text">{option.label}</span>
+                </label>
+              ))}
+            </div>
+            {result && (
+              <div className="answer-review">
+                <p>
+                  {i18n.language === 'ar' ? 'إجابتك:' : 'Your Answer:'}{" "}
+                  <span style={getAnswerStyle(mcqAnswers.q2, "B")}>
+                    {mcqAnswers.q2 || (i18n.language === 'ar' ? 'لم تجب' : 'Not answered')}
+                  </span>
+                </p>
+                <p>
+                  {i18n.language === 'ar' ? 'الإجابة الصحيحة:' : 'Correct Answer:'}{" "}
+                  <span className="correct-answer">B (std::deque)</span>
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* True/False Questions */}
+        <motion.div
+          className="final-project-section"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="question-header">
+            <span className="question-type-badge">
+              <FaCheckCircle size={20} />
+            </span>
+            <h3 className="section-title">
+              {i18n.language === 'ar' ? 'أسئلة صح/خطأ' : 'True/False Questions'}
+            </h3>
+          </div>
+
+          {/* TF Question 1 */}
+          <div className="tf-question">
+            <p className="question-text">
+              {i18n.language === 'ar' 
+                ? 'std::vector يوفر إدراج وحذف سريع من المنتصف.' 
+                : 'std::vector provides fast insertion and deletion from the middle.'}
+            </p>
+            <div className="tf-options">
+              <label className="tf-option">
+                <input
+                  type="radio"
+                  name="tf_q1"
+                  value="true"
+                  checked={tfAnswers.q1 === "true"}
+                  onChange={(e) => handleTFChange("q1", e.target.value)}
+                  disabled={!!result}
+                />
+                <span className="option-text">{i18n.language === 'ar' ? 'صح' : 'True'}</span>
+              </label>
+              <label className="tf-option">
+                <input
+                  type="radio"
+                  name="tf_q1"
+                  value="false"
+                  checked={tfAnswers.q1 === "false"}
+                  onChange={(e) => handleTFChange("q1", e.target.value)}
+                  disabled={!!result}
+                />
+                <span className="option-text">{i18n.language === 'ar' ? 'خطأ' : 'False'}</span>
+              </label>
+            </div>
+            {result && (
+              <div className="answer-review">
+                <p>
+                  {i18n.language === 'ar' ? 'إجابتك:' : 'Your Answer:'}{" "}
+                  <span style={getAnswerStyle(tfAnswers.q1, "false")}>
+                    {tfAnswers.q1 || (i18n.language === 'ar' ? 'لم تجب' : 'Not answered')}
+                  </span>
+                </p>
+                <p>
+                  {i18n.language === 'ar' ? 'الإجابة الصحيحة:' : 'Correct Answer:'}{" "}
+                  <span className="correct-answer">False</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* TF Question 2 */}
+          <div className="tf-question">
+            <p className="question-text">
+              {i18n.language === 'ar' 
+                ? 'std::map يحافظ على ترتيب العناصر حسب المفاتيح.' 
+                : 'std::map maintains the order of elements by keys.'}
+            </p>
+            <div className="tf-options">
+              <label className="tf-option">
+                <input
+                  type="radio"
+                  name="tf_q2"
+                  value="true"
+                  checked={tfAnswers.q2 === "true"}
+                  onChange={(e) => handleTFChange("q2", e.target.value)}
+                  disabled={!!result}
+                />
+                <span className="option-text">{i18n.language === 'ar' ? 'صح' : 'True'}</span>
+              </label>
+              <label className="tf-option">
+                <input
+                  type="radio"
+                  name="tf_q2"
+                  value="false"
+                  checked={tfAnswers.q2 === "false"}
+                  onChange={(e) => handleTFChange("q2", e.target.value)}
+                  disabled={!!result}
+                />
+                <span className="option-text">{i18n.language === 'ar' ? 'خطأ' : 'False'}</span>
+              </label>
+            </div>
+            {result && (
+              <div className="answer-review">
+                <p>
+                  {i18n.language === 'ar' ? 'إجابتك:' : 'Your Answer:'}{" "}
+                  <span style={getAnswerStyle(tfAnswers.q2, "true")}>
+                    {tfAnswers.q2 || (i18n.language === 'ar' ? 'لم تجب' : 'Not answered')}
+                  </span>
+                </p>
+                <p>
+                  {i18n.language === 'ar' ? 'الإجابة الصحيحة:' : 'Correct Answer:'}{" "}
+                  <span className="correct-answer">True</span>
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Coding Question */}
+        <motion.div
+          className="final-project-section"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <div className="question-header">
+            <span className="question-type-badge">
+              <FaCode size={20} />
+            </span>
+            <h3 className="section-title">
+              {i18n.language === 'ar' ? 'سؤال البرمجة' : 'Coding Question'}
+            </h3>
+          </div>
+
+          <div className="code-question">
+            <p className="question-text">{codingPrompt}</p>
+            <div className="code-task-container">
+              {result && (
+                <div className="toggle-ideal-btn-container">
+                  <button 
+                    className="toggle-ideal-btn" 
+                    onClick={toggleIdealCode}
+                  >
+                    {showIdeal 
+                      ? (i18n.language === 'ar' ? 'عرض كودك' : 'Show Your Code') 
+                      : (i18n.language === 'ar' ? 'عرض الكود المثالي' : 'Show Ideal Code')
+                    }
+                  </button>
+                </div>
+              )}
+              <div className="editor-wrapper">
+                <MonacoEditor
+                  width="100%"
+                  height="400px"
+                  language="cpp"
+                  theme="vs-dark"
+                  value={result && showIdeal ? result?.ideal_code || "// Ideal solution not provided" : codeSolution}
+                  onChange={(value) => setCodeSolution(value)}
+                  onMount={handleEditorMount}
+                  options={{
+                    fontSize: 14,
+                    lineHeight: 20,
+                    fontFamily: "Fira Code, monospace",
+                    readOnly: !!(result && showIdeal),
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Error Message */}
       {errorMsg && <p className="error-message">{errorMsg}</p>}
 
       {/* Submission Button */}
       {!result && (
-        <div className="final-project-section">
+        <motion.div 
+          className="final-project-section"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
           <button
             className="submit-final-button"
             disabled={isSubmitting}
             onClick={handleSubmit}
           >
-            {isSubmitting ? "Submitting..." : "Submit Capstone Project"}
+            {isSubmitting ? (
+              <>
+                <FaSpinner className="spinner" />
+                {i18n.language === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}
+              </>
+            ) : (
+              <>
+                <FaTrophy />
+                {i18n.language === 'ar' ? 'إرسال المشروع النهائي' : 'Submit Final Project'}
+              </>
+            )}
           </button>
-        </div>
+        </motion.div>
       )}
 
       {/* Show Result Button if modal is closed */}
@@ -497,7 +590,7 @@ const FinalProject = () => {
             className="submit-final-button"
             onClick={() => setShowCertificateModal(true)}
           >
-            Show Result
+            {i18n.language === 'ar' ? 'عرض النتيجة' : 'Show Result'}
           </button>
         </div>
       )}
@@ -505,37 +598,47 @@ const FinalProject = () => {
       {/* Certificate Modal */}
       {result && showCertificateModal && (
         <div className="certificate-modal-overlay">
-          <div className="certificate-modal">
+          <motion.div 
+            className="certificate-modal"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          >
             <button className="close-modal-btn" onClick={closeCertificateModal}>
               &times;
             </button>
             <div className="party-left">🎉</div>
             <div className="party-right">🎉</div>
             <h2>
-              Congratulations{result.user_name ? `, ${result.user_name}` : ""}!
+              {i18n.language === 'ar' ? 'تهانينا!' : 'Congratulations!'}
             </h2>
-            <p>You have successfully completed the course!</p>
+            <p>{i18n.language === 'ar' ? 'لقد أكملت الدورة بنجاح!' : 'You have successfully completed the course!'}</p>
             <p>
-              <strong>Final Score:</strong> {result.final_mark}/10 (
+              <strong>{i18n.language === 'ar' ? 'النتيجة النهائية:' : 'Final Score:'}</strong> {result.final_mark}/10 (
               <span style={{ color: getGradeColor(result.grade) }}>
-                Grade: {result.grade}
+                {i18n.language === 'ar' ? `الدرجة: ${result.grade}` : `Grade: ${result.grade}`}
               </span>
               )
             </p>
             <div className="marks-breakdown">
-              <p>Coding Marks: {result.coding_marks}/5</p>
-              <p>MCQ Marks: {result.mcq_marks}/3</p>
-              <p>TF Marks: {result.tf_marks}/2</p>
+              <p>{i18n.language === 'ar' ? 'علامات البرمجة:' : 'Coding Marks:'} {result.coding_marks}/{result.total_questions?.coding || 5}</p>
+              <p>{i18n.language === 'ar' ? 'علامات الاختيار المتعدد:' : 'MCQ Marks:'} {result.mcq_marks}/{result.total_questions?.mcq || 3}</p>
+              <p>{i18n.language === 'ar' ? 'علامات صح/خطأ:' : 'TF Marks:'} {result.tf_marks}/{result.total_questions?.tf || 2}</p>
             </div>
             <div className="feedback-section">
-              <h3>Optional Feedback</h3>
+              <h3>{i18n.language === 'ar' ? 'ملاحظات اختيارية' : 'Optional Feedback'}</h3>
               <StarRating onRatingChange={handleRatingChange} />
               {userRating > 0 && !feedbackSubmitted && (
-                <p className="rating-msg">You picked {userRating} out of 5</p>
+                <p className="rating-msg">
+                  {i18n.language === 'ar' 
+                    ? `لقد اخترت ${userRating} من 5` 
+                    : `You picked ${userRating} out of 5`
+                  }
+                </p>
               )}
               <textarea
                 className="feedback-textarea"
-                placeholder="Any thoughts about the course?"
+                placeholder={i18n.language === 'ar' ? 'أي أفكار حول الدورة؟' : 'Any thoughts about the course?'}
                 value={feedbackNote}
                 onChange={(e) => {
                   setFeedbackNote(e.target.value);
@@ -544,17 +647,19 @@ const FinalProject = () => {
               />
               <div className="feedback-buttons">
                 <button className="submit-final-button" onClick={handleFeedbackSubmit}>
-                  Submit Feedback
+                  {i18n.language === 'ar' ? 'إرسال الملاحظات' : 'Submit Feedback'}
                 </button>
                 <button className="submit-final-button" onClick={returnToCourses}>
-                  Return to Courses
+                  {i18n.language === 'ar' ? 'العودة إلى الدورات' : 'Return to Courses'}
                 </button>
               </div>
               {feedbackSubmitted && (
-                <p className="thank-you-msg">Thank you for your feedback!</p>
+                <p className="thank-you-msg">
+                  {i18n.language === 'ar' ? 'شكراً لك على ملاحظاتك!' : 'Thank you for your feedback!'}
+                </p>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

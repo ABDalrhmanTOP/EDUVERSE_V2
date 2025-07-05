@@ -13,11 +13,13 @@ import {
   FaRobot,
   FaSync,
   FaPlus,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaClipboardCheck
 } from 'react-icons/fa';
 import apiClient from '../../api/axios';
 import LanguageSwitcher from './LanguageSwitcher';
 import '../../styles/admin/AdminDashboard.css';
+import TestsDashboard from './TestsDashboard';
 
 const AdminDashboard = () => {
   const { t, i18n } = useTranslation();
@@ -122,6 +124,7 @@ const AdminDashboard = () => {
     { id: 'dashboard', label: t('admin.navigation.dashboard'), icon: FaHome, path: '/AdminDashboard' },
     { id: 'courses', label: t('admin.navigation.courses'), icon: FaBook, path: '/AdminDashboard/courses' },
     { id: 'tasks', label: t('admin.navigation.tasks'), icon: FaTasks, path: '/AdminDashboard/tasks' },
+    { id: 'tests', label: t('admin.navigation.tests') || 'Tests', icon: FaClipboardCheck, path: '/AdminDashboard/tests' },
     { id: 'edubot', label: getEduBotText(), icon: FaRobot, path: '/AdminDashboard/edubot' },
     { id: 'users', label: t('admin.navigation.users'), icon: FaUsers, path: '/AdminDashboard/users' },
     { id: 'analytics', label: t('admin.navigation.reports'), icon: FaChartBar, path: '/AdminDashboard/analytics' },

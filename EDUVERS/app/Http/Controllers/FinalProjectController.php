@@ -204,6 +204,11 @@ CODE;
                 'coding_marks'     => $codingMarks,
                 'mcq_marks'        => $mcqMarks,
                 'tf_marks'         => $tfMarks,
+                'total_questions'  => [
+                    'mcq' => $totalMcq,
+                    'tf'  => $totalTf,
+                    'coding' => 1, // Final project always has 1 coding question
+                ],
                 'correct_mcq'      => $mcqKey,
                 'correct_tf'       => $tfKey,
                 'correct_code'     => $correctCode,

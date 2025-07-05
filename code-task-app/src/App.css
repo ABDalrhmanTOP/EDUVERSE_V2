@@ -52,10 +52,10 @@ body {
 /* YouTube Player Element */
 .youtube-player {
   width: 100%;
-  height: 450px;
+  height: 600px;
   border-radius: 10px;
   overflow: hidden;
-  background-color: #000;
+  background-color: #f0f0f0;
 }
 
 /* Hide video when a task is active */
@@ -95,8 +95,49 @@ body {
 /* ============================================
    Code Task Container (Increased Size)
 ============================================ */
+.code-task-container {
+  background-color: #faf8f5;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
 
+/* ============================================
+   Final Project Button Styling
+============================================ */
+.submit-final-button {
+  background: linear-gradient(45deg, #AD998A, #d4af7f);
+  color: #fff;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(173, 153, 138, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px auto;
+  min-width: 200px;
+}
 
+.submit-final-button:hover {
+  background: linear-gradient(45deg, #d4af7f, #AD998A);
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(173, 153, 138, 0.4);
+}
+
+.submit-final-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* ============================================
    Feedback Modal (Centered Immediately)
@@ -199,7 +240,9 @@ body {
 }
 
 .playlist-item:hover {
-  background-color: #f0e6d6;
+  background-color: #e8d5c4;
+  color: #5c4033;
+  transform: translateX(5px);
 }
 
 .playlist-item.active {

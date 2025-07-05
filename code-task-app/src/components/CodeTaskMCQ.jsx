@@ -3,6 +3,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import Lottie from "lottie-react";
 import successAnimation from "../animations/success.json";
 import errorAnimation from "../animations/error.json";
+import axios from "../api/axios";
 import "../styles/CodeTask.css";
 
 const CodeTaskMCQ = ({ task, onTaskComplete, onReturn }) => {
@@ -16,24 +17,58 @@ const CodeTaskMCQ = ({ task, onTaskComplete, onReturn }) => {
     // console.warn("Unable to parse MCQ options as JSON:", e);
   }
 
-  const handleAnswer = (chosenKey) => {
-    if (String(chosenKey) === String(task.expected_output)) {
-      setFeedback({
-        type: "success",
-        message: "✅ Correct! Returning to the course..."
-      });
-      setTimeout(() => onTaskComplete(), 2000);
-    } else {
-      const newCount = wrongAttempts + 1;
-      setWrongAttempts(newCount);
-      let msg = "❌ Incorrect answer. Please try again.";
-      if (newCount >= 3 && task.syntax_hint) {
-        msg += `\nHint: ${task.syntax_hint}`;
+  const handleAnswer = async (chosenKey) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post(
+        "/user-progress/answer",
+        {
+          task_id: task.id,
+          answer: chosenKey,
+          playlist_id: task.playlist_id
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.correct) {
+        setFeedback({
+          type: "success",
+          message: "✅ Correct! Returning to the course..."
+        });
+        setTimeout(() => onTaskComplete(), 2000);
+      } else {
+        const newCount = wrongAttempts + 1;
+        setWrongAttempts(newCount);
+        let msg = "❌ Incorrect answer. Please try again.";
+        if (newCount >= 3 && task.syntax_hint) {
+          msg += `\nHint: ${task.syntax_hint}`;
+        }
+        setFeedback({
+          type: "error",
+          message: msg,
+        });
       }
-      setFeedback({
-        type: "error",
-        message: msg,
-      });
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+      // Fallback to client-side checking if API fails
+      if (String(chosenKey) === String(task.expected_output)) {
+        setFeedback({
+          type: "success",
+          message: "✅ Correct! Returning to the course..."
+        });
+        setTimeout(() => onTaskComplete(), 2000);
+      } else {
+        const newCount = wrongAttempts + 1;
+        setWrongAttempts(newCount);
+        let msg = "❌ Incorrect answer. Please try again.";
+        if (newCount >= 3 && task.syntax_hint) {
+          msg += `\nHint: ${task.syntax_hint}`;
+        }
+        setFeedback({
+          type: "error",
+          message: msg,
+        });
+      }
     }
   };
 
