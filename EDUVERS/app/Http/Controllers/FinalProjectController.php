@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Models\FinalProjectSubmission;
@@ -25,9 +26,9 @@ class FinalProjectController extends Controller
     public function submitFinalProject(Request $request)
     {
         $validated = $request->validate([
-            'code_solution' => 'required|string',
-            'mcq_answers'   => 'required|array',
-            'tf_answers'    => 'required|array',
+            'mcq_answers'   => 'array',
+            'tf_answers'    => 'array',
+            'code_solutions' => 'nullable|array',
             'playlist_id'   => 'required|integer',
             'video_id'      => 'required|string',
             'rating'        => 'nullable|integer|min:0|max:5',
@@ -42,142 +43,89 @@ class FinalProjectController extends Controller
             ], 401);
         }
 
-        // --- 1. Call Judge0 API to compile/execute the code ---
-        $judge0Url = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=true";
-        $encodedCode = base64_encode($validated['code_solution']);
-
-        $judge0Response = Http::withOptions(['verify' => false])
-            ->withHeaders([
-                'X-RapidAPI-Host' => 'judge0-ce.p.rapidapi.com',
-                'X-RapidAPI-Key'  => env('JUDGE0_API_KEY'),
-            ])->post($judge0Url, [
-                'source_code' => $encodedCode,
-                'language_id' => 54,  // C++ language id
-                'stdin'       => '',
-            ]);
-
-        if (!$judge0Response->successful()) {
-            return response()->json(['error' => 'Failed to submit code to Judge0'], 500);
+        // 1. Fetch all questions for the final project (final_project_questions) for the given playlist_id
+        $finalTest = DB::table('final_projects')->where('course_id', $validated['playlist_id'])->first();
+        if (!$finalTest) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No final project found for this course.'
+            ], 404);
         }
+        $questions = DB::table('final_project_questions')->where('final_project_id', $finalTest->id)->get();
 
-        $judgeData = $judge0Response->json();
-        $judgeScore = (isset($judgeData['status']) && $judgeData['status']['id'] == 3) ? 5 : 0;
-
-        // --- 2. Run static analysis ---
-        $code = $validated['code_solution'];
-        $staticAnalysisScore = $this->runStaticAnalysis($code); // returns 0-3
-        $codingMarks = min($judgeScore + $staticAnalysisScore, 5);
-
-        // --- 3. Grade MCQ section ---
-        $mcqKey = ['q1' => 'C', 'q2' => 'C'];
         $mcqMarks = 0;
-        $totalMcq = count($mcqKey);
-        foreach ($mcqKey as $qid => $correctAnswer) {
-            if (
-                isset($validated['mcq_answers'][$qid]) &&
-                strtoupper($validated['mcq_answers'][$qid]) === strtoupper($correctAnswer)
-            ) {
-                $mcqMarks += 1;
-            }
-        }
-        if ($totalMcq > 0) {
-            $mcqMarks = ($mcqMarks / $totalMcq) * 3; // out of 3 marks
-        }
-
-        // --- 4. Grade True/False section ---
-        $tfKey = ['q1' => 'false', 'q2' => 'true'];
         $tfMarks = 0;
-        $totalTf = count($tfKey);
-        foreach ($tfKey as $qid => $correctAnswer) {
-            if (
-                isset($validated['tf_answers'][$qid]) &&
-                strtolower($validated['tf_answers'][$qid]) === strtolower($correctAnswer)
-            ) {
-                $tfMarks += 1;
+        $codingMarks = 0;
+        $totalMcq = 0;
+        $totalTf = 0;
+        $totalCoding = 0;
+        $maxMcq = 0;
+        $maxTf = 0;
+        $maxCoding = 0;
+        $correctMcq = [];
+        $correctTf = [];
+        $correctCode = [];
+
+        foreach ($questions as $q) {
+            $mark = floatval($q->mark ?? 1);
+            if ($q->type === 'mcq') {
+                $totalMcq++;
+                $maxMcq += $mark;
+                $correctMcq[$q->id] = $q->correct_answer;
+                $userAnswer = $validated['mcq_answers'][$q->id] ?? null;
+                if ($userAnswer && strtoupper($userAnswer) === strtoupper($q->correct_answer)) {
+                    $mcqMarks += $mark;
+                }
+            } elseif ($q->type === 'true_false') {
+                $totalTf++;
+                $maxTf += $mark;
+                $correctTf[$q->id] = $q->correct_answer;
+                $userAnswer = $validated['tf_answers'][$q->id] ?? null;
+                if ($userAnswer && strtolower($userAnswer) === strtolower($q->correct_answer)) {
+                    $tfMarks += $mark;
+                }
+            } elseif ($q->type === 'code') {
+                $totalCoding++;
+                $maxCoding += $mark;
+                $correctCode[$q->id] = $q->code_template ?? '';
+                $userCode = $validated['code_solutions'][$q->id] ?? '';
+                // Basic code evaluation (can be enhanced)
+                $codeScore = $this->runStaticAnalysis($userCode);
+                $codingMarks += $codeScore * $mark / 3; // scale static analysis (0-3) to mark
             }
         }
-        if ($totalTf > 0) {
-            $tfMarks = ($tfMarks / $totalTf) * 2; // out of 2 marks
-        }
+        $finalMark = $mcqMarks + $tfMarks + $codingMarks;
+        $maxTotal = $maxMcq + $maxTf + $maxCoding;
+        $grade = $finalMark >= 0.9 * $maxTotal ? 'A' : ($finalMark >= 0.7 * $maxTotal ? 'B' : ($finalMark >= 0.5 * $maxTotal ? 'C' : 'F'));
 
-        // Final mark calculation (out of 10)
-        $finalMark = $codingMarks + $mcqMarks + $tfMarks;
-        if ($finalMark >= 9) {
-            $grade = 'A';
-        } elseif ($finalMark >= 7) {
-            $grade = 'B';
-        } elseif ($finalMark >= 5) {
-            $grade = 'C';
-        } else {
-            $grade = 'F';
-        }
-
-        // Define an ideal correct code solution (sample answer)
-        $correctCode = <<<CODE
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
-
-class Person {
-private:
-    string name;
-    int age;
-public:
-    Person(string n, int a): name(n), age(a) {}
-    string getName() { return name; }
-    int getAge() { return age; }
-    void printInfo() {
-        cout << "Name: " << name << ", Age: " << age << endl;
-    }
-};
-
-class Student : public Person {
-private:
-    vector<string> courses;
-public:
-    Student(string n, int a): Person(n, a) {}
-    void addCourse(string course) {
-        courses.push_back(course);
-    }
-    void printCourses() {
-        cout << "Courses: ";
-        for (auto &c : courses) {
-            cout << c << " ";
-        }
-        cout << endl;
-    }
-};
-
-int main() {
-    Student s("John Doe", 21);
-    s.addCourse("Math");
-    s.addCourse("Computer Science");
-    s.addCourse("Physics");
-    s.printInfo();
-    s.printCourses();
-    return 0;
-}
-CODE;
-
-        // --- 5. Link submission with user progress ---
+        // Link submission with user progress
         $userProgress = \App\Models\UserProgress::where('user_id', $userId)
             ->where('video_id', $validated['video_id'])
             ->where('playlist_id', $validated['playlist_id'])
             ->first();
 
+        // If no user progress exists, create one automatically
         if (!$userProgress) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'User progress record not found for final project submission.',
-            ], 404);
+            try {
+                $userProgress = \App\Models\UserProgress::create([
+                    'user_id' => $userId,
+                    'video_id' => $validated['video_id'],
+                    'playlist_id' => $validated['playlist_id'],
+                    'last_timestamp' => '00:00:00',
+                    'completed_tasks' => [],
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Error creating user progress record: ' . $e->getMessage(),
+                ], 500);
+            }
         }
-
-        // --- 6. Store final project submission ---
+        // Store final project submission
         try {
             $submission = FinalProjectSubmission::create([
                 'user_progress_id' => $userProgress->id,
-                'code_solution'    => $validated['code_solution'],
+                'code_solution'    => json_encode($validated['code_solutions'] ?? []),
                 'mcq_answers'      => $validated['mcq_answers'],
                 'tf_answers'       => $validated['tf_answers'],
                 'coding_marks'     => $codingMarks,
@@ -194,7 +142,6 @@ CODE;
                 'message' => 'Error storing final project submission'
             ], 500);
         }
-
         return response()->json([
             'status'  => 'success',
             'message' => 'Project submission evaluated and stored',
@@ -204,18 +151,93 @@ CODE;
                 'coding_marks'     => $codingMarks,
                 'mcq_marks'        => $mcqMarks,
                 'tf_marks'         => $tfMarks,
+                'max_mcq'          => $maxMcq,
+                'max_tf'           => $maxTf,
+                'max_coding'       => $maxCoding,
+                'max_total'        => $maxTotal,
                 'total_questions'  => [
                     'mcq' => $totalMcq,
                     'tf'  => $totalTf,
-                    'coding' => 1, // Final project always has 1 coding question
+                    'coding' => $totalCoding,
                 ],
-                'correct_mcq'      => $mcqKey,
-                'correct_tf'       => $tfKey,
+                'correct_mcq'      => $correctMcq,
+                'correct_tf'       => $correctTf,
                 'correct_code'     => $correctCode,
                 'submission_id'    => $submission->id,
                 'user_progress_id' => $userProgress->id,
             ],
         ], 200);
+    }
+
+    /**
+     * Show the final project questions for a given playlist.
+     * GET /final-projects/{playlistId}
+     */
+    public function show($playlistId)
+    {
+        // This logic expects the final project tables to be used for final project questions.
+        $finalTest = DB::table('final_projects')->where('course_id', $playlistId)->first();
+        if (!$finalTest) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No final project questions found for this course.'
+            ], 404);
+        }
+        $questions = DB::table('final_project_questions')->where('final_project_id', $finalTest->id)->get();
+        $mcq = [];
+        $tf = [];
+        $coding = [];
+        foreach ($questions as $q) {
+            if ($q->type === 'mcq') {
+                $mcq[] = [
+                    'id' => $q->id,
+                    'text' => $q->question,
+                    'options' => json_decode($q->options, true) ?? [],
+                ];
+            } elseif ($q->type === 'true_false') {
+                $tf[] = [
+                    'id' => $q->id,
+                    'text' => $q->question,
+                ];
+            } elseif ($q->type === 'code') {
+                $coding[] = [
+                    'id' => $q->id,
+                    'prompt' => $q->question,
+                    'language' => 'cpp',
+                ];
+            }
+        }
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'mcq' => $mcq,
+                'tf' => $tf,
+                'coding' => $coding,
+            ]
+        ]);
+    }
+
+    /**
+     * Check if a course has a final project.
+     * GET /final-projects/check/{playlistId}
+     */
+    public function check($playlistId)
+    {
+        $finalProject = DB::table('final_projects')->where('course_id', $playlistId)->first();
+
+        if ($finalProject) {
+            return response()->json([
+                'status' => 'success',
+                'has_final_project' => true,
+                'project' => $finalProject
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'success',
+                'has_final_project' => false,
+                'project' => null
+            ]);
+        }
     }
 
     /**
