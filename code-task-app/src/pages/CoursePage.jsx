@@ -36,56 +36,60 @@ const CoursePage = () => {
         setTasks(sortedTasks);
         
         // Load user progress (both video progress and completed tasks)
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("token") || localStorage.getItem("authToken");
         if (token) {
           const headers = { Authorization: `Bearer ${token}` };
-          
           try {
-            // Load video progress
-            console.log('Loading progress for course:', courseId, 'video:', courseData.video_id);
+            // Always use both video_id and playlist_id for progress
             const progressResponse = await axios.get(
-              `/user-progress?playlist_id=${courseId}&video_id=${courseData.video_id}`, 
+              `/user-progress?playlist_id=${courseId}&video_id=${courseData.video_id}`,
               { headers }
             );
-            
             if (progressResponse.data && progressResponse.data.data) {
               const progress = progressResponse.data.data;
-              console.log('Loaded progress:', progress);
               if (progress.last_timestamp) {
                 setLastTimestamp(progress.last_timestamp);
+              } else {
+                setLastTimestamp("00:00:00");
               }
               if (progress.completed_tasks && Array.isArray(progress.completed_tasks)) {
                 setCompletedTasks(progress.completed_tasks.map(String));
+              } else {
+                setCompletedTasks([]);
               }
+            } else {
+              // No progress found, reset state
+              setLastTimestamp("00:00:00");
+              setCompletedTasks([]);
             }
           } catch (progressError) {
-            console.error("Error loading progress:", progressError);
-            // If progress loading fails, try loading just completed tasks
+            // If progress loading fails, try loading just completed tasks as fallback
             try {
-              console.log('Trying to load completed tasks only...');
               const tasksResponse = await axios.get(
-                `/user-progress/tasks?playlist_id=${courseId}&video_id=${courseData.video_id}`, 
+                `/user-progress/tasks?playlist_id=${courseId}&video_id=${courseData.video_id}`,
                 { headers }
               );
-              
               if (tasksResponse.data && tasksResponse.data.completed_tasks) {
-                console.log('Loaded completed tasks:', tasksResponse.data.completed_tasks);
                 setCompletedTasks(tasksResponse.data.completed_tasks.map(String));
+              } else {
+                setCompletedTasks([]);
               }
+              setLastTimestamp("00:00:00");
             } catch (tasksError) {
-              console.error("Error loading completed tasks:", tasksError);
+              setCompletedTasks([]);
+              setLastTimestamp("00:00:00");
             }
           }
+        } else {
+          // No token, force login
+          setError("You are not logged in. Please login to continue.");
         }
-        
       } catch (err) {
-        console.error("Error fetching course data:", err);
         setError("Failed to load course. Please try again.");
       } finally {
         setLoading(false);
       }
     };
-
     if (courseId) {
       fetchCourseData();
     }
@@ -93,37 +97,29 @@ const CoursePage = () => {
 
   const handleTaskComplete = async (taskId) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
       if (!token) return;
-
       const headers = { Authorization: `Bearer ${token}` };
-      
-      console.log('Saving completed task:', taskId, 'for course:', courseId);
-      
-      // Save completed task to backend
+      // Save completed task to backend, always send both video_id and playlist_id
       await axios.post(
         "/user-progress/tasks",
         {
           task_id: taskId,
           playlist_id: courseId,
-          video_id: course.video_id,
+          video_id: course?.video_id,
         },
         { headers }
       );
-      
-      console.log('Task saved successfully');
-      
-      // Update local state
+      // Update local state optimistically
       setCompletedTasks(prev => {
         const taskIdStr = String(taskId);
         if (!prev.includes(taskIdStr)) {
-          console.log('Updating completed tasks:', [...prev, taskIdStr]);
           return [...prev, taskIdStr];
         }
         return prev;
       });
     } catch (error) {
-      console.error("Failed to save completed task:", error);
+      // Optionally show error to user
     }
   };
 

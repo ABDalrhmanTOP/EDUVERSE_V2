@@ -39,7 +39,6 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
   const [lastWatchedTimestamp, setLastWatchedTimestamp] = useState(initialTimestamp);
   const [maxTimeReached, setMaxTimeReached] = useState(convertTimestampToSeconds(initialTimestamp));
   const [videoProgress, setVideoProgress] = useState(0);
-  const [showFinalProjectButton, setShowFinalProjectButton] = useState(false);
   const [playerVideoId, setPlayerVideoId] = useState(videoId);
   const [hasFinalTest, setHasFinalTest] = useState(false);
   const [finalTestData, setFinalTestData] = useState(null);
@@ -54,7 +53,7 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
     debounce(async (seconds) => {
       try {
         const timestamp = convertSecondsToTimestamp(seconds);
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("token") || localStorage.getItem("authToken");
         if (!token) return;
         
         const headers = { Authorization: `Bearer ${token}` };
@@ -80,18 +79,24 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
     [playerVideoId, playlistId]
   );
 
-  // Flush debounced calls on page unload
+  // Flush debounced calls on page unload and unmount
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (debouncedSaveProgress.flush) {
         debouncedSaveProgress.flush();
       }
+      // Save the latest progress synchronously
+      debouncedSaveProgress(maxTimeReached);
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (debouncedSaveProgress.flush) {
+        debouncedSaveProgress.flush();
+      }
+      debouncedSaveProgress(maxTimeReached);
     };
-  }, [debouncedSaveProgress]);
+  }, [debouncedSaveProgress, maxTimeReached]);
 
   // Set video ID when prop changes
   useEffect(() => {
@@ -230,29 +235,22 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
     }
   }, [currentTaskIndex, tasks, playerReady, onTaskComplete]);
 
-  // Check if course has a final test
-  const checkForFinalTest = async () => {
+  // Check if course has a final project
+  const checkForFinalProject = async () => {
     try {
-      const response = await axios.get(`/final-tests/check/${playlistId}`);
-      
-      if (response.data.status === 'success' && response.data.has_final_test) {
+      const response = await axios.get(`/final-projects/check/${playlistId}`);
+      if (response.data.status === 'success' && response.data.has_final_project) {
         setHasFinalTest(true);
-        setFinalTestData(response.data.test);
+        setFinalTestData(response.data.project);
       }
     } catch (error) {
-      console.error("Failed to check for final test:", error);
+      console.error("Failed to check for final project:", error);
     }
   };
 
-  // When video is finished, show button to navigate to Final Project or Final Test
+  // When video is finished, show button to navigate to Final Project
   const handleGoToFinalProject = () => {
-    if (hasFinalTest) {
-      // Navigate to dynamic final test
-      navigate(`/final-test/${playlistId}`);
-    } else {
-      // Navigate to static final project (for C++ course)
-      navigate("/final-project");
-    }
+    navigate(`/final-project?courseId=${playlistId}`);
   };
 
   // Return to course button for tasks
@@ -315,6 +313,9 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
   // Check if all tasks are completed
   const allTasksCompleted = tasks.length > 0 && completedTasks.length === tasks.length;
   
+  // Show final project button when video progress is >= 99%
+  const showFinalProjectButton = progressPercent >= 99;
+  
   console.log('Progress debug:', {
     tasksLength: tasks.length,
     completedTasksLength: completedTasks.length,
@@ -323,10 +324,10 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
     progressPercent
   });
 
-  // Check for final test when component mounts
+  // Check for final project when component mounts
   useEffect(() => {
     if (playlistId) {
-      checkForFinalTest();
+      checkForFinalProject();
     }
   }, [playlistId]);
 
@@ -342,10 +343,10 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
               <span className="progress-percent">{progressPercent}%</span>
             </div>
           </div>
-          {allTasksCompleted && (
+          {showFinalProjectButton && (
             <div style={{ textAlign: "center", marginTop: "20px" }}>
               <button onClick={handleGoToFinalProject} className="submit-final-button">
-                {hasFinalTest ? "Go to Final Test" : "Go to Final Project"}
+                {hasFinalTest ? "Go to Final Project" : "Go to Final Project"}
               </button>
             </div>
           )}

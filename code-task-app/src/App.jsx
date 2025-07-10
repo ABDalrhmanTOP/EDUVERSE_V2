@@ -5,6 +5,8 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
+  useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -20,7 +22,6 @@ import CoursePage from "./pages/CoursePage";
 import Profile from "./pages/Profile";
 import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
-import FinalTest from "./components/FinalTest";
 import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
 
@@ -60,6 +61,20 @@ const AdminProtectedRoute = ({ children }) => {
     return <Navigate to="/" />;
   }
   return children;
+};
+
+const FinalProjectWrapper = () => {
+  // Try to get courseId from query string or global state if needed
+  const params = useParams();
+  const location = useLocation();
+  let courseId = params.courseId;
+  if (!courseId) {
+    // Try to get from query string
+    const searchParams = new URLSearchParams(location.search);
+    courseId = searchParams.get("courseId");
+  }
+  // Fallback: could use context or global state if needed
+  return <FinalProject courseId={courseId} />;
 };
 
 const App = () => {
@@ -130,19 +145,12 @@ const App = () => {
           path="/final-project"
           element={
             <ProtectedRoute>
-              <FinalProject />
+              <FinalProjectWrapper />
             </ProtectedRoute>
           }
         />
 
-        <Route
-          path="/final-test/:courseId"
-          element={
-            <ProtectedRoute>
-              <FinalTest />
-            </ProtectedRoute>
-          }
-        />
+        {/* Remove all FinalTest routes and references */}
 
         <Route
           path="/placement-test/:courseId"

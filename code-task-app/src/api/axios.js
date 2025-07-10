@@ -1,8 +1,8 @@
 // src/api/axios.js
 import axios from "axios";
 
-const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api", // Adjust if needed
+const instance = axios.create({
+  baseURL: "http://localhost:8000/api", // Update this if your backend runs elsewhere
   withCredentials: true, // Required if using cookie-based auth (e.g., Sanctum)
 });
 
@@ -17,7 +17,7 @@ const apiClient = axios.create({
 })();
 
 // Request interceptor: attach token from localStorage
-apiClient.interceptors.request.use((config) => {
+instance.interceptors.request.use((config) => {
   // Check for both possible token keys
   const token = localStorage.getItem("token") || localStorage.getItem("authToken");
   if (token) {
@@ -41,7 +41,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // Response interceptor: handle authentication errors
-apiClient.interceptors.response.use(
+instance.interceptors.response.use(
   (response) => {
     return response;
   },
@@ -65,4 +65,4 @@ apiClient.interceptors.response.use(
   }
 );
 
-export default apiClient;
+export default instance;

@@ -44,7 +44,7 @@ const TestsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [placementTest, setPlacementTest] = useState(null);
-  const [finalTest, setFinalTest] = useState(null);
+  const [finalProject, setFinalProject] = useState(null);
   const [testLoading, setTestLoading] = useState(false);
   const [testError, setTestError] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: '', test: null });
@@ -54,7 +54,7 @@ const TestsDashboard = () => {
   const [testFormLoading, setTestFormLoading] = useState(false);
   const testTitleRef = useRef();
   const [placementQuestions, setPlacementQuestions] = useState([]);
-  const [finalQuestions, setFinalQuestions] = useState([]);
+  const [finalProjectQuestions, setFinalProjectQuestions] = useState([]);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState('');
   const [questionModal, setQuestionModal] = useState({ isOpen: false, type: '', mode: 'add', testId: null, question: null });
@@ -115,7 +115,7 @@ const TestsDashboard = () => {
   useEffect(() => {
     if (!selectedCourse) {
       setPlacementTest(null);
-      setFinalTest(null);
+      setFinalProject(null);
       return;
     }
     setTestLoading(true);
@@ -123,11 +123,11 @@ const TestsDashboard = () => {
     // Fetch placement and final test for this course
     Promise.all([
       apiClient.get(`/admin/placement-tests?course_id=${selectedCourse.id}`),
-      apiClient.get(`/admin/final-tests?course_id=${selectedCourse.id}`)
+      apiClient.get(`/admin/final-projects?course_id=${selectedCourse.id}`)
     ])
       .then(([placementRes, finalRes]) => {
         setPlacementTest(placementRes.data[0] || null);
-        setFinalTest(finalRes.data[0] || null);
+        setFinalProject(finalRes.data[0] || null);
       })
       .catch(() => setTestError(t('common.failedToLoad')))
       .finally(() => setTestLoading(false));
@@ -147,25 +147,25 @@ const TestsDashboard = () => {
   }, [placementTest, t]);
 
   useEffect(() => {
-    if (finalTest) {
+    if (finalProject) {
       setQuestionsLoading(true);
-      apiClient.get(`/admin/final-test-questions?final_test_id=${finalTest.id}`)
-        .then(res => setFinalQuestions(res.data))
+      apiClient.get(`/admin/final-project-questions?final_project_id=${finalProject.id}`)
+        .then(res => setFinalProjectQuestions(res.data))
         .catch(() => setQuestionsError(t('common.failedToLoad')))
         .finally(() => setQuestionsLoading(false));
     } else {
-      setFinalQuestions([]);
+      setFinalProjectQuestions([]);
     }
-  }, [finalTest, t]);
+  }, [finalProject, t]);
 
   const handleDeleteTest = async () => {
     if (!deleteModal.test || !deleteModal.type) return;
     try {
-      const endpoint = deleteModal.type === 'placement' ? `/admin/placement-tests/${deleteModal.test.id}` : `/admin/final-tests/${deleteModal.test.id}`;
+      const endpoint = deleteModal.type === 'placement' ? `/admin/placement-tests/${deleteModal.test.id}` : `/admin/final-projects/${deleteModal.test.id}`;
       await apiClient.delete(endpoint);
       if (deleteModal.type === 'placement') setPlacementTest(null);
-      else setFinalTest(null);
-      setSuccessMsg(`${deleteModal.type === 'placement' ? 'Placement' : 'Final'} test deleted successfully.`);
+      else setFinalProject(null);
+      setSuccessMsg(`${deleteModal.type === 'placement' ? 'Placement' : 'Final Project'} test deleted successfully.`);
     } catch {
       setSuccessMsg('Failed to delete test.');
     }
@@ -194,20 +194,20 @@ const TestsDashboard = () => {
     e.preventDefault();
     setTestFormLoading(true);
     try {
-      const endpoint = testModal.type === 'placement' ? '/admin/placement-tests' : '/admin/final-tests';
+      const endpoint = testModal.type === 'placement' ? '/admin/placement-tests' : '/admin/final-projects';
       if (testModal.mode === 'add') {
         const res = await apiClient.post(endpoint, {
           course_id: selectedCourse.id,
           ...testForm
         });
         if (testModal.type === 'placement') setPlacementTest(res.data);
-        else setFinalTest(res.data);
-        setSuccessMsg(`${testModal.type === 'placement' ? 'Placement' : 'Final'} test created successfully.`);
+        else setFinalProject(res.data);
+        setSuccessMsg(`${testModal.type === 'placement' ? 'Placement' : 'Final Project'} test created successfully.`);
       } else {
         const res = await apiClient.put(`${endpoint}/${testModal.test.id}`, testForm);
         if (testModal.type === 'placement') setPlacementTest(res.data);
-        else setFinalTest(res.data);
-        setSuccessMsg(`${testModal.type === 'placement' ? 'Placement' : 'Final'} test updated successfully.`);
+        else setFinalProject(res.data);
+        setSuccessMsg(`${testModal.type === 'placement' ? 'Placement' : 'Final Project'} test updated successfully.`);
       }
       closeTestModal();
     } catch {
@@ -269,11 +269,13 @@ const TestsDashboard = () => {
         endpoint = '/admin/placement-test-questions';
         payload = { placement_test_id: questionModal.testId, ...questionForm };
       } else {
-        endpoint = '/admin/final-test-questions';
-        payload = { final_test_id: questionModal.testId, ...questionForm };
+        endpoint = '/admin/final-project-questions';
+        payload = { final_project_id: questionModal.testId, ...questionForm };
       }
       if (questionForm.type === 'mcq' || questionForm.type === 'code') payload.options = questionForm.options;
       if (questionForm.type === 'code') payload.test_cases = questionForm.test_cases;
+      // Ensure difficulty is always a string
+      payload.difficulty = String(payload.difficulty ?? '');
       if (questionModal.mode === 'add') {
         await apiClient.post(endpoint, payload);
       } else {
@@ -284,8 +286,8 @@ const TestsDashboard = () => {
         const res = await apiClient.get(`/admin/placement-test-questions?placement_test_id=${questionModal.testId}`);
         setPlacementQuestions(res.data);
       } else {
-        const res = await apiClient.get(`/admin/final-test-questions?final_test_id=${questionModal.testId}`);
-        setFinalQuestions(res.data);
+        const res = await apiClient.get(`/admin/final-project-questions?final_project_id=${questionModal.testId}`);
+        setFinalProjectQuestions(res.data);
       }
       setSuccessMsg(`Question ${questionModal.mode === 'add' ? 'added' : 'updated'} successfully.`);
       closeQuestionModal();
@@ -297,14 +299,14 @@ const TestsDashboard = () => {
 
   const handleDeleteQuestion = async (type, testId, questionId) => {
     try {
-      const endpoint = type === 'placement' ? '/admin/placement-test-questions' : '/admin/final-test-questions';
+      const endpoint = type === 'placement' ? '/admin/placement-test-questions' : '/admin/final-project-questions';
       await apiClient.delete(`${endpoint}/${questionId}`);
       if (type === 'placement') {
         const res = await apiClient.get(`/admin/placement-test-questions?placement_test_id=${testId}`);
         setPlacementQuestions(res.data);
       } else {
-        const res = await apiClient.get(`/admin/final-test-questions?final_test_id=${testId}`);
-        setFinalQuestions(res.data);
+        const res = await apiClient.get(`/admin/final-project-questions?final_project_id=${testId}`);
+        setFinalProjectQuestions(res.data);
       }
       setSuccessMsg('Question deleted successfully.');
     } catch {
@@ -554,7 +556,7 @@ const TestsDashboard = () => {
               )}
             </motion.div>
 
-            {/* Final Test Section */}
+            {/* Final Project Section */}
             <motion.div
               className="test-section"
               initial={{ opacity: 0, x: 20 }}
@@ -566,7 +568,7 @@ const TestsDashboard = () => {
                   <FaCode />
                 </div>
                 <h3>
-                  {i18n.language === 'ar' ? 'الاختبار النهائي / المشروع' : 'Final Test / Project'}
+                  {i18n.language === 'ar' ? 'الاختبار النهائي / المشروع' : 'Final Project'}
               </h3>
               </div>
 
@@ -580,11 +582,11 @@ const TestsDashboard = () => {
                   <FaExclamationTriangle style={{ marginRight: '0.5rem' }} />
                   {testError}
                 </div>
-              ) : finalTest ? (
+              ) : finalProject ? (
                 <>
                   <div className="test-info">
-                    <div className="test-info-title">{finalTest.title}</div>
-                    <div className="test-info-description">{finalTest.description}</div>
+                    <div className="test-info-title">{finalProject.title}</div>
+                    <div className="test-info-description">{finalProject.description}</div>
                   </div>
                   
                   <div className="test-actions">
@@ -592,7 +594,7 @@ const TestsDashboard = () => {
                       className="test-action-btn secondary"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => openTestModal('final', 'edit', finalTest)}
+                      onClick={() => openTestModal('final', 'edit', finalProject)}
                     >
                       <FaEdit />
                       {t('common.edit')}
@@ -601,7 +603,7 @@ const TestsDashboard = () => {
                       className="test-action-btn danger"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setDeleteModal({ isOpen: true, type: 'final', test: finalTest })}
+                      onClick={() => setDeleteModal({ isOpen: true, type: 'final', test: finalProject })}
                     >
                       <FaTrash />
                       {t('common.delete')}
@@ -631,13 +633,13 @@ const TestsDashboard = () => {
                           className="add-question-btn"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => openQuestionModal('final', 'add', finalTest.id)}
+                          onClick={() => openQuestionModal('final', 'add', finalProject.id)}
                         >
                           <FaPlus />
                           {i18n.language === 'ar' ? 'إضافة سؤال' : 'Add Question'}
                         </motion.button>
                         
-                        {finalQuestions.length === 0 ? (
+                        {finalProjectQuestions.length === 0 ? (
                           <div className="no-questions">
                             <div className="no-questions-icon">
                               <FaQuestionCircle />
@@ -648,7 +650,7 @@ const TestsDashboard = () => {
                           </div>
                         ) : (
                           <ul className="questions-list">
-                            {finalQuestions.map(q => (
+                            {finalProjectQuestions.map(q => (
                               <motion.li
                                 key={q.id}
                                 className="question-item"
@@ -661,13 +663,14 @@ const TestsDashboard = () => {
                                     {getQuestionTypeIcon(q.type)}
                                   </span>
                                   <span className="question-text">{q.question}</span>
+                                  <span>Mark: {q.mark}</span>
                                 </div>
                                 <div className="question-actions">
                                   <motion.button
                                     className="question-action-btn edit"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => openQuestionModal('final', 'edit', finalTest.id, q)}
+                                    onClick={() => openQuestionModal('final', 'edit', finalProject.id, q)}
                                   >
                                     <FaEdit />
                                   </motion.button>
@@ -675,7 +678,7 @@ const TestsDashboard = () => {
                                     className="question-action-btn delete"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => handleDeleteQuestion('final', finalTest.id, q.id)}
+                                    onClick={() => handleDeleteQuestion('final', finalProject.id, q.id)}
                                   >
                                     <FaTrash />
                                   </motion.button>
@@ -721,8 +724,8 @@ const TestsDashboard = () => {
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, type: '', test: null })}
         onConfirm={handleDeleteTest}
-        title={`Delete ${deleteModal.type === 'placement' ? 'Placement' : 'Final'} Test`}
-        message={`Are you sure you want to delete this ${deleteModal.type === 'placement' ? 'placement' : 'final'} test? This action cannot be undone.`}
+        title={`Delete ${deleteModal.type === 'placement' ? 'Placement' : 'Final Project'} Test`}
+        message={`Are you sure you want to delete this ${deleteModal.type === 'placement' ? 'placement' : 'final project'} test? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         type="danger"
@@ -744,8 +747,8 @@ const TestsDashboard = () => {
               <div className="confirmation-modal-header">
                 <h3 className="confirmation-modal-title">
                   {testModal.mode === 'add' 
-                    ? `${i18n.language === 'ar' ? 'إضافة' : 'Add'} ${testModal.type === 'placement' ? (i18n.language === 'ar' ? 'اختبار تنسيب' : 'Placement Test') : (i18n.language === 'ar' ? 'اختبار نهائي' : 'Final Test')}`
-                    : `${i18n.language === 'ar' ? 'تعديل' : 'Edit'} ${testModal.type === 'placement' ? (i18n.language === 'ar' ? 'اختبار تنسيب' : 'Placement Test') : (i18n.language === 'ar' ? 'اختبار نهائي' : 'Final Test')}`
+                    ? `${i18n.language === 'ar' ? 'إضافة' : 'Add'} ${testModal.type === 'placement' ? (i18n.language === 'ar' ? 'اختبار تنسيب' : 'Placement Test') : (i18n.language === 'ar' ? 'اختبار نهائي' : 'Final Project')}`
+                    : `${i18n.language === 'ar' ? 'تعديل' : 'Edit'} ${testModal.type === 'placement' ? (i18n.language === 'ar' ? 'اختبار تنسيب' : 'Placement Test') : (i18n.language === 'ar' ? 'اختبار نهائي' : 'Final Project')}`
                   }
                 </h3>
                 <button className="confirmation-modal-close-btn" onClick={closeTestModal} type="button">
@@ -993,6 +996,18 @@ const TestsDashboard = () => {
                   disabled={questionFormLoading}
                   placeholder={i18n.language === 'ar' ? 'مثال: سهل، متوسط، صعب...' : 'e.g., Easy, Medium, Hard...'}
                 />
+                <label>
+                  Mark (weight):
+                  <input
+                    type="number"
+                    min="0.5"
+                    max="10"
+                    step="0.5"
+                    value={questionForm.mark}
+                    onChange={e => setQuestionForm({ ...questionForm, mark: e.target.value })}
+                    required
+                  />
+                </label>
               </div>
               <div className="confirmation-modal-actions">
                 <motion.button 

@@ -441,7 +441,7 @@ const PlacementTest = ({ onComplete }) => {
     } else {
       setSkipPlacementTest(true);
       if (onComplete) onComplete(result, true);
-      navigate(`/courses/${courseId}`);
+      navigate(`/course/${courseId}`);
     }
   };
 
