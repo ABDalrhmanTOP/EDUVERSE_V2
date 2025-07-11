@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import YouTubeEmbed from "../components/YouTubeEmbed";
+import Playlists from "../components/Playlists";
 import "../App.css";
 
 const CoursePage = () => {
@@ -17,8 +18,6 @@ const CoursePage = () => {
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
 
-  // لنفترض أن course.is_paid موجودة
-  // ولنفرض أن لديك دالة أو متغير isSubscribed يحدد اشتراك المستخدم
   const isSubscribed = false;
   const [lastTimestamp, setLastTimestamp] = useState("00:00:00");
 
@@ -128,9 +127,6 @@ const CoursePage = () => {
     }
   };
 
-  const handleTaskComplete = (taskId) => {
-    setCompletedTasks(prev => [...prev, taskId]);
-
   const handleTaskComplete = async (taskId) => {
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("authToken");
@@ -220,6 +216,10 @@ const CoursePage = () => {
       </div>
     );
   }
+
+  const currentTaskIndex = tasks.findIndex(
+    (task) => !completedTasks.includes(String(task.id))
+  );
 
   return (
     <div style={{ marginTop: "80px", padding: "0 20px" }}>
@@ -352,4 +352,4 @@ const CoursePage = () => {
   );
 };
 
-export default CoursePage; 
+export default CoursePage;
