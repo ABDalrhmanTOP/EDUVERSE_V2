@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancellation_reason')->nullable();
             $table->json('features')->nullable(); // Store plan features as JSON
+            $table->integer('allowed_courses')->default(0); // Number of courses user can unlock
             $table->timestamps();
             
             $table->index(['user_id', 'status']);

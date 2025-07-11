@@ -24,7 +24,8 @@ class Subscription extends Model
         'end_date',
         'cancelled_at',
         'cancellation_reason',
-        'features'
+        'features',
+        'allowed_courses'
     ];
 
     protected $casts = [

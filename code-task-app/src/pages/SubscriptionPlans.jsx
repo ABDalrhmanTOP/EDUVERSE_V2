@@ -1,14 +1,10 @@
 import React, { useState } from "react";
 import CheckoutForm from "../components/CheckoutForm";
 import "../styles/SubscriptionPlans.css";
-import axios from "axios";
-import { loadStripe } from "@stripe/stripe-js";
-
-const stripePromise = loadStripe("pk_test_51Re9HPC6InkpE6BbDySFemIfUDICccZwwtm12tvgrAFLhTDkbSM3De6Uy8t3wcuEglqsFHtbrlByLyX2XFDJIXOz00WbzyaYqO");
 
 const plans = [
   {
-    id: 1,
+    id: '1',
     title: "Single Course Plan",
     description: "Access to any one course of your choice.",
     price: "$10",
@@ -20,7 +16,7 @@ const plans = [
     ]
   },
   {
-    id: 3,
+    id: '3',
     title: "Three Courses Plan",
     description: "Access to any three courses of your choice.",
     price: "$25",
@@ -32,7 +28,7 @@ const plans = [
     ]
   },
   {
-    id: 10,
+    id: '10',
     title: "Ten Courses Plan",
     description: "Access to any ten courses of your choice.",
     price: "$60",
@@ -50,10 +46,9 @@ const CheckoutModal = ({ open, plan, onClose }) => {
   return (
     <div className="confirmation-modal-overlay">
       <div className="confirmation-modal">
-        <h3>Pay for {plan.title}</h3>
-        <p>Amount: <b>{plan.price}</b></p>
+       <h1>Secure payments</h1>
         <CheckoutForm plan={plan} onSuccess={onClose} />
-        <button className="close-modal-btn" onClick={onClose} style={{marginTop:16}}>Cancel</button>
+        <button className="close-modal-btn" onClick={onClose}>X</button>
       </div>
     </div>
   );
@@ -74,6 +69,7 @@ const SubscriptionPlans = () => {
         <h1>Choose Your Subscription Plan</h1>
         <p>Select the plan that best fits your learning goals. All plans are one-time payments and give you lifetime access to the selected courses.</p>
       </div>
+      
       <div className="plans-list">
         {plans.map((plan, idx) => (
           <div className={`plan-card${idx === 1 ? ' popular' : ''}`} key={plan.id}>
@@ -103,17 +99,7 @@ const SubscriptionPlans = () => {
           </div>
         ))}
       </div>
-      <div className="paid-benefits-section">
-        <h2>Benefits of Paid Courses</h2>
-        <ul className="benefits-list">
-          <li><span className="check-icon">✔</span> High-quality, up-to-date course content</li>
-          <li><span className="check-icon">✔</span> Lifetime access to purchased courses</li>
-          <li><span className="check-icon">✔</span> Downloadable resources and materials</li>
-          <li><span className="check-icon">✔</span> Certificate of completion</li>
-          <li><span className="check-icon">✔</span> Priority support from instructors</li>
-          <li><span className="check-icon">✔</span> Access to exclusive community and Q&A</li>
-        </ul>
-      </div>
+      
       <CheckoutModal open={modalOpen} plan={selectedPlan} onClose={() => setModalOpen(false)} />
     </div>
   );

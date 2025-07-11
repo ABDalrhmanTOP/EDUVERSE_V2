@@ -4,7 +4,7 @@
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   direction: rtl;
-  background: #FAF0E6;
+  background: #f5f1eb;
 }
 
 .subscription-header {
@@ -14,14 +14,14 @@
 
 .subscription-header h1 {
   font-size: 2.7rem;
-  color: #6B4F4B;
+  color: #b5a079;
   font-weight: 800;
   margin-bottom: 0.5rem;
 }
 
 .subscription-header p {
   font-size: 1.15rem;
-  color: #A97C78;
+  color: #7d6a4d;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -42,11 +42,11 @@
 }
 
 .plan-card {
-  background: #FFF8DC;
+  background: #f5f1eb;
   border-radius: 18px;
   padding: 2.2rem 1.5rem 2rem 1.5rem;
-  box-shadow: 0 8px 32px 0 rgba(200,159,156,0.13), 0 1.5px 8px 0 rgba(107,79,75,0.07);
-  border: 2px solid #E0D8CD;
+  box-shadow: 0 8px 32px 0 rgba(181,160,121,0.13), 0 1.5px 8px 0 rgba(107,79,75,0.07);
+  border: 2px solid #e3cfa4;
   width: 320px;
   display: flex;
   flex-direction: column;
@@ -56,22 +56,22 @@
 }
 
 .plan-card:hover {
-  border-color: #C89F9C;
-  box-shadow: 0 16px 40px 0 rgba(200,159,156,0.18), 0 2px 12px 0 rgba(107,79,75,0.10);
-  background: #FFF3E6;
+  border-color: #b5a079;
+  box-shadow: 0 16px 40px 0 rgba(181,160,121,0.18), 0 2px 12px 0 rgba(107,79,75,0.10);
+  /* background: #e3cfa4; */
   transform: translateY(-6px) scale(1.04);
 }
 
 .plan-card.selected {
-  border-color: #C89F9C;
-  box-shadow: 0 0 0 4px rgba(200,159,156,0.13);
-  background: #FFF3E6;
+  border-color: #b5a079;
+  box-shadow: 0 0 0 4px rgba(181,160,121,0.13);
+  background: #e3cfa4;
 }
 
 .plan-card.popular {
-  border-color: #6B4F4B;
-  box-shadow: 0 0 0 6px rgba(200,159,156,0.18);
-  background: linear-gradient(135deg, #FFF8DC 80%, #C89F9C 100%);
+  border-color: #b5a079;
+  box-shadow: 0 0 0 6px rgba(181,160,121,0.18);
+  background: linear-gradient(135deg, #f5f1eb 80%, #b5a079 100%);
   transform: scale(1.08);
   z-index: 2;
 }
@@ -80,15 +80,15 @@
   position: absolute;
   top: 18px;
   right: 18px;
-  background: linear-gradient(135deg, #C89F9C, #6B4F4B);
+  background: linear-gradient(135deg, #b5a079, #7d6a4d);
   color: #fff;
   padding: 0.4rem 1.1rem;
   border-radius: 12px;
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px 0 rgba(200,159,156,0.13);
-  border: 2px solid #FFF8DC;
+  box-shadow: 0 2px 8px 0 rgba(181,160,121,0.13);
+  border: 2px solid #f5f1eb;
 }
 
 .plan-header {
@@ -98,23 +98,23 @@
 
 .plan-header h2 {
   font-size: 1.45rem;
-  color: #6B4F4B;
+  color: #b5a079;
   font-weight: 700;
   margin-bottom: 0.3rem;
 }
 
 .plan-header p {
   font-size: 1.05rem;
-  color: #A97C78;
+  color: #7d6a4d;
   margin-bottom: 0.2rem;
 }
 
 .plan-price {
   font-size: 2.3rem;
-  color: #C89F9C;
+  color: #b5a079;
   font-weight: 800;
   margin-bottom: 1.1rem;
-  text-shadow: 0 2px 8px #f3e6e1;
+  text-shadow: 0 1px 4px #b5a079;
 }
 
 .plan-features {
@@ -132,7 +132,7 @@
   display: flex;
   align-items: center;
   padding: 0.5rem 0;
-  color: #6B4F4B;
+  color: #7d6a4d;
   font-size: 1.08rem;
 }
 
@@ -146,10 +146,10 @@
 .select-plan-btn {
   width: 100%;
   padding: 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #e3cfa4;
   border-radius: 8px;
   background: white;
-  color: #374151;
+  color: #7d6a4d;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -157,20 +157,20 @@
 }
 
 .select-plan-btn:hover {
-  border-color: #6366f1;
-  color: #6366f1;
+  border-color: #b5a079;
+  color: #b5a079;
 }
 
 .select-plan-btn.selected {
-  background: #6366f1;
-  border-color: #6366f1;
+  background: #b5a079;
+  border-color: #b5a079;
   color: white;
 }
 
 .subscription-actions {
   text-align: center;
   padding: 2rem;
-  background: #f9fafb;
+  background: #f5f1eb;
   border-radius: 12px;
   margin-bottom: 3rem;
 }
@@ -180,18 +180,18 @@
 }
 
 .selected-plan-summary h3 {
-  color: #1f2937;
+  color: #7d6a4d;
   margin-bottom: 0.5rem;
 }
 
 .plan-price-display {
   font-size: 1.25rem;
-  color: #6366f1;
+  color: #b5a079;
   font-weight: 600;
 }
 
 .subscribe-btn {
-  background: linear-gradient(135deg, #C89F9C 0%, #6B4F4B 100%);
+  background: linear-gradient(135deg, #b5a079 40%, #e3cfa4 60%);
   color: #fff;
   border: none;
   padding: 0.9rem 2.5rem;
@@ -200,15 +200,15 @@
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 16px -1px rgba(200,159,156,0.18);
+  box-shadow: 0 4px 16px -1px rgba(181,160,121,0.18);
   margin-top: auto;
   letter-spacing: 0.5px;
 }
 
 .subscribe-btn:hover {
-  background: linear-gradient(135deg, #6B4F4B 0%, #C89F9C 100%);
+  background: linear-gradient(135deg, #e3cfa4 55%, #b5a079 45%);
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 24px -2px rgba(200,159,156,0.22);
+  box-shadow: 0 8px 24px -2px rgba(181,160,121,0.22);
 }
 
 .subscription-info {
@@ -226,19 +226,19 @@
 }
 
 .info-card h4 {
-  color: #1f2937;
+  color: #7d6a4d;
   margin-bottom: 0.5rem;
   font-size: 1.125rem;
 }
 
 .info-card p {
-  color: #6b7280;
+  color: #7d6a4d;
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .back-button {
-  background: #6b7280;
+  background: #7d6a4d;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -250,7 +250,7 @@
 }
 
 .back-button:hover {
-  background: #4b5563;
+  background: #b5a079;
 }
 
 .checkout-wrapper {
@@ -285,17 +285,17 @@
 }
 
 .paid-benefits-section {
-  background: linear-gradient(90deg, #FFF8DC 60%, #FAF0E6 100%);
+  background: linear-gradient(90deg, #f5f1eb 60%, #e3cfa4 100%);
   border-radius: 18px;
   margin: 2.5rem auto 0 auto;
   padding: 2.5rem 1.5rem;
   max-width: 900px;
-  box-shadow: 0 2px 12px 0 rgba(200,159,156,0.08);
+  box-shadow: 0 2px 12px 0 rgba(181,160,121,0.08);
   text-align: left;
 }
 
 .paid-benefits-section h2 {
-  color: #232946;
+  color: #7d6a4d;
   font-size: 1.45rem;
   font-weight: 800;
   margin-bottom: 1.1rem;
@@ -309,7 +309,7 @@
 }
 
 .benefits-list li {
-  color: #6B4F4B;
+  color: #7d6a4d;
   font-size: 1.08rem;
   margin-bottom: 0.7rem;
 }
@@ -324,7 +324,7 @@
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(44, 62, 80, 0.25);
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -335,7 +335,7 @@
   border-radius: 16px;
   box-shadow: 0 8px 32px 0 rgba(44,62,80,0.18);
   padding: 2.5rem 2rem 2rem 2rem;
-  max-width: 350px;
+  max-width: 520px;
   text-align: center;
   position: relative;
   animation: modalPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -352,20 +352,20 @@
 }
 
 .confirmation-modal h3 {
-  color: #232946;
+  color: #7d6a4d;
   font-size: 1.3rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
 }
 
 .confirmation-modal p {
-  color: #374151;
+  color: #7d6a4d;
   font-size: 1.05rem;
   margin-bottom: 1.2rem;
 }
 
 .close-modal-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #b5a079, #e3cfa4);
   color: #fff;
   border: none;
   padding: 0.7rem 2.2rem;
@@ -374,10 +374,10 @@
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px -1px rgba(99,102,241,0.13);
+  box-shadow: 0 2px 8px -1px rgba(181,160,121,0.13);
 }
 
 .close-modal-btn:hover {
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: linear-gradient(135deg, #e3cfa4, #b5a079);
   transform: translateY(-2px) scale(1.04);
 } 

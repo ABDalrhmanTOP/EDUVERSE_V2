@@ -1,4 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body, .subscription-history-container {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.dynamic-bg {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 0;
+  background: linear-gradient(120deg, #f5f1eb 0%, #e3cfa4 50%, #b5a079 100%);
+  animation: bgMove 12s ease-in-out infinite alternate;
+  opacity: 0.18;
+  pointer-events: none;
+}
+@keyframes bgMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.horizontal-list {
+  scrollbar-width: none;
+}
+.horizontal-list::-webkit-scrollbar {
+  display: none;
+}
+.horizontal-list-arrows {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.arrow-btn {
+  background: rgba(181,160,121,0.13);
+  border: none;
+  border-radius: 50%;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  color: #b5a079;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.arrow-btn:hover {
+  background: #e3cfa4;
+  color: #fff;
+}
+.subscription-card {
+  border-radius: 28px;
+  border: 2.5px solid rgba(181,160,121,0.18);
+  box-shadow: 0 8px 32px 0 rgba(181,160,121,0.13), 0 1.5px 8px 0 rgba(107,79,75,0.07), 0 0 0 1.5px rgba(255,255,255,0.12) inset;
+  background: rgba(255,255,255,0.92);
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.25s cubic-bezier(.4,0,.2,1), opacity 0.5s;
+  will-change: transform, box-shadow, opacity;
+  min-width: 350px;
+  max-width: 400px;
+  flex-shrink: 0;
+  padding: 1.5rem;
+}
+.subscription-card:hover {
+  box-shadow: 0 16px 48px -8px rgba(181,160,121,0.22);
+  transform: translateY(-10px) scale(1.035) rotateZ(-1.5deg);
+  z-index: 2;
+}
+.subscription-card .view-details-btn {
+  display: none;
+  position: absolute;
+  bottom: 18px; right: 24px;
+  background: linear-gradient(90deg, #b5a079, #e3cfa4);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(181,160,121,0.13);
+  cursor: pointer;
+  opacity: 0.92;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.subscription-card:hover .view-details-btn {
+  display: block;
+  opacity: 1;
+  transform: translateY(-4px) scale(1.04);
+}
+.status-badge.active {
+  animation: pulseBadge 1.5s infinite alternate;
+}
+@keyframes pulseBadge {
+  0% { box-shadow: 0 0 0 0 rgba(181,160,121,0.18); }
+  100% { box-shadow: 0 0 0 8px rgba(181,160,121,0.08); }
+}
+.fa-crown, .fa-clock {
+  animation: iconPop 1.2s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes iconPop {
+  0% { transform: scale(0.7) rotate(-10deg); opacity: 0; }
+  60% { transform: scale(1.15) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #f5f1eb;
+  border-radius: 8px;
+  margin: 0.7rem 0 0.2rem 0;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(181,160,121,0.07);
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b5a079, #e3cfa4);
+  border-radius: 8px;
+  transition: width 0.7s cubic-bezier(.4,0,.2,1);
+}
 .subscription-history-container {
+  text-align: center;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
@@ -13,14 +126,14 @@
 
 .history-header h1 {
   font-size: 2.5rem;
-  color: #1f2937;
+  color: #b5a079;
   margin-bottom: 1rem;
   font-weight: 700;
 }
 
 .history-header p {
   font-size: 1.1rem;
-  color: #6b7280;
+  color: #7d6a4d;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -33,8 +146,8 @@
 .spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #6366f1;
+  border: 4px solid #7d6a4d;
+  border-top: 4px solid #b5a079;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -89,50 +202,648 @@
 .empty-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
+  color: #b5a079;
 }
 
 .empty-state h3 {
-  color: #1f2937;
+  color: #b5a079;
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
 
 .empty-state p {
-  color: #6b7280;
+  color: #7d6a4d;
   margin-bottom: 2rem;
-  font-size: 1.125rem;
+  font-size: 1.1rem;
 }
 
 .subscribe-now-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #b5a079, #e3cfa4);
   color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 8px;
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(181,160,121,0.13);
+}
+
+.subscribe-now-btn:hover {
+  background: linear-gradient(135deg, #e3cfa4, #b5a079);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(181,160,121,0.18);
+}
+
+/* حاوية التمرير الرئيسية */
+.subscriptions-section {
+  position: relative;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.subscriptions-list {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 2rem;
+}
+
+/* حاوية التمرير الداخلية */
+.subscriptions-scroll-container {
+  display: flex;
+  gap: 2.5rem;
+  overflow-x: auto;
+  padding: 1.5rem 0;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  margin: 0 70px; /* مساحة للأزرار */
+  position: relative;
+  z-index: 1;
+  -ms-overflow-style: none;
+  position: relative;
+}
+
+.subscriptions-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* أزرار التنقل */
+.scroll-navigation {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 10;
+}
+
+.scroll-nav-btn {
+  background: linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%);
+  border: 3px solid #b5a079;
+  color: #b5a079;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.2rem;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(181, 160, 121, 0.2);
+  pointer-events: auto;
+  z-index: 20;
+}
+
+.scroll-nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s ease;
+}
+
+.scroll-nav-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: #b5a079;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease;
+  z-index: -1;
+}
+
+.scroll-nav-btn:hover {
+  color: white;
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 24px rgba(181, 160, 121, 0.4);
+  border-color: #b5a079;
+}
+
+.scroll-nav-btn:hover::before {
+  left: 100%;
+}
+
+.scroll-nav-btn:hover::after {
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-nav-btn:active {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(181, 160, 121, 0.3);
+}
+
+.scroll-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.1);
+  border-color: #e3cfa4;
+}
+
+.scroll-nav-btn:disabled::before,
+.scroll-nav-btn:disabled::after {
+  display: none;
+}
+
+/* مؤشرات التمرير */
+.scroll-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+  padding: 0.8rem;
+  background: rgba(245, 241, 235, 0.6);
+  border: 2px solid #e3cfa4;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.1);
+}
+
+.scroll-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e3cfa4;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-indicator-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: #b5a079;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease;
+}
+
+.scroll-indicator-dot:hover {
+  transform: scale(1.3);
+  border-color: #b5a079;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.3);
+}
+
+.scroll-indicator-dot:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-indicator-dot.active {
+  background: #b5a079;
+  transform: scale(1.4);
+  box-shadow: 0 4px 12px rgba(181, 160, 121, 0.4);
+  border-color: #b5a079;
+}
+
+/* شريط التمرير المخصص */
+.custom-scrollbar {
+  position: relative;
+  height: 6px;
+  background: rgba(181, 160, 121, 0.1);
+  border-radius: 3px;
+  margin: 1rem 0;
+  overflow: hidden;
+  border: 1px solid #e3cfa4;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scrollbar-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #e3cfa4, #b5a079);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(181, 160, 121, 0.3);
+}
+
+.scrollbar-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* تعليمات التمرير */
+.scroll-instructions {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(245, 241, 235, 0.8), rgba(227, 207, 164, 0.3));
+  border: 2px solid #e3cfa4;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(181, 160, 121, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-instructions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: slide 3s infinite;
+}
+
+@keyframes slide {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+.scroll-instructions p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #7d6a4d;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+.subscription-card {
+  background: linear-gradient(135deg, #f5f1eb 0%, rgba(227, 207, 164, 0.3) 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 
+    0 8px 24px rgba(181, 160, 121, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 3px solid #e3cfa4;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 320px;
+  max-width: 380px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.subscription-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.subscription-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, transparent 0%, rgba(181, 160, 121, 0.05) 100%);
+  pointer-events: none;
+}
+
+.subscription-card:hover {
+  border-color: #b5a079;
+  box-shadow: 
+    0 12px 32px rgba(181, 160, 121, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-6px) scale(1.03);
+}
+
+.subscription-card:hover::before {
+  left: 100%;
+}
+
+/* تحسين التمرير الأفقي */
+.horizontal-scroll-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.horizontal-scroll-wrapper {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* أزرار التنقل */
+.scroll-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.scroll-btn {
+  background: rgba(181, 160, 121, 0.1);
+  border: 2px solid #b5a079;
+  color: #b5a079;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.scroll-btn:hover {
+  background: #b5a079;
+  color: white;
+  transform: scale(1.1);
+}
+
+.scroll-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* مؤشر التمرير */
+.scroll-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.scroll-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e3cfa4;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.subscribe-now-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px -3px rgba(99, 102, 241, 0.4);
+.scroll-dot.active {
+  background: #b5a079;
+  transform: scale(1.2);
 }
 
-.subscriptions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+/* تحسين عرض البطاقات للتمرير الأفقي */
+.subscription-card {
+  background: #f5f1eb;
+  border: 2px solid #e3cfa4;
+  color: #7d6a4d;
+  min-width: 320px;
+  max-width: 380px;
+  height: fit-content;
+}
+
+.subscription-card:hover {
+  border-color: #b5a079;
+  box-shadow: 0 8px 24px rgba(181,160,121,0.15);
+  transform: translateY(-4px);
+}
+
+/* تحسين التخطيط للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .subscriptions-scroll-container {
+    gap: 1rem;
+    padding: 0.5rem 0;
+    margin: 0 40px;
+  }
+  
+  .subscription-card {
+    min-width: 280px;
+    padding: 1.5rem;
+  }
+  
+  .scroll-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .scroll-navigation {
+    gap: 1rem;
+    padding: 0.8rem;
+  }
+  
+  .scroll-indicators {
+    gap: 0.6rem;
+    padding: 0.6rem;
+  }
+  
+  .scroll-indicator-dot {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar {
+    height: 4px;
+    margin: 0.8rem 0;
+  }
+  
+  .scroll-instructions {
+    padding: 0.8rem;
+  }
+  
+  .scroll-instructions p {
+    font-size: 0.8rem;
+  }
+}
+
+/* تحسين التمرير للأجهزة اللوحية */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .subscription-card {
+    min-width: 300px;
+  }
+  
+  .subscriptions-scroll-container {
+    gap: 1.5rem;
+  }
+  
+  .scroll-navigation {
+    gap: 1.2rem;
+  }
+  
+  .scroll-indicators {
+    gap: 0.7rem;
+  }
+  
+  .scroll-instructions {
+    padding: 1.2rem;
+  }
+  
+  .scroll-instructions p {
+    font-size: 0.95rem;
+  }
+}
+
+/* تحسينات للأجهزة الكبيرة */
+@media (min-width: 1200px) {
+  .subscriptions-scroll-container {
+    gap: 2.5rem;
+  }
+  
+  .subscription-card {
+    min-width: 350px;
+    max-width: 400px;
+  }
+  
+  .scroll-nav-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.4rem;
+  }
+  
+  .scroll-navigation {
+    gap: 2rem;
+  }
+  
+  .scroll-indicators {
+    gap: 1rem;
+  }
+  
+  .scroll-indicator-dot {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .custom-scrollbar {
+    height: 8px;
+    margin: 1.5rem 0;
+  }
+  
+  .scroll-instructions {
+    padding: 1.5rem;
+  }
+  
+  .scroll-instructions p {
+    font-size: 1rem;
+  }
+}
+
+/* تحسينات الأداء */
+.subscriptions-scroll-container {
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
 }
 
 .subscription-card {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* تحسين التمرير السلس */
+.subscriptions-scroll-container {
+  scroll-snap-type: x mandatory;
+}
+
+.subscription-card {
+  scroll-snap-align: start;
+}
+
+/* تأثيرات إضافية للتفاعل */
+.subscription-card:focus {
+  outline: none;
+  border-color: #b5a079;
+  box-shadow: 
+    0 0 0 3px rgba(181, 160, 121, 0.2),
+    0 12px 32px rgba(181, 160, 121, 0.25);
+}
+
+/* تحسين إمكانية الوصول */
+@media (prefers-reduced-motion: reduce) {
+  .subscription-card,
+  .scroll-nav-btn,
+  .scroll-indicator-dot {
+    transition: none;
+  }
+  
+  .subscription-card:hover {
+    transform: none;
+  }
+  
+  .scroll-nav-btn:hover {
+    transform: none;
+  }
+  
+  .scroll-indicator-dot:hover {
+    transform: none;
+  }
+}
+
+/* تحسينات للأجهزة الكبيرة */
+@media (min-width: 1200px) {
+  .subscriptions-scroll-container {
+    gap: 2.5rem;
+  }
+  
+  .subscription-card {
+    min-width: 350px;
+    max-width: 400px;
+  }
+  
+  .scroll-nav-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.4rem;
+  }
+  
+  .scroll-navigation {
+    gap: 2rem;
+  }
+  
+  .scroll-indicators {
+    gap: 1rem;
+  }
+  
+  .scroll-indicator-dot {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .custom-scrollbar {
+    height: 8px;
+    margin: 1.5rem 0;
+  }
 }
 
 .subscription-header {
@@ -141,29 +852,28 @@
   align-items: flex-start;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #f3f4f6;
+  border-bottom: 1px solid #f5f1eb;
 }
 
 .plan-info h3 {
-  color: #1f2937;
-  font-size: 1.5rem;
+  color: #b5a079;
+  font-size: 1.25rem;
+  font-weight: 700;
   margin-bottom: 0.5rem;
-  font-weight: 600;
 }
 
 .plan-description {
-  color: #6b7280;
-  font-size: 1rem;
+  color: #7d6a4d;
+  font-size: 0.9rem;
 }
 
 .status-badge {
-  color: white;
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  text-align: center;
-  min-width: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .subscription-details {
@@ -175,7 +885,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f5f1eb;
 }
 
 .detail-row:last-child {
@@ -183,61 +893,65 @@
 }
 
 .detail-label {
-  color: #6b7280;
-  font-weight: 500;
+  color: #7d6a4d;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .detail-value {
-  color: #374151;
-  font-weight: 600;
+  color: #b5a079;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .transaction-id {
-  font-family: monospace;
-  background: #f3f4f6;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #7d6a4d;
+  background: #f5f1eb;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.875rem;
 }
 
 .subscription-actions {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid #f3f4f6;
+  padding-top: 1rem;
+  border-top: 1px solid #f5f1eb;
 }
 
 .action-btn {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 2px solid;
+  border: none;
   border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .cancel-btn {
-  background: white;
-  border-color: #ef4444;
-  color: #ef4444;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .cancel-btn:hover {
-  background: #ef4444;
-  color: white;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .upgrade-btn {
-  background: white;
-  border-color: #6366f1;
-  color: #6366f1;
+  background: #f0f9ff;
+  color: #0ea5e9;
+  border: 1px solid #bae6fd;
 }
 
 .upgrade-btn:hover {
-  background: #6366f1;
-  color: white;
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .cancellation-info {
@@ -250,75 +964,1158 @@
 
 .cancellation-info p {
   color: #991b1b;
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .history-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
-  margin-top: 3rem;
+  margin-bottom: 3rem;
 }
 
 .summary-card {
   background: white;
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: center;
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e3cfa4;
 }
 
 .summary-card h4 {
-  color: #6b7280;
+  color: #7d6a4d;
   margin-bottom: 1rem;
   font-size: 1rem;
   font-weight: 500;
 }
 
 .total-amount {
-  color: #10b981;
+  color: #b5a079;
   font-size: 2rem;
   font-weight: 700;
 }
 
 .total-count {
-  color: #6366f1;
+  color: #b5a079;
   font-size: 2rem;
   font-weight: 700;
 }
 
 .current-status {
-  color: #1f2937;
+  color: #b5a079;
   font-size: 1.5rem;
   font-weight: 600;
 }
 
+/* إضافة CSS للعناصر الجديدة */
+.current-subscription-card {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%);
+  border-radius: 12px;
+  color: #7d6a4d;
+}
+
+.current-subscription-card h2 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #b5a079;
+}
+
+.current-subscription-card .subscription-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.current-subscription-card .subscription-header h3 {
+  color: #b5a079;
+}
+
+.current-subscription-card .plan-description {
+  color: #7d6a4d;
+}
+
+.current-subscription-card .detail-label {
+  color: #7d6a4d;
+}
+
+.current-subscription-card .detail-value {
+  color: #b5a079;
+  font-weight: 600;
+}
+
+.current-subscription-card .action-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #7d6a4d;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.current-subscription-card .action-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ميزات الاشتراك */
+.subscription-features {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(245, 241, 235, 0.5);
+  border-radius: 12px;
+  border: 1px solid #e3cfa4;
+}
+
+.subscription-features h4 {
+  color: #b5a079;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+
+.subscription-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.subscription-features li {
+  color: #7d6a4d;
+  font-size: 0.9rem;
+  padding: 0.3rem 0;
+  position: relative;
+  padding-right: 1.2rem;
+}
+
+.subscription-features li::before {
+  content: '✓';
+  position: absolute;
+  right: 0;
+  color: #b5a079;
+  font-weight: bold;
+}
+
+/* معلومات التنقل */
+.scroll-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #e3cfa4;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.1);
+}
+
+.scroll-text {
+  font-size: 0.9rem;
+  color: #7d6a4d;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+}
+
+.scroll-icons {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.scroll-icon {
+  color: #b5a079;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.scroll-icon:hover {
+  color: #7d6a4d;
+  transform: scale(1.2);
+}
+
+/* تحسينات عامة */
+.subscription-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid #e3cfa4;
+  cursor: pointer;
+}
+
+.subscription-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 
+    0 12px 32px rgba(181, 160, 121, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.subscription-card.active {
+  border-color: #b5a079;
+  background: linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%);
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* تأثيرات التمرير */
+.subscription-card.scrolling {
+  transition: transform 0.1s ease;
+}
+
+.subscription-card.scrolling:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* تحسين التفاعل مع التمرير */
+.subscriptions-scroll-container:active .subscription-card {
+  transition: transform 0.1s ease;
+}
+
+.subscriptions-scroll-container:active .subscription-card:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #7d6a4d;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #b5a079;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.subscription-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.cancel-btn {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.cancel-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.upgrade-btn {
+  background: #f0f9ff;
+  color: #0ea5e9;
+  border: 1px solid #bae6fd;
+}
+
+.upgrade-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.glassy {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 8px 32px rgba(181,160,121,0.08), 0 1.5px 8px 0 rgba(107,79,75,0.07);
+  border: 2px solid #e0e7ef;
+}
+.glassy-accent {
+  border: 2.5px solid #b5a079;
+  box-shadow: 0 8px 32px rgba(181,160,121,0.13);
+  background: rgba(255,255,255,0.92);
+}
+.gradient-text {
+  background: linear-gradient(90deg, #b5a079, #e3cfa4, #f5f1eb, #b5a079);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: gradientMove 4s ease-in-out infinite;
+}
+@keyframes gradientMove {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.accent {
+  color: #b5a079 !important;
+  font-weight: 700;
+}
+.gradient-btn {
+  background: linear-gradient(135deg, #b5a079 0%, #e3cfa4 50%, #f5f1eb 100%);
+  background-size: 200% 200%;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(181,160,121,0.13);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.gradient-btn:hover {
+  background-position: 100% 0;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(181,160,121,0.18);
+}
+
+.empty-state {
+  background: #f5f1eb;
+  border: 2px solid #e3cfa4;
+  color: #7d6a4d;
+}
+
+.subscription-card {
+  background: #f5f1eb;
+  border: 2px solid #e3cfa4;
+  color: #7d6a4d;
+}
+
+.subscription-card:hover {
+  border-color: #b5a079;
+  box-shadow: 0 8px 24px rgba(181,160,121,0.15);
+}
+
+.status-badge {
+  background: #b5a079;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e3cfa4;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.horizontal-list {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 1rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.horizontal-list::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-list::-webkit-scrollbar-thumb {
+  background: #b5a079;
+  border-radius: 4px;
+}
+
+.horizontal-list::-webkit-scrollbar-track {
+  background: #f5f1eb;
+}
+
+.subscription-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(181,160,121,0.15);
+}
+
+.subscription-card.expired {
+  opacity: 0.7;
+  background: #f5f1eb;
+}
+
+.transaction-id[title] {
+  cursor: help;
+  position: relative;
+}
+
+.transaction-id[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #7d6a4d;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.status-badge svg {
+  margin-right: 0.25rem;
+}
+
+.plan-info .fa-crown {
+  color: #b5a079;
+  margin-right: 0.5rem;
+}
+
+.plan-info .fa-clock {
+  color: #7d6a4d;
+  margin-right: 0.5rem;
+} 
+
+/* تحسينات إضافية للتمرير الأفقي */
+.section-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-title h3 {
+  color: #b5a079;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  position: relative;
+  display: inline-block;
+}
+
+.section-title h3::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #b5a079, #e3cfa4);
+  border-radius: 2px;
+}
+
+.scroll-instructions {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(245, 241, 235, 0.5);
+  border-radius: 12px;
+  border: 1px solid #e3cfa4;
+}
+
+.scroll-instructions p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #7d6a4d;
+  font-style: italic;
+}
+
+/* تحسين أزرار التنقل */
+.scroll-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.scroll-btn {
+  background: rgba(181, 160, 121, 0.1);
+  border: 2px solid #b5a079;
+  color: #b5a079;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: #b5a079;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.scroll-btn:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-btn:hover {
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(181, 160, 121, 0.3);
+}
+
+.scroll-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.scroll-btn:disabled::before {
+  display: none;
+}
+
+/* تحسين مؤشرات التمرير */
+.scroll-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+  padding: 0.5rem;
+}
+
+.scroll-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e3cfa4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+  position: relative;
+}
+
+.scroll-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  background: #b5a079;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.scroll-dot:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-dot.active {
+  background: #b5a079;
+  transform: scale(1.3);
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.3);
+}
+
+/* تحسين حاوية التمرير */
+.horizontal-scroll-wrapper {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* تأثيرات إضافية للبطاقات */
+.subscription-card {
+  background: #f5f1eb;
+  border: 2px solid #e3cfa4;
+  color: #7d6a4d;
+  min-width: 320px;
+  max-width: 380px;
+  height: fit-content;
+  position: relative;
+  overflow: hidden;
+}
+
+.subscription-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.subscription-card:hover::before {
+  left: 100%;
+}
+
+.subscription-card:hover {
+  border-color: #b5a079;
+  box-shadow: 0 8px 24px rgba(181,160,121,0.15);
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* تحسين التخطيط للشاشات الصغيرة */
 @media (max-width: 768px) {
-  .subscription-history-container {
-    padding: 1rem;
+  .section-title h3 {
+    font-size: 1.5rem;
   }
   
-  .history-header h1 {
-    font-size: 2rem;
+  .scroll-nav {
+    gap: 1rem;
+    margin: 1.5rem 0;
   }
   
-  .subscription-header {
-    flex-direction: column;
+  .scroll-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .horizontal-scroll-wrapper {
     gap: 1rem;
   }
   
-  .subscription-actions {
-    flex-direction: column;
+  .subscription-card {
+    min-width: 280px;
+    padding: 1.5rem;
   }
   
-  .history-summary {
-    grid-template-columns: 1fr;
+  .scroll-instructions {
+    margin-top: 1rem;
+    padding: 0.8rem;
   }
   
-  .detail-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
+  .scroll-instructions p {
+    font-size: 0.8rem;
   }
+}
+
+/* تحسين التمرير للأجهزة اللوحية */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .subscription-card {
+    min-width: 300px;
+  }
+  
+  .horizontal-scroll-wrapper {
+    gap: 1.5rem;
+  }
+  
+  .scroll-nav {
+    gap: 1.2rem;
+  }
+}
+
+ 
+
+
+
+
+
+/* إضافة مؤشر التمرير المخصص */
+.custom-scrollbar {
+  position: relative;
+  height: 6px;
+  background: rgba(181, 160, 121, 0.1);
+  border-radius: 3px;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.scrollbar-track {
+  height: 100%;
+  background: linear-gradient(90deg, #e3cfa4, #b5a079);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.scrollbar-track::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* تحسين مؤشرات التمرير */
+.scroll-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: rgba(245, 241, 235, 0.6);
+  border: 2px solid #e3cfa4;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.1);
+}
+
+.scroll-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e3cfa4;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: #b5a079;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease;
+}
+
+.scroll-dot:hover {
+  transform: scale(1.3);
+  border-color: #b5a079;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.3);
+}
+
+.scroll-dot:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-dot.active {
+  background: #b5a079;
+  transform: scale(1.4);
+  box-shadow: 0 4px 12px rgba(181, 160, 121, 0.4);
+  border-color: #b5a079;
+}
+
+/* تحسين تعليمات التمرير */
+.scroll-instructions {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(245, 241, 235, 0.8), rgba(227, 207, 164, 0.3));
+  border: 2px solid #e3cfa4;
+  border-radius: 15px;
+  box-shadow: 0 4px 16px rgba(181, 160, 121, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-instructions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: slide 3s infinite;
+}
+
+@keyframes slide {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+.scroll-instructions p {
+  margin: 0;
+  font-size: 1rem;
+  color: #7d6a4d;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+/* تحسين البطاقات مع حدود */
+.subscription-card {
+  background: linear-gradient(135deg, #f5f1eb 0%, rgba(227, 207, 164, 0.3) 100%);
+  border: 3px solid #e3cfa4;
+  color: #7d6a4d;
+  min-width: 320px;
+  max-width: 380px;
+  height: fit-content;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 24px rgba(181, 160, 121, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subscription-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.subscription-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, transparent 0%, rgba(181, 160, 121, 0.05) 100%);
+  pointer-events: none;
+}
+
+.subscription-card:hover {
+  border-color: #b5a079;
+  box-shadow: 
+    0 12px 32px rgba(181, 160, 121, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-6px) scale(1.03);
+}
+
+.subscription-card:hover::before {
+  left: 100%;
+}
+
+/* تحسين التخطيط للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .scroll-nav {
+    gap: 1.5rem;
+    margin: 2rem 0;
+    padding: 1rem;
+  }
+  
+  .scroll-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+  
+  .horizontal-scroll-container {
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  
+  .horizontal-scroll-wrapper {
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+  
+  .subscription-card {
+    min-width: 280px;
+    padding: 1.5rem;
+  }
+  
+  .scroll-instructions {
+    margin-top: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .scroll-instructions p {
+    font-size: 0.9rem;
+  }
+  
+  .scroll-indicator {
+    gap: 0.8rem;
+    padding: 0.8rem;
+  }
+  
+  .scroll-dot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* تحسين التمرير للأجهزة اللوحية */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .subscription-card {
+    min-width: 300px;
+  }
+  
+  .horizontal-scroll-wrapper {
+    gap: 2rem;
+  }
+  
+  .scroll-nav {
+    gap: 1.8rem;
+  }
+}
+
+/* تحسينات للأجهزة الكبيرة */
+@media (min-width: 1200px) {
+  .horizontal-scroll-wrapper {
+    gap: 3rem;
+  }
+  
+  .subscription-card {
+    min-width: 350px;
+    max-width: 400px;
+  }
+  
+  .scroll-btn {
+    width: 65px;
+    height: 65px;
+    font-size: 1.5rem;
+  }
+  
+  .scroll-nav {
+    gap: 2.5rem;
+  }
+} 
+
+/* تحسين معلومات التنقل */
+.scroll-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #e3cfa4;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(181, 160, 121, 0.1);
+}
+
+.scroll-text {
+  font-size: 0.9rem;
+  color: #7d6a4d;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+}
+
+.scroll-icons {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.scroll-icon {
+  color: #b5a079;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.scroll-icon:hover {
+  color: #7d6a4d;
+  transform: scale(1.2);
+}
+
+/* تحسين مؤشر التمرير المخصص */
+.custom-scrollbar {
+  position: relative;
+  height: 8px;
+  background: rgba(181, 160, 121, 0.1);
+  border-radius: 4px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border: 1px solid #e3cfa4;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scrollbar-track {
+  height: 100%;
+  background: linear-gradient(90deg, #e3cfa4, #b5a079);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(181, 160, 121, 0.3);
+}
+
+.scrollbar-track::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* تحسين أزرار التنقل للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .scroll-nav {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .scroll-info {
+    order: -1;
+    padding: 0.3rem 0.8rem;
+  }
+  
+  .scroll-text {
+    font-size: 0.8rem;
+  }
+  
+  .scroll-icons {
+    gap: 0.6rem;
+  }
+  
+  .scroll-icon {
+    font-size: 0.9rem;
+  }
+  
+  .custom-scrollbar {
+    height: 6px;
+    margin: 1rem 0;
+  }
+}
+
+/* تحسينات للأجهزة اللوحية */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .scroll-info {
+    padding: 0.4rem 0.9rem;
+  }
+  
+  .scroll-text {
+    font-size: 0.85rem;
+  }
+}
+
+/* تحسينات للأجهزة الكبيرة */
+@media (min-width: 1200px) {
+  .scroll-info {
+    padding: 0.6rem 1.2rem;
+  }
+  
+  .scroll-text {
+    font-size: 1rem;
+  }
+  
+  .scroll-icons {
+    gap: 1rem;
+  }
+  
+  .scroll-icon {
+    font-size: 1.1rem;
+  }
+  
+  .custom-scrollbar {
+    height: 10px;
+    margin: 2rem 0;
+  }
+}
+
+/* تحسين أزرار الإجراءات */
+.subscription-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f5f1eb;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-btn svg {
+  font-size: 0.8rem;
+}
+
+.upgrade-btn {
+  background: linear-gradient(135deg, #b5a079, #e3cfa4);
+  color: white;
+  border: 1px solid #b5a079;
+}
+
+.upgrade-btn:hover {
+  background: linear-gradient(135deg, #e3cfa4, #b5a079);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(181, 160, 121, 0.3);
+}
+
+.cancel-btn {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.cancel-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 } 

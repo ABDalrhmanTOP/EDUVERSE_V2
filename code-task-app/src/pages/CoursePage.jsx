@@ -14,6 +14,14 @@ const CoursePage = () => {
   const [tasks, setTasks] = useState([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [completedTasks, setCompletedTasks] = useState([]);
+  const [locked, setLocked] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(true);
+
+  // لنفترض أن course.is_paid موجودة
+  // ولنفرض أن لديك دالة أو متغير isSubscribed يحدد اشتراك المستخدم
+  const isSubscribed = false; // عدّل هذا حسب منطقك
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -25,6 +33,7 @@ const CoursePage = () => {
         const courseResponse = await axios.get(`/courses/${courseId}`);
         const courseData = courseResponse.data;
         setCourse(courseData);
+        setIsUnlocked(courseData.is_unlocked || false);
         
         // Use tasks that are already included in the course data
         const sortedTasks = (courseData.tasks || []).sort(
@@ -36,11 +45,22 @@ const CoursePage = () => {
         );
         setTasks(sortedTasks);
         
+        // Fetch subscription status if course is paid
+        if (courseData.paid) {
+          try {
+            const subscriptionResponse = await axios.get('/subscription/status');
+            setSubscriptionStatus(subscriptionResponse.data);
+          } catch (err) {
+            console.error('Error fetching subscription status:', err);
+          }
+        }
+        
       } catch (err) {
         console.error("Error fetching course data:", err);
         setError("Failed to load course. Please try again.");
       } finally {
         setLoading(false);
+        setLoadingSubscription(false);
       }
     };
 
@@ -48,6 +68,16 @@ const CoursePage = () => {
       fetchCourseData();
     }
   }, [courseId]);
+
+  const handleUnlockCourse = async () => {
+    try {
+      await axios.post(`/courses/${course.id}/unlock`);
+      setIsUnlocked(true);
+      alert("Course unlocked successfully!");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to unlock course.");
+    }
+  };
 
   const handleTaskComplete = (taskId) => {
     setCompletedTasks(prev => [...prev, taskId]);
@@ -105,18 +135,140 @@ const CoursePage = () => {
     );
   }
 
+  if (locked) {
+    return (
+      <div style={{ marginTop: "80px", textAlign: "center" }}>
+        <h2>تم قفل الفيديو</h2>
+        <p>للمتابعة، يرجى الاشتراك في الكورس.</p>
+        <button onClick={() => navigate("/subscription")}>اشترك الآن</button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginTop: "80px", padding: "0 20px" }}>
+      {course.paid && !isUnlocked && (
+        <div style={{ margin: "20px 0", textAlign: "center" }}>
+          {subscriptionStatus && subscriptionStatus.has_active_subscription ? (
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ 
+                padding: "15px", 
+                backgroundColor: "#f0f9ff", 
+                border: "1px solid #0ea5e9", 
+                borderRadius: "8px",
+                marginBottom: "15px"
+              }}>
+                <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>
+                  معلومات الاشتراك
+                </h4>
+                <p style={{ margin: "5px 0", color: "#0369a1" }}>
+                  الخطة: {subscriptionStatus.subscription.plan_name}
+                </p>
+                <p style={{ margin: "5px 0", color: "#0369a1" }}>
+                  الكورسات المتبقية: {subscriptionStatus.remaining_courses} من {subscriptionStatus.total_allowed_courses}
+                </p>
+                <p style={{ margin: "5px 0", color: "#0369a1" }}>
+                  تاريخ انتهاء الاشتراك: {new Date(subscriptionStatus.subscription.end_date).toLocaleDateString('ar-SA')}
+                </p>
+              </div>
+              {subscriptionStatus.remaining_courses > 0 ? (
+                <button
+                  onClick={handleUnlockCourse}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#28a745",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                    fontWeight: "bold"
+                  }}
+                >
+                  فتح هذا الكورس ({subscriptionStatus.remaining_courses} كورسات متبقية)
+                </button>
+              ) : (
+                <div style={{ 
+                  padding: "15px", 
+                  backgroundColor: "#fef2f2", 
+                  border: "1px solid #ef4444", 
+                  borderRadius: "8px",
+                  color: "#dc2626"
+                }}>
+                  <p style={{ margin: "0", fontWeight: "bold" }}>
+                    لا توجد كورسات متبقية في اشتراكك الحالي
+                  </p>
+                  <p style={{ margin: "10px 0 0 0" }}>
+                    يمكنك ترقية اشتراكك أو شراء خطة جديدة
+                  </p>
+                  <button 
+                    onClick={() => navigate("/subscription-plans")}
+                    style={{
+                      marginTop: "10px",
+                      padding: "8px 16px",
+                      backgroundColor: "#dc2626",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    ترقية الاشتراك
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ 
+              padding: "20px", 
+              backgroundColor: "#fef2f2", 
+              border: "1px solid #ef4444", 
+              borderRadius: "8px",
+              marginBottom: "20px"
+            }}>
+              <h3 style={{ margin: "0 0 15px 0", color: "#dc2626" }}>
+                هذا الكورس يتطلب اشتراك
+              </h3>
+              <p style={{ margin: "0 0 15px 0", color: "#991b1b" }}>
+                للوصول إلى هذا الكورس، يرجى الاشتراك في إحدى خططنا
+              </p>
+              <button 
+                onClick={() => navigate("/subscription-plans")}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  fontWeight: "bold"
+                }}
+              >
+                اشترك الآن
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {(!course.paid || isUnlocked) ? (
+        <>
       <YouTubeEmbed 
         videoId={course.video_id} 
-        playlistId={course.id} 
+        playlistId={course.id}
         tasks={tasks}
         onTaskComplete={handleTaskComplete}
       />
-      {/* Optionally, you can include the Playlists sidebar if needed */}
       <div style={{ marginTop: "20px" }}>
         <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
       </div>
+        </>
+      ) : (
+        <div style={{ textAlign: "center", marginTop: "40px" }}>
+          <h2>This course is locked</h2>
+          <p>Please unlock this course to access its content.</p>
+        </div>
+      )}
     </div>
   );
 };

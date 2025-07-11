@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Playlist;
 
 class User extends Authenticatable
 {
@@ -83,5 +84,39 @@ class User extends Authenticatable
     public function Result()
     {
         return $this->hasMany(Result::class);
+    }
+
+    public function unlockedCourses()
+    {
+        return $this->belongsToMany(\App\Models\Playlist::class, 'user_course_unlocks', 'user_id', 'course_id')->withTimestamps()->withPivot('unlocked_at');
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(\App\Models\Subscription::class)
+            ->where('status', 'active')
+            ->where('end_date', '>', now());
+    }
+
+    /**
+     * فحص ما إذا كان المستخدم لديه اشتراك نشط
+     */
+    public function hasActiveSubscription()
+    {
+        return $this->activeSubscription()->exists();
+    }
+
+    /**
+     * الحصول على عدد الكورسات المتبقية للمستخدم
+     */
+    public function getRemainingCourses()
+    {
+        $subscription = $this->activeSubscription()->first();
+        if (!$subscription) {
+            return 0;
+        }
+
+        $usedCourses = $this->unlockedCourses()->count();
+        return max(0, $subscription->allowed_courses - $usedCourses);
     }
 }

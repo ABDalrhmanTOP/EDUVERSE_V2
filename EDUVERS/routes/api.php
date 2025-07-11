@@ -92,6 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Course routes
     Route::get('/courses', [CourseController::class, 'index']);
     Route::get('/courses/{id}', [CourseController::class, 'show']);
+    Route::middleware('auth:sanctum')->post('/courses/{course}/unlock', [App\Http\Controllers\CourseController::class, 'unlockCourse']);
 
     // Playlist routes
     Route::get('/playlists/{id}/videos', [PlaylistController::class, 'getVideos']);
@@ -131,12 +132,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/notifications/settings', [NotificationController::class, 'updateSettings']);
 
     // Stripe Payment Routes
-    Route::post('/create-payment-intent', [StripeController::class, 'createPaymentIntent']);
-    Route::post('/update-subscription', [StripeController::class, 'updateSubscription']);
-    Route::get('/subscription-history', [StripeController::class, 'getSubscriptionHistory']);
-    Route::get('/current-subscription', [StripeController::class, 'getCurrentSubscription']);
-    Route::post('/cancel-subscription/{subscriptionId}', [StripeController::class, 'cancelSubscription']);
     Route::post('/checkout', [StripeController::class, 'checkout']);
+    Route::get('/subscription/status', [StripeController::class, 'getSubscriptionStatus']);
+    Route::get('/subscription-history', [StripeController::class, 'getSubscriptionHistory']);
 
     // كورسات الاشتراكات النشطة وحذف اشتراك كورس
     Route::get('/subscriptions/active-courses', [StripeController::class, 'activeCourses']);
