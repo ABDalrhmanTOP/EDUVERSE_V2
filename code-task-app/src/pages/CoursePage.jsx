@@ -210,9 +210,9 @@ const CoursePage = () => {
   if (locked) {
     return (
       <div style={{ marginTop: "80px", textAlign: "center" }}>
-        <h2>تم قفل الفيديو</h2>
-        <p>للمتابعة، يرجى الاشتراك في الكورس.</p>
-        <button onClick={() => navigate("/subscription")}>اشترك الآن</button>
+        <h2>Video Locked</h2>
+        <p>To continue, please subscribe to the course.</p>
+        <button onClick={() => navigate("/subscription")}>Subscribe Now</button>
       </div>
     );
   }
@@ -235,16 +235,16 @@ const CoursePage = () => {
                 marginBottom: "15px"
               }}>
                 <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>
-                  معلومات الاشتراك
+                  Subscription Information
                 </h4>
                 <p style={{ margin: "5px 0", color: "#0369a1" }}>
-                  الخطة: {subscriptionStatus.subscription.plan_name}
+                  Plan: {subscriptionStatus.subscription.plan_name}
                 </p>
                 <p style={{ margin: "5px 0", color: "#0369a1" }}>
-                  الكورسات المتبقية: {subscriptionStatus.remaining_courses} من {subscriptionStatus.total_allowed_courses}
+                  Remaining Courses: {subscriptionStatus.remaining_courses} of {subscriptionStatus.total_allowed_courses}
                 </p>
                 <p style={{ margin: "5px 0", color: "#0369a1" }}>
-                  تاريخ انتهاء الاشتراك: {new Date(subscriptionStatus.subscription.end_date).toLocaleDateString('ar-SA')}
+                  Subscription End Date: {new Date(subscriptionStatus.subscription.end_date).toLocaleDateString('en-US')}
                 </p>
               </div>
               {subscriptionStatus.remaining_courses > 0 ? (
@@ -261,7 +261,7 @@ const CoursePage = () => {
                     fontWeight: "bold"
                   }}
                 >
-                  فتح هذا الكورس ({subscriptionStatus.remaining_courses} كورسات متبقية)
+                  Unlock this course ({subscriptionStatus.remaining_courses} courses remaining)
                 </button>
               ) : (
                 <div style={{ 
@@ -272,10 +272,10 @@ const CoursePage = () => {
                   color: "#dc2626"
                 }}>
                   <p style={{ margin: "0", fontWeight: "bold" }}>
-                    لا توجد كورسات متبقية في اشتراكك الحالي
+                    No remaining courses in your current subscription
                   </p>
                   <p style={{ margin: "10px 0 0 0" }}>
-                    يمكنك ترقية اشتراكك أو شراء خطة جديدة
+                    You can upgrade your subscription or purchase a new plan
                   </p>
                   <button 
                     onClick={() => navigate("/subscription-plans")}
@@ -289,7 +289,7 @@ const CoursePage = () => {
                       cursor: "pointer"
                     }}
                   >
-                    ترقية الاشتراك
+                    Upgrade Subscription
                   </button>
                 </div>
               )}
@@ -303,10 +303,10 @@ const CoursePage = () => {
               marginBottom: "20px"
             }}>
               <h3 style={{ margin: "0 0 15px 0", color: "#dc2626" }}>
-                هذا الكورس يتطلب اشتراك
+                This course requires a subscription
               </h3>
               <p style={{ margin: "0 0 15px 0", color: "#991b1b" }}>
-                للوصول إلى هذا الكورس، يرجى الاشتراك في إحدى خططنا
+                To access this course, please subscribe to one of our plans
               </p>
               <button 
                 onClick={() => navigate("/subscription-plans")}
@@ -321,7 +321,7 @@ const CoursePage = () => {
                   fontWeight: "bold"
                 }}
               >
-                اشترك الآن
+                Subscribe Now
               </button>
             </div>
           )}

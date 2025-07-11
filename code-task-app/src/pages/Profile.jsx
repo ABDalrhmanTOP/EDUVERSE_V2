@@ -150,7 +150,7 @@ const Profile = () => {
   useEffect(() => {
     if (activeTab === "course") {
       setActiveCoursesLoading(true);
-      fetchActiveCourses().then(setActiveCourses).catch(()=>setActiveCoursesError("فشل تحميل الكورسات النشطة"))
+      fetchActiveCourses().then(setActiveCourses).catch(()=>setActiveCoursesError("Failed to load active courses"))
         .finally(()=>setActiveCoursesLoading(false));
     }
   }, [activeTab]);
@@ -700,10 +700,10 @@ const Profile = () => {
                 )}
                 {activeTab === "course" && (
                   <section className="active-courses-section">
-                    <h2>كورساتك النشطة</h2>
-                    {activeCoursesLoading ? <div>جاري التحميل...</div> :
+                    <h2>Your Active Courses</h2>
+                    {activeCoursesLoading ? <div>Loading...</div> :
                       activeCoursesError ? <div className="form-message error">{activeCoursesError}</div> :
-                      activeCourses.length === 0 ? <div>لا توجد كورسات نشطة</div> :
+                      activeCourses.length === 0 ? <div>No active courses</div> :
                       <ul className="active-courses-list">
                         {activeCourses.map(course => (
                           <li key={course.id} className="active-course-item">
@@ -711,7 +711,7 @@ const Profile = () => {
                             <button className="button secondary small" onClick={async()=>{
                               await removeCourseSubscription(course.id);
                               setActiveCourses(activeCourses.filter(c=>c.id!==course.id));
-                            }}>حذف الاشتراك</button>
+                            }}>Remove Subscription</button>
                           </li>
                         ))}
                       </ul>

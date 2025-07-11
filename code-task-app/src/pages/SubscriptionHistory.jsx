@@ -117,6 +117,20 @@ const SubscriptionHistory = () => {
     }).format(amount / 100);
   };
 
+  // Calculate total subscriptions
+  // Ensure the amount is a valid number
+  // Calculate total active subscriptions only
+  // Calculate total remaining courses from all active subscriptions
+  // Add remaining courses from the current subscription
+  // Add remaining courses from other active subscriptions
+  // One course available for each active subscription
+  // Calculate total used courses from all active subscriptions
+  // Add used courses from the current subscription
+  // Add used courses from other active subscriptions
+  // Calculate total active subscriptions (each active subscription = one course)
+  // Add the current subscription if active
+  // Add other active subscriptions
+  // Decorative background
   // حساب مجموع الاشتراكات
   const calculateTotalSubscriptions = () => {
     if (!subscriptions || subscriptions.length === 0) return 0;
