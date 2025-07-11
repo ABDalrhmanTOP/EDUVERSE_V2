@@ -114,6 +114,7 @@ class UserProgressController extends Controller
             $request->validate([
                 'task_id' => 'required|integer',
                 'playlist_id' => 'required|integer',
+                'video_id' => 'required|string',
             ]);
 
             $user = Auth::user();
@@ -123,6 +124,7 @@ class UserProgressController extends Controller
 
             $taskId = $request->input('task_id');
             $playlistId = $request->input('playlist_id');
+            $videoId = $request->input('video_id');
 
             // Find or create progress record
             $progress = UserProgress::where('user_id', $user->id)
@@ -133,10 +135,15 @@ class UserProgressController extends Controller
                 $progress = UserProgress::create([
                     'user_id' => $user->id,
                     'playlist_id' => $playlistId,
-                    'video_id' => '', // Will be updated when video progress is saved
+                    'video_id' => $videoId,
                     'last_timestamp' => '00:00:00',
                     'completed_tasks' => [],
                 ]);
+            } else {
+                // Update video_id if it's empty or different
+                if (empty($progress->video_id) || $progress->video_id !== $videoId) {
+                    $progress->update(['video_id' => $videoId]);
+                }
             }
 
             // Ensure completed_tasks is an array
@@ -193,6 +200,50 @@ class UserProgressController extends Controller
             return response()->json(['message' => 'Progress updated successfully']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to update progress'], 500);
+        }
+    }
+
+    /**
+     * Get completed tasks for a specific playlist and video.
+     */
+    public function getCompletedTasks(Request $request)
+    {
+        try {
+            $request->validate([
+                'playlist_id' => 'required|integer',
+                'video_id' => 'required|string',
+            ]);
+
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            $playlistId = $request->input('playlist_id');
+            $videoId = $request->input('video_id');
+
+            // Find progress record
+            $progress = UserProgress::where('user_id', $user->id)
+                ->where('playlist_id', $playlistId)
+                ->where('video_id', $videoId)
+                ->first();
+
+            if (!$progress) {
+                return response()->json([
+                    'status' => 'success',
+                    'completed_tasks' => []
+                ]);
+            }
+
+            // Ensure completed_tasks is an array
+            $completedTasks = is_array($progress->completed_tasks) ? $progress->completed_tasks : [];
+
+            return response()->json([
+                'status' => 'success',
+                'completed_tasks' => $completedTasks
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to get completed tasks'], 500);
         }
     }
 
@@ -259,5 +310,95 @@ class UserProgressController extends Controller
             'total_lessons'        => $totalLessons,
             'certificates_earned'  => $certificatesEarned,
         ], 200);
+    }
+
+    /**
+     * Store user answer and check correctness for MCQ and True/False tasks.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'task_id' => 'required|integer',
+            'answer' => 'required',
+            'playlist_id' => 'required|integer',
+        ]);
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $task = Task::find($validated['task_id']);
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        $userAnswer = trim(strtolower($validated['answer']));
+        $correct = false;
+        $message = '';
+
+        if ($task->type === 'mcq') {
+            // For MCQ, expected_output contains the correct option key (like "A", "B", etc.)
+            $expected = trim(strtolower($task->expected_output));
+            $correct = ($userAnswer === $expected);
+        } elseif ($task->type === 'truefalse') {
+            // For True/False, expected_output contains the correct answer ("true" or "false")
+            $expected = trim(strtolower($task->expected_output));
+            $correct = ($userAnswer === $expected);
+        } else {
+            // For other types, just return not supported
+            return response()->json(['error' => 'Task type not supported for answer checking'], 400);
+        }
+
+        if ($correct) {
+            // Mark task as completed for user
+            $progress = UserProgress::where('user_id', $user->id)
+                ->where('playlist_id', $validated['playlist_id'])
+                ->first();
+            if (!$progress) {
+                $progress = UserProgress::create([
+                    'user_id' => $user->id,
+                    'playlist_id' => $validated['playlist_id'],
+                    'video_id' => '',
+                    'last_timestamp' => '00:00:00',
+                    'completed_tasks' => [$task->id],
+                ]);
+            } else {
+                $completed = is_array($progress->completed_tasks) ? $progress->completed_tasks : [];
+                if (!in_array($task->id, $completed)) {
+                    $completed[] = $task->id;
+                    $progress->update(['completed_tasks' => $completed]);
+                }
+            }
+            $message = 'Correct answer!';
+        } else {
+            $message = 'Incorrect answer.';
+        }
+
+        return response()->json([
+            'correct' => $correct,
+            'message' => $message
+        ]);
+    }
+
+    /**
+     * Get all course progress for the authenticated user.
+     */
+    public function getAllCourseProgress()
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            $progress = UserProgress::with('playlist')
+                ->where('user_id', $user->id)
+                ->get();
+
+            return response()->json($progress);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to get course progress'], 500);
+        }
     }
 }

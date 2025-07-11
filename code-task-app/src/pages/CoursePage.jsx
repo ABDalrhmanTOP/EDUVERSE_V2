@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import YouTubeEmbed from "../components/YouTubeEmbed";
-import Playlists from "../components/Playlists";
 import "../App.css";
 
 const CoursePage = () => {
@@ -12,7 +11,6 @@ const CoursePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tasks, setTasks] = useState([]);
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [completedTasks, setCompletedTasks] = useState([]);
   const [locked, setLocked] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -21,7 +19,9 @@ const CoursePage = () => {
 
   // لنفترض أن course.is_paid موجودة
   // ولنفرض أن لديك دالة أو متغير isSubscribed يحدد اشتراك المستخدم
-  const isSubscribed = false; // عدّل هذا حسب منطقك
+  const isSubscribed = false;
+  const [lastTimestamp, setLastTimestamp] = useState("00:00:00");
+
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -55,19 +55,68 @@ const CoursePage = () => {
           }
         }
         
+        // Load user progress (both video progress and completed tasks)
+        const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+        if (token) {
+          const headers = { Authorization: `Bearer ${token}` };
+          try {
+            // Always use both video_id and playlist_id for progress
+            const progressResponse = await axios.get(
+              `/user-progress?playlist_id=${courseId}&video_id=${courseData.video_id}`,
+              { headers }
+            );
+            if (progressResponse.data && progressResponse.data.data) {
+              const progress = progressResponse.data.data;
+              if (progress.last_timestamp) {
+                setLastTimestamp(progress.last_timestamp);
+              } else {
+                setLastTimestamp("00:00:00");
+              }
+              if (progress.completed_tasks && Array.isArray(progress.completed_tasks)) {
+                setCompletedTasks(progress.completed_tasks.map(String));
+              } else {
+                setCompletedTasks([]);
+              }
+            } else {
+              // No progress found, reset state
+              setLastTimestamp("00:00:00");
+              setCompletedTasks([]);
+            }
+          } catch (progressError) {
+            // If progress loading fails, try loading just completed tasks as fallback
+            try {
+              const tasksResponse = await axios.get(
+                `/user-progress/tasks?playlist_id=${courseId}&video_id=${courseData.video_id}`,
+                { headers }
+              );
+              if (tasksResponse.data && tasksResponse.data.completed_tasks) {
+                setCompletedTasks(tasksResponse.data.completed_tasks.map(String));
+              } else {
+                setCompletedTasks([]);
+              }
+              setLastTimestamp("00:00:00");
+            } catch (tasksError) {
+              setCompletedTasks([]);
+              setLastTimestamp("00:00:00");
+            }
+          }
+        } else {
+          // No token, force login
+          setError("You are not logged in. Please login to continue.");
+        }
+
       } catch (err) {
-        console.error("Error fetching course data:", err);
         setError("Failed to load course. Please try again.");
       } finally {
         setLoading(false);
         setLoadingSubscription(false);
       }
     };
-
     if (courseId) {
       fetchCourseData();
     }
   }, [courseId]);
+
 
   const handleUnlockCourse = async () => {
     try {
@@ -81,6 +130,33 @@ const CoursePage = () => {
 
   const handleTaskComplete = (taskId) => {
     setCompletedTasks(prev => [...prev, taskId]);
+
+  const handleTaskComplete = async (taskId) => {
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      if (!token) return;
+      const headers = { Authorization: `Bearer ${token}` };
+      // Save completed task to backend, always send both video_id and playlist_id
+      await axios.post(
+        "/user-progress/tasks",
+        {
+          task_id: taskId,
+          playlist_id: courseId,
+          video_id: course?.video_id,
+        },
+        { headers }
+      );
+      // Update local state optimistically
+      setCompletedTasks(prev => {
+        const taskIdStr = String(taskId);
+        if (!prev.includes(taskIdStr)) {
+          return [...prev, taskIdStr];
+        }
+        return prev;
+      });
+    } catch (error) {
+      // Optionally show error to user
+    }
   };
 
   if (loading) {
@@ -257,8 +333,11 @@ const CoursePage = () => {
         videoId={course.video_id} 
         playlistId={course.id}
         tasks={tasks}
+        completedTasks={completedTasks}
         onTaskComplete={handleTaskComplete}
+        initialTimestamp={lastTimestamp}
       />
+
       <div style={{ marginTop: "20px" }}>
         <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
       </div>

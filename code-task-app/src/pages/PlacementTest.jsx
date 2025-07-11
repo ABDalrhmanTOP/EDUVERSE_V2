@@ -213,6 +213,7 @@ const PlacementTest = ({ onComplete }) => {
   const [skipPlacementTest, setSkipPlacementTest] = useState(false);
   const [showPlacementChoice, setShowPlacementChoice] = useState(false);
   const [hasCompletedGeneralForm, setHasCompletedGeneralForm] = useState(false);
+  const [testId, setTestId] = useState(null);
   
   // Individual field error states
   const [fieldErrors, setFieldErrors] = useState({
@@ -417,17 +418,30 @@ const PlacementTest = ({ onComplete }) => {
   };
 
   // Handle placement test choice
-  const handlePlacementChoice = (choice) => {
-    if (choice === 'start_from_scratch') {
-      // Go directly to course - no placement test needed
-      if (courseId) {
-        navigate(`/course/${courseId}`);
-      } else {
-        navigate("/homevideo");
+  const handlePlacementChoice = async (choice) => {
+    setShowPlacementChoice(false);
+    if (choice === "placement") {
+      setLoading(true);
+      setTestError("");
+      try {
+        const res = await apiClient.post(`/placement-test/start`, {
+          course_id: courseId,
+        });
+        setQuestions(res.data.questions || []);
+        setSkipPlacementTest(false);
+        setTestId(res.data.test_id);
+        setStep(2); // Go to the test (not 3)
+      } catch (err) {
+        console.error("Error starting placement test:", err);
+        setTestError("Failed to load placement test. Please try again or start from scratch.");
+        setShowPlacementChoice(true); // Show choice again on error
+      } finally {
+        setLoading(false);
       }
-    } else if (choice === 'take_placement_test') {
-      setShowPlacementChoice(false);
-      setStep(1);
+    } else {
+      setSkipPlacementTest(true);
+      if (onComplete) onComplete(result, true);
+      navigate(`/course/${courseId}`);
     }
   };
 
@@ -476,14 +490,25 @@ const PlacementTest = ({ onComplete }) => {
   const handleSubmitTest = async () => {
     setLoading(true);
     try {
+      // Convert answers object to the format expected by backend
+      const formattedAnswers = Object.keys(answers).map(questionId => ({
+        question_id: parseInt(questionId),
+        answer: answers[questionId]
+      }));
+
       const res = await apiClient.post(`/placement-test/submit`, {
-        course_id: courseId,
-        year,
-        semester,
-        answers,
+        test_id: testId,
+        answers: formattedAnswers,
       });
-      setResult(res.data.result);
-      nextStep();
+      
+      // Set result with the correct structure
+      setResult({
+        passed: res.data.percentage >= 70, // Assuming 70% is passing
+        score: res.data.score,
+        total: res.data.total,
+        percentage: res.data.percentage
+      });
+      setStep(3); // Go to result page
       if (onComplete) onComplete();
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to submit answers. Please try again.";
@@ -693,6 +718,25 @@ const PlacementTest = ({ onComplete }) => {
     return items.join(", ");
   };
 
+  // Helper to close all dropdowns
+  const closeAllDropdowns = () => {
+    setShowJobDropdown(false);
+    setShowCountryDropdown(false);
+    setShowExperienceDropdown(false);
+    setShowYearDropdown(false);
+    setShowSemesterDropdown(false);
+    setShowEducationLevelDropdown(false);
+    setShowFieldOfStudyDropdown(false);
+    setShowSpecializationDropdown(false);
+    setShowTeachingSubjectDropdown(false);
+    setShowResearchFieldDropdown(false);
+    setShowCompanySizeDropdown(false);
+    setShowIndustryDropdown(false);
+    setShowCareerGoalsDropdown(false);
+    setShowHobbiesDropdown(false);
+    setShowExpectationsDropdown(false);
+  };
+
   // Render dynamic questions based on job
   const renderDynamicQuestions = () => {
     if (personal.job === "Student") {
@@ -704,7 +748,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowEducationLevelDropdown(!showEducationLevelDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowEducationLevelDropdown((prev) => !prev);
+                }}
                 onKeyDown={(e) => handleKeyPress(e, educationLevelSearch, setEducationLevelSearch, educationLevelOptions, handleEducationLevelSelect)}
               >
                 {personal.educationLevel || "Select education level"}
@@ -735,7 +782,10 @@ const PlacementTest = ({ onComplete }) => {
                 <button 
                   type="button"
                   className="placement-custom-select"
-                  onClick={() => setShowFieldOfStudyDropdown(!showFieldOfStudyDropdown)}
+                  onClick={() => {
+                    closeAllDropdowns();
+                    setShowFieldOfStudyDropdown((prev) => !prev);
+                  }}
                   onKeyDown={(e) => handleKeyPress(e, fieldOfStudySearch, setFieldOfStudySearch, fieldOfStudyOptions, handleFieldOfStudySelect)}
                 >
                   {personal.fieldOfStudy || "Select field of study"}
@@ -766,7 +816,10 @@ const PlacementTest = ({ onComplete }) => {
                 <button 
                   type="button"
                   className="placement-custom-select"
-                  onClick={() => setShowYearDropdown(!showYearDropdown)}
+                  onClick={() => {
+                    closeAllDropdowns();
+                    setShowYearDropdown((prev) => !prev);
+                  }}
                 >
                   {personal.studentYear || "Select year"}
                   <span className="placement-arrow">▼</span>
@@ -802,7 +855,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowYearDropdown(!showYearDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowYearDropdown((prev) => !prev);
+                }}
               >
                 {personal.yearsOfExperience || "Select years of experience"}
                 <span className="placement-arrow">▼</span>
@@ -833,7 +889,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowSpecializationDropdown(!showSpecializationDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowSpecializationDropdown((prev) => !prev);
+                }}
                 onKeyDown={(e) => handleKeyPress(e, specializationSearch, setSpecializationSearch, specializationOptions, handleSpecializationSelect)}
               >
                 {personal.specialization || "Select specialization"}
@@ -862,7 +921,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowIndustryDropdown((prev) => !prev);
+                }}
                 onKeyDown={(e) => handleKeyPress(e, industrySearch, setIndustrySearch, industryOptions, handleIndustrySelect)}
               >
                 {personal.industry || "Select industry"}
@@ -891,7 +953,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowCompanySizeDropdown(!showCompanySizeDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowCompanySizeDropdown((prev) => !prev);
+                }}
                 onKeyDown={(e) => handleKeyPress(e, companySizeSearch, setCompanySizeSearch, companySizeOptions, handleCompanySizeSelect)}
               >
                 {personal.companySize || "Select company size"}
@@ -924,7 +989,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowTeachingSubjectDropdown(!showTeachingSubjectDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowTeachingSubjectDropdown((prev) => !prev);
+                }}
                 onKeyDown={(e) => handleKeyPress(e, teachingSubjectSearch, setTeachingSubjectSearch, teachingSubjectOptions, handleTeachingSubjectSelect)}
               >
                 {personal.teachingSubject || "Select teaching subject"}
@@ -957,7 +1025,10 @@ const PlacementTest = ({ onComplete }) => {
               <button 
                 type="button"
                 className="placement-custom-select"
-                onClick={() => setShowResearchFieldDropdown(!showResearchFieldDropdown)}
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowResearchFieldDropdown((prev) => !prev);
+                }}
                 onKeyDown={(e) => handleKeyPress(e, researchFieldSearch, setResearchFieldSearch, researchFieldOptions, handleResearchFieldSelect)}
               >
                 {personal.researchField || "Select research field"}
@@ -1016,7 +1087,7 @@ const PlacementTest = ({ onComplete }) => {
             <p>Take a quick assessment to determine your current skill level and get personalized recommendations.</p>
             <button 
               className="placement-choice-btn"
-              onClick={() => handlePlacementChoice('take_placement_test')}
+              onClick={() => handlePlacementChoice('placement')}
             >
               Take Test
             </button>
@@ -1042,7 +1113,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowJobDropdown(!showJobDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowJobDropdown((prev) => !prev);
+              }}
               onKeyDown={(e) => handleKeyPress(e, jobSearch, setJobSearch, jobOptions, handleJobSelect)}
             >
               {personal.job || "Select your job"}
@@ -1095,7 +1169,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowCountryDropdown((prev) => !prev);
+              }}
               onKeyDown={(e) => handleKeyPress(e, countrySearch, setCountrySearch, countryOptions, handleCountrySelect)}
             >
               {personal.country || "Select your country"}
@@ -1123,7 +1200,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowExperienceDropdown(!showExperienceDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowExperienceDropdown((prev) => !prev);
+              }}
               onKeyDown={(e) => handleKeyPress(e, experienceSearch, setExperienceSearch, experienceOptions, handleExperienceSelect)}
             >
               {personal.experience || "Select experience level"}
@@ -1160,7 +1240,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowSemesterDropdown(!showSemesterDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowSemesterDropdown((prev) => !prev);
+              }}
             >
               {semester}
               <span className="placement-arrow">▼</span>
@@ -1188,7 +1271,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowCareerGoalsDropdown(!showCareerGoalsDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowCareerGoalsDropdown((prev) => !prev);
+              }}
               onKeyDown={(e) => handleKeyPress(e, careerGoalsSearch, setCareerGoalsSearch, careerGoalsOptions, handleCareerGoalsSelect)}
             >
               {personal.careerGoals || "Select career goals"}
@@ -1216,7 +1302,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowHobbiesDropdown(!showHobbiesDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowHobbiesDropdown((prev) => !prev);
+              }}
               onKeyDown={(e) => handleKeyPress(e, hobbiesSearch, setHobbiesSearch, hobbiesOptions, handleHobbiesSelect)}
               title={personal.hobbies && personal.hobbies.length > 0 ? personal.hobbies.join(", ") : "Select hobbies"}
             >
@@ -1251,7 +1340,10 @@ const PlacementTest = ({ onComplete }) => {
             <button 
               type="button"
               className="placement-custom-select"
-              onClick={() => setShowExpectationsDropdown(!showExpectationsDropdown)}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowExpectationsDropdown((prev) => !prev);
+              }}
               onKeyDown={(e) => handleKeyPress(e, expectationsSearch, setExpectationsSearch, expectationsOptions, handleExpectationsSelect)}
               title={personal.expectations && personal.expectations.length > 0 ? personal.expectations.join(", ") : "Select expectations"}
             >
@@ -1475,33 +1567,13 @@ const PlacementTest = ({ onComplete }) => {
   useEffect(() => {
     const checkUserProfile = async () => {
       try {
-        const response = await apiClient.get('/profile');
-        const user = response.data.user;
-        
-        if (user.has_completed_general_form) {
+        const response = await apiClient.get("/user");
+        if (response.data && response.data.has_completed_general_form) {
           setHasCompletedGeneralForm(true);
-          // If they've completed the general form, go directly to placement test
-          if (courseId) {
-            // This is a course-specific placement test
-            setStep(2);
-            // Load placement test questions
-            setLoading(true);
-            try {
-              const res = await apiClient.post(`/placement-test/start`, {
-                course_id: courseId,
-                year: 1,
-                semester: 1,
-              });
-              setQuestions(res.data.questions || []);
-            } catch (err) {
-              console.error("Error loading placement test:", err);
-              setTestError("Failed to load placement test questions.");
-              setLoading(false);
-            }
-          } else {
-            // This is the general form, redirect to home
-            navigate('/home');
-          }
+          setShowPlacementChoice(true); // Go to placement choice
+        } else {
+          setHasCompletedGeneralForm(false);
+          setStep(1); // Start from personal survey
         }
       } catch (err) {
         console.error('Error checking user profile:', err);
@@ -1539,11 +1611,11 @@ const PlacementTest = ({ onComplete }) => {
 
   return (
     <div>
-      {hasCompletedGeneralForm && !courseId ? (
+      {loading ? (
         <div className="placement-test-page">
           <div className="placement-test-container">
             <div className="placement-loading">
-              <div>Redirecting to home...</div>
+              <div>Loading...</div>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 // src/components/FinalProject.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "../api/axios";
 import MonacoEditor from "@monaco-editor/react";
 import "../styles/FinalProject.css";
@@ -69,13 +69,15 @@ const StarRating = ({ onRatingChange }) => {
   );
 };
 
-const FinalProject = () => {
-  const playlistId = 1; // For demonstration
+const FinalProject = ({ courseId }) => {
+  const playlistId = courseId || 1;
+  // State for questions
+  const [questions, setQuestions] = useState({ mcq: [], tf: [], coding: [] });
+  const [loading, setLoading] = useState(true);
   // State for toggling between user's code and ideal code.
   const [showIdeal, setShowIdeal] = useState(false);
   // States for answers.
-  const [mcqAnswers, setMcqAnswers] = useState({ q1: "", q2: "" });
-  const [tfAnswers, setTfAnswers] = useState({ q1: "", q2: "" });
+  const [answers, setAnswers] = useState({}); // { [questionId]: answer }
   // User coding solution.
   const [codeSolution, setCodeSolution] = useState("");
   // Submission result, error message, and submitting flag.
@@ -91,19 +93,32 @@ const FinalProject = () => {
   // Store the user_progress_id from the final project submission.
   const [userProgressId, setUserProgressId] = useState(null);
 
-  // Hardcoded MCQ options.
-  const mcqOptionsQ1 = [
-    { value: "A", label: "std::set" },
-    { value: "B", label: "std::unordered_map" },
-    { value: "C", label: "std::map" },
-    { value: "D", label: "std::array" },
-  ];
-  const mcqOptionsQ2 = [
-    { value: "A", label: "std::vector" },
-    { value: "B", label: "std::deque" },
-    { value: "C", label: "std::list" },
-    { value: "D", label: "std::forward_list" },
-  ];
+  // 1. Group and order questions by type and difficulty
+  const groupAndOrderQuestions = (questions) => {
+    const mcq = [...(questions.mcq || [])].sort((a, b) => (a.difficulty || 1) - (b.difficulty || 1));
+    const tf = [...(questions.tf || [])].sort((a, b) => (a.difficulty || 1) - (b.difficulty || 1));
+    const coding = [...(questions.coding || [])].sort((a, b) => (a.difficulty || 1) - (b.difficulty || 1));
+    return { mcq, tf, coding };
+  };
+
+  useEffect(() => {
+    async function fetchQuestions() {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("authToken");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(`/final-projects/${playlistId}`, { headers });
+        if (res.data.status === 'success') {
+          setQuestions(groupAndOrderQuestions(res.data.data));
+        }
+      } catch (err) {
+        // handle error
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQuestions();
+  }, [playlistId]);
 
   // Multi-line coding prompt.
   const codingPrompt =
@@ -144,28 +159,27 @@ const FinalProject = () => {
 
   // Validate submission.
   const validateSubmission = () => {
-    if (!codeSolution.trim()) {
-      setErrorMsg("Please enter your coding solution.");
-      return false;
-    }
-    if (!mcqAnswers.q1 || !mcqAnswers.q2) {
-      setErrorMsg("Please answer all multiple choice questions.");
-      return false;
-    }
-    if (!tfAnswers.q1 || !tfAnswers.q2) {
-      setErrorMsg("Please answer all true/false questions.");
-      return false;
+    // Validate all questions are answered
+    const allQuestions = [
+      ...questions.mcq,
+      ...questions.tf,
+      ...questions.coding
+    ];
+    for (const q of allQuestions) {
+      if (!answers[q.id] || (q.type === 'coding' && !answers[q.id].trim())) {
+        setErrorMsg('Please answer all questions.');
+        // Scroll to the missing question
+        const el = document.getElementById(`question-${q.id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
     }
     setErrorMsg("");
     return true;
   };
 
-  const handleMCQChange = (qid, value) => {
-    setMcqAnswers((prev) => ({ ...prev, [qid]: value }));
-  };
-
-  const handleTFChange = (qid, value) => {
-    setTfAnswers((prev) => ({ ...prev, [qid]: value }));
+  const handleAnswerChange = (qid, value) => {
+    setAnswers((prev) => ({ ...prev, [qid]: value }));
   };
 
   const getQuestionMark = (answer, correct) => {
@@ -175,25 +189,53 @@ const FinalProject = () => {
 
   // Submit final project.
   const handleSubmit = async () => {
-    if (!validateSubmission()) return;
+    // Validate all questions are answered
+    const missingMcq = questions.mcq.filter(q => !answers[q.id]);
+    const missingTf = questions.tf.filter(q => !answers[q.id]);
+    const missingCoding = questions.coding.filter(q => !answers[q.id] || !answers[q.id].trim());
+
+    if (missingMcq.length > 0 || missingTf.length > 0 || missingCoding.length > 0) {
+      setErrorMsg('Please answer all questions before submitting.');
+      // Optionally scroll to the first missing question
+      const firstMissing = [...missingMcq, ...missingTf, ...missingCoding][0];
+      if (firstMissing) {
+        const el = document.getElementById(`question-${firstMissing.id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    setErrorMsg('');
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("authToken");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // Build answer objects
+      const mcq_answers = {};
+      const tf_answers = {};
+      const code_solutions = {};
+      questions.mcq.forEach(q => { mcq_answers[q.id] = answers[q.id]; });
+      questions.tf.forEach(q => { tf_answers[q.id] = answers[q.id]; });
+      questions.coding.forEach(q => { code_solutions[q.id] = answers[q.id]; });
+
+      const payload = {
+        mcq_answers,
+        tf_answers,
+        code_solutions,
+        playlist_id: playlistId,
+        video_id: "8jLOx1hD3_o" // Replace with actual video id if needed
+      };
+
       const response = await axios.post(
         "/final-project",
-        {
-          code_solution: codeSolution,
-          mcq_answers: mcqAnswers,
-          tf_answers: tfAnswers,
-          playlist_id: playlistId,
-          video_id: "8jLOx1hD3_o" // Replace with actual video id if needed
-        },
+        payload,
         { headers }
       );
+
       if (response.data.status === "success") {
         setResult(response.data.data);
-        setShowCertificateModal(true); // Automatically show the modal
+        setShowCertificateModal(true);
         if (response.data.data.user_progress_id) {
           setUserProgressId(response.data.data.user_progress_id);
         }
@@ -201,7 +243,8 @@ const FinalProject = () => {
         setResult({ error: response.data.message });
       }
     } catch (error) {
-      setResult({ error: "Submission failed. Please try again." });
+      console.error("Error submitting final project:", error);
+      setResult({ error: error?.response?.data?.message || "Submission failed. Please try again." });
     }
     setIsSubmitting(false);
   };
@@ -228,6 +271,7 @@ const FinalProject = () => {
       );
       setFeedbackSubmitted(true);
     } catch (error) {
+      console.error("Error submitting feedback:", error);
       alert("Error submitting feedback. Please try again later.");
     }
   };
@@ -244,318 +288,293 @@ const FinalProject = () => {
 
   return (
     <div className="final-project-container">
-      {/* MCQ Section */}
-      <div className="final-project-section">
-        <h3 className="section-title">Multiple Choice Questions</h3>
-        {/* MCQ Q1 */}
-        <div className="mcq-question">
-          <p>
-            Q1: Which STL container is typically implemented as a red-black tree?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(mcqAnswers.q1, result?.correct_mcq?.q1)) }}
-              >
-                {getQuestionMark(mcqAnswers.q1, result?.correct_mcq?.q1)}
-              </span>
-            )}
-          </p>
-          <div className="mcq-options">
-            {mcqOptionsQ1.map((opt) => (
-              <label key={opt.value} style={{ display: "block", marginBottom: 5 }}>
-                <input
-                  type="radio"
-                  name="mcq_q1"
-                  value={opt.value}
-                  disabled={!!result}
-                  onChange={(e) => handleMCQChange("q1", e.target.value)}
-                />{" "}
-                {opt.value}) {opt.label}
-              </label>
-            ))}
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(mcqAnswers.q1, result?.correct_mcq?.q1)}>
-                {mcqAnswers.q1 || "Not answered"}
-              </span>{" "}
-              | Correct: <span className="correct">{result?.correct_mcq?.q1 || "Not provided"}</span>
-            </p>
+      {loading ? (
+        <p>Loading questions...</p>
+      ) : (
+        <>
+          {/* MCQ Section */}
+          {questions.mcq && questions.mcq.length > 0 && (
+            <div className="final-project-section">
+              <h3 className="section-title">Multiple Choice Questions</h3>
+              {questions.mcq.map((q, index) => (
+                <div key={q.id} id={`question-${q.id}`} className="mcq-question">
+                  <p>
+                    Q{index + 1}: {q.text || q.question}
+                    {result && (
+                      <span
+                        className="mark"
+                        style={{ color: getMarkColor(getQuestionMark(answers[q.id], result?.correct_mcq?.[q.id])) }}
+                      >
+                        {getQuestionMark(answers[q.id], result?.correct_mcq?.[q.id])}
+                      </span>
+                    )}
+                  </p>
+                  <div className="mcq-options">
+                    {q.options.map((opt) => (
+                      <label key={opt.value} style={{ display: "block", marginBottom: 5 }}>
+                        <input
+                          type="radio"
+                          name={`mcq_q${index + 1}`}
+                          value={opt.value}
+                          disabled={!!result}
+                          onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                        />{" "}
+                        {opt.value}) {opt.label}
+                      </label>
+                    ))}
+                  </div>
+                  {result && (
+                    <p className="answer-review">
+                      Your Answer: {" "}
+                      <span style={getAnswerStyle(answers[q.id], result?.correct_mcq?.[q.id])}>
+                        {answers[q.id] || "Not answered"}
+                      </span>{" "}
+                      | Correct: <span className="correct">{result?.correct_mcq?.[q.id] || "Not provided"}</span>
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
-        </div>
-        {/* MCQ Q2 */}
-        <div className="mcq-question">
-          <p>
-            Q2: Which container provides constant-time random access?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(mcqAnswers.q2, result?.correct_mcq?.q2)) }}
-              >
-                {getQuestionMark(mcqAnswers.q2, result?.correct_mcq?.q2)}
-              </span>
-            )}
-          </p>
-          <div className="mcq-options">
-            {mcqOptionsQ2.map((opt) => (
-              <label key={opt.value} style={{ display: "block", marginBottom: 5 }}>
-                <input
-                  type="radio"
-                  name="mcq_q2"
-                  value={opt.value}
-                  disabled={!!result}
-                  onChange={(e) => handleMCQChange("q2", e.target.value)}
-                />{" "}
-                {opt.value}) {opt.label}
-              </label>
-            ))}
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(mcqAnswers.q2, result?.correct_mcq?.q2)}>
-                {mcqAnswers.q2 || "Not answered"}
-              </span>{" "}
-              | Correct:{" "}
-              <span className="correct">{result?.correct_mcq?.q2 || "Not provided"}</span>
-            </p>
-          )}
-        </div>
-      </div>
 
-      {/* True/False Section */}
-      <div className="final-project-section">
-        <h3 className="section-title">True/False Questions</h3>
-        {/* TF Q1 */}
-        <div className="tf-question">
-          <p>
-            Q1: True or False: std::vector is dynamically resizable?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(tfAnswers.q1, result?.correct_tf?.q1)) }}
-              >
-                {getQuestionMark(tfAnswers.q1, result?.correct_tf?.q1)}
-              </span>
-            )}
-          </p>
-          <div className="tf-options" style={{ display: "flex", flexDirection: "column" }}>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q1"
-                value="true"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q1", e.target.value)}
-              />{" "}
-              True
-            </label>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q1"
-                value="false"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q1", e.target.value)}
-              />{" "}
-              False
-            </label>
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(tfAnswers.q1, result?.correct_tf?.q1)}>
-                {tfAnswers.q1 || "Not answered"}
-              </span>{" "}
-              | Correct: <span className="correct">{result?.correct_tf?.q1 || "Not provided"}</span>
-            </p>
+          {/* True/False Section */}
+          {questions.tf && questions.tf.length > 0 && (
+            <div className="final-project-section">
+              <h3 className="section-title">True/False Questions</h3>
+              {questions.tf.map((q, index) => (
+                <div key={q.id} id={`question-${q.id}`} className="tf-question">
+                  <p>
+                    Q{index + 1}: {q.text || q.question}
+                    {result && (
+                      <span
+                        className="mark"
+                        style={{ color: getMarkColor(getQuestionMark(answers[q.id], result?.correct_tf?.[q.id])) }}
+                      >
+                        {getQuestionMark(answers[q.id], result?.correct_tf?.[q.id])}
+                      </span>
+                    )}
+                  </p>
+                  <div className="tf-options" style={{ display: "flex", flexDirection: "column" }}>
+                    <label style={{ marginBottom: 5 }}>
+                      <input
+                        type="radio"
+                        name={`tf_q${index + 1}`}
+                        value="true"
+                        disabled={!!result}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                      />{" "}
+                      True
+                    </label>
+                    <label style={{ marginBottom: 5 }}>
+                      <input
+                        type="radio"
+                        name={`tf_q${index + 1}`}
+                        value="false"
+                        disabled={!!result}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                      />{" "}
+                      False
+                    </label>
+                  </div>
+                  {result && (
+                    <p className="answer-review">
+                      Your Answer: {" "}
+                      <span style={getAnswerStyle(answers[q.id], result?.correct_tf?.[q.id])}>
+                        {answers[q.id] || "Not answered"}
+                      </span>{" "}
+                      | Correct: <span className="correct">{result?.correct_tf?.[q.id] || "Not provided"}</span>
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
-        </div>
-        {/* TF Q2 */}
-        <div className="tf-question">
-          <p>
-            Q2: True or False: std::set allows duplicate elements?{" "}
-            {result && (
-              <span
-                className="mark"
-                style={{ color: getMarkColor(getQuestionMark(tfAnswers.q2, result?.correct_tf?.q2)) }}
-              >
-                {getQuestionMark(tfAnswers.q2, result?.correct_tf?.q2)}
-              </span>
-            )}
-          </p>
-          <div className="tf-options" style={{ display: "flex", flexDirection: "column" }}>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q2"
-                value="true"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q2", e.target.value)}
-              />{" "}
-              True
-            </label>
-            <label style={{ marginBottom: 5 }}>
-              <input
-                type="radio"
-                name="tf_q2"
-                value="false"
-                disabled={!!result}
-                onChange={(e) => handleTFChange("q2", e.target.value)}
-              />{" "}
-              False
-            </label>
-          </div>
-          {result && (
-            <p className="answer-review">
-              Your Answer:{" "}
-              <span style={getAnswerStyle(tfAnswers.q2, result?.correct_tf?.q2)}>
-                {tfAnswers.q2 || "Not answered"}
-              </span>{" "}
-              | Correct: <span className="correct">{result?.correct_tf?.q2 || "Not provided"}</span>
-            </p>
-          )}
-        </div>
-      </div>
 
-      {/* Coding Task Section */}
-      <div className="final-project-section">
-        <h3 className="section-title">Coding Task</h3>
-        <p className="coding-prompt" style={{ whiteSpace: "pre-line" }}>
-          {codingPrompt}
-        </p>
-        <div className="code-task-container dark-mode">
-          {result && (
-            <div className="toggle-ideal-btn-container">
-              <button className="submit-final-button" onClick={toggleIdealCode}>
-                {showIdeal ? "Show Your Code" : "Show Ideal Code"}
+          {/* Coding Task Section */}
+          {questions.coding && questions.coding.length > 0 && (
+            <div className="final-project-section">
+              <h3 className="section-title">Coding Task</h3>
+              {questions.coding.map((q, index) => (
+                <div key={q.id} id={`question-${q.id}`} className="coding-question">
+                  <p>Coding Q{index + 1}: {q.text || q.question}</p>
+                  <div className="code-task-container dark-mode">
+                    <MonacoEditor
+                      width="100%"
+                      height="200px"
+                      language={q.language || "cpp"}
+                      theme="custom-dark"
+                      value={answers[q.id] || ""}
+                      onChange={(val) => handleAnswerChange(q.id, val)}
+                      onMount={handleEditorMount}
+                      options={{
+                        fontSize: 15,
+                        lineHeight: 24,
+                        fontFamily: "Fira Code, monospace",
+                        fontWeight: "500",
+                        mouseWheelZoom: true,
+                        scrollBeyondLastLine: false,
+                        roundedSelection: true,
+                        padding: { top: 20 },
+                        contextmenu: true,
+                        lineNumbers: "on",
+                        folding: true,
+                        renderLineHighlight: "all",
+                        wordWrap: "on",
+                        formatOnPaste: true,
+                        minimap: { enabled: false },
+                        automaticLayout: true,
+                        bracketPairColorization: { enabled: true, independentColorPool: true },
+                        semanticHighlighting: { enabled: true },
+                        scrollbar: { vertical: "auto", horizontal: "auto", handleMouseWheel: true },
+                        cursorBlinking: "smooth",
+                        cursorSmoothCaretAnimation: "on",
+                        cursorStyle: "line",
+                        cursorWidth: 2,
+                        fontLigatures: true,
+                        readOnly: !!(result && showIdeal),
+                      }}
+                    />
+                  </div>
+                  {result && (
+                    <div className="answer-review">
+                      <span style={getAnswerStyle(answers[q.id], result?.correct_code)}>
+                        {answers[q.id] ? "Your code submitted" : "Not answered"}
+                      </span>
+                      | Correct Solution: <span className="correct">{result?.correct_code || "Not provided"}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Error Message */}
+          {errorMsg && <p className="error-message">{errorMsg}</p>}
+
+          {/* Submission Button */}
+          {!result && (
+            <div className="final-project-section">
+              <button
+                className="submit-final-button"
+                disabled={isSubmitting}
+                onClick={handleSubmit}
+              >
+                {isSubmitting ? "Submitting..." : "Submit Capstone Project"}
               </button>
             </div>
           )}
-          <div className="editor-wrapper">
-            <MonacoEditor
-              width="100%"
-              height="100%"
-              language="cpp"
-              theme="custom-dark"
-              value={result && showIdeal ? result.correct_code : codeSolution}
-              onChange={setCodeSolution}
-              onMount={handleEditorMount}
-              options={{
-                fontSize: 15,
-                lineHeight: 24,
-                fontFamily: "Fira Code, monospace",
-                fontWeight: "500",
-                mouseWheelZoom: true,
-                scrollBeyondLastLine: false,
-                roundedSelection: true,
-                padding: { top: 20 },
-                contextmenu: true,
-                lineNumbers: "on",
-                folding: true,
-                renderLineHighlight: "all",
-                wordWrap: "on",
-                formatOnPaste: true,
-                minimap: { enabled: false },
-                automaticLayout: true,
-                bracketPairColorization: { enabled: true, independentColorPool: true },
-                semanticHighlighting: { enabled: true },
-                scrollbar: { vertical: "auto", horizontal: "auto", handleMouseWheel: true },
-                cursorBlinking: "smooth",
-                cursorSmoothCaretAnimation: "on",
-                cursorStyle: "line",
-                cursorWidth: 2,
-                fontLigatures: true,
-                readOnly: !!(result && showIdeal),
-              }}
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* Error Message */}
-      {errorMsg && <p className="error-message">{errorMsg}</p>}
-
-      {/* Submission Button */}
-      {!result && (
-        <div className="final-project-section">
-          <button
-            className="submit-final-button"
-            disabled={isSubmitting}
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Capstone Project"}
-          </button>
-        </div>
-      )}
-
-      {/* Show Result Button if modal is closed */}
-      {result && !showCertificateModal && (
-        <div className="final-project-section">
-          <button
-            className="submit-final-button"
-            onClick={() => setShowCertificateModal(true)}
-          >
-            Show Result
-          </button>
-        </div>
-      )}
-
-      {/* Certificate Modal */}
-      {result && showCertificateModal && (
-        <div className="certificate-modal-overlay">
-          <div className="certificate-modal">
-            <button className="close-modal-btn" onClick={closeCertificateModal}>
-              &times;
-            </button>
-            <div className="party-left">🎉</div>
-            <div className="party-right">🎉</div>
-            <h2>
-              Congratulations{result.user_name ? `, ${result.user_name}` : ""}!
-            </h2>
-            <p>You have successfully completed the course!</p>
-            <p>
-              <strong>Final Score:</strong> {result.final_mark}/10 (
-              <span style={{ color: getGradeColor(result.grade) }}>
-                Grade: {result.grade}
-              </span>
-              )
-            </p>
-            <div className="marks-breakdown">
-              <p>Coding Marks: {result.coding_marks}/5</p>
-              <p>MCQ Marks: {result.mcq_marks}/3</p>
-              <p>TF Marks: {result.tf_marks}/2</p>
+          {/* Show Result Button if modal is closed */}
+          {result && !showCertificateModal && (
+            <div className="final-project-section">
+              <button
+                className="submit-final-button"
+                onClick={() => setShowCertificateModal(true)}
+              >
+                Show Result
+              </button>
             </div>
-            <div className="feedback-section">
-              <h3>Optional Feedback</h3>
-              <StarRating onRatingChange={handleRatingChange} />
-              {userRating > 0 && !feedbackSubmitted && (
-                <p className="rating-msg">You picked {userRating} out of 5</p>
-              )}
-              <textarea
-                className="feedback-textarea"
-                placeholder="Any thoughts about the course?"
-                value={feedbackNote}
-                onChange={(e) => {
-                  setFeedbackNote(e.target.value);
-                  setFeedbackSubmitted(false);
-                }}
-              />
-              <div className="feedback-buttons">
-                <button className="submit-final-button" onClick={handleFeedbackSubmit}>
-                  Submit Feedback
+          )}
+
+          {/* Certificate Modal */}
+          {result && showCertificateModal && (
+            <div className="certificate-modal-overlay">
+              <div className="certificate-modal">
+                <button className="close-modal-btn" onClick={closeCertificateModal}>
+                  &times;
                 </button>
-                <button className="submit-final-button" onClick={returnToCourses}>
-                  Return to Courses
-                </button>
+                <div className="party-left">🎉</div>
+                <div className="party-right">🎉</div>
+                <h2>
+                  {result.final_mark >= 0.6 * (result.max_total || 10)
+                    ? `Congratulations${result.user_name ? ", " + result.user_name : ""}!`
+                    : "You did not pass. Try again!"}
+                </h2>
+                <p>
+                  {result.final_mark >= 0.6 * (result.max_total || 10)
+                    ? "You have successfully completed the course!"
+                    : "You did not reach the passing mark. Review the correct answers below."}
+                </p>
+                <p>
+                  <strong>Final Score:</strong> {result.final_mark}/{result.max_total} (
+                  <span style={{ color: getGradeColor(result.grade) }}>
+                    Grade: {result.grade}
+                  </span>
+                  )
+                </p>
+                <div className="marks-breakdown">
+                  {result.max_mcq > 0 && <p>MCQ Marks: {result.mcq_marks}/{result.max_mcq}</p>}
+                  {result.max_tf > 0 && <p>TF Marks: {result.tf_marks}/{result.max_tf}</p>}
+                  {result.max_coding > 0 && <p>Coding Marks: {result.coding_marks}/{result.max_coding}</p>}
+                </div>
+                {/* Show correct answers for each question type */}
+                <div className="correct-answers-section">
+                  {questions.mcq && questions.mcq.length > 0 && (
+                    <div>
+                      <h4>MCQ Correct Answers</h4>
+                      {questions.mcq.map((q, idx) => (
+                        <div key={q.id}>
+                          Q{idx + 1}: {q.text || q.question} <br />
+                          Correct: <b>{result.correct_mcq?.[q.id]}</b>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {questions.tf && questions.tf.length > 0 && (
+                    <div>
+                      <h4>TF Correct Answers</h4>
+                      {questions.tf.map((q, idx) => (
+                        <div key={q.id}>
+                          Q{idx + 1}: {q.text || q.question} <br />
+                          Correct: <b>{result.correct_tf?.[q.id]}</b>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {questions.coding && questions.coding.length > 0 && (
+                    <div>
+                      <h4>Coding Solution</h4>
+                      {questions.coding.map((q, idx) => (
+                        <div key={q.id}>
+                          Q{idx + 1}: {q.text || q.question} <br />
+                          Solution: <pre style={{ background: '#222', color: '#fff', padding: 8 }}>{result.correct_code?.[q.id]}</pre>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Feedback section remains unchanged */}
+                <div className="feedback-section">
+                  <h3>Optional Feedback</h3>
+                  <StarRating onRatingChange={handleRatingChange} />
+                  {userRating > 0 && !feedbackSubmitted && (
+                    <p className="rating-msg">You picked {userRating} out of 5</p>
+                  )}
+                  <textarea
+                    className="feedback-textarea"
+                    placeholder="Any thoughts about the course?"
+                    value={feedbackNote}
+                    onChange={(e) => {
+                      setFeedbackNote(e.target.value);
+                      setFeedbackSubmitted(false);
+                    }}
+                  />
+                  <div className="feedback-buttons">
+                    <button className="submit-final-button" onClick={handleFeedbackSubmit}>
+                      Submit Feedback
+                    </button>
+                    <button className="submit-final-button" onClick={returnToCourses}>
+                      Return to Courses
+                    </button>
+                  </div>
+                  {feedbackSubmitted && (
+                    <p className="thank-you-msg">Thank you for your feedback!</p>
+                  )}
+                </div>
               </div>
-              {feedbackSubmitted && (
-                <p className="thank-you-msg">Thank you for your feedback!</p>
-              )}
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );

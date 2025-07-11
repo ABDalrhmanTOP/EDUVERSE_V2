@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Test</title>
+</head>
+<body>
+    <h1>Progress Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        
+        // Test functions
+        async function testProgressEndpoints() {
+            const output = document.getElementById('output');
+            
+            try {
+                // Test 1: Save progress
+                console.log('Testing save progress...');
+                const saveResponse = await fetch(`${API_BASE}/user-progress`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_TOKEN_HERE'
+                    },
+                    body: JSON.stringify({
+                        video_id: 'test_video_123',
+                        playlist_id: 1,
+                        last_timestamp: '00:05:30'
+                    })
+                });
+                
+                const saveResult = await saveResponse.json();
+                console.log('Save progress result:', saveResult);
+                output.innerHTML += `<p>Save progress: ${JSON.stringify(saveResult)}</p>`;
+                
+                // Test 2: Get progress
+                console.log('Testing get progress...');
+                const getResponse = await fetch(`${API_BASE}/user-progress?playlist_id=1&video_id=test_video_123`, {
+                    headers: {
+                        'Authorization': 'Bearer YOUR_TOKEN_HERE'
+                    }
+                });
+                
+                const getResult = await getResponse.json();
+                console.log('Get progress result:', getResult);
+                output.innerHTML += `<p>Get progress: ${JSON.stringify(getResult)}</p>`;
+                
+                // Test 3: Complete task
+                console.log('Testing complete task...');
+                const taskResponse = await fetch(`${API_BASE}/user-progress/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_TOKEN_HERE'
+                    },
+                    body: JSON.stringify({
+                        task_id: 1,
+                        playlist_id: 1,
+                        video_id: 'test_video_123'
+                    })
+                });
+                
+                const taskResult = await taskResponse.json();
+                console.log('Complete task result:', taskResult);
+                output.innerHTML += `<p>Complete task: ${JSON.stringify(taskResult)}</p>`;
+                
+                // Test 4: Get completed tasks
+                console.log('Testing get completed tasks...');
+                const tasksResponse = await fetch(`${API_BASE}/user-progress/tasks?playlist_id=1&video_id=test_video_123`, {
+                    headers: {
+                        'Authorization': 'Bearer YOUR_TOKEN_HERE'
+                    }
+                });
+                
+                const tasksResult = await tasksResponse.json();
+                console.log('Get completed tasks result:', tasksResult);
+                output.innerHTML += `<p>Get completed tasks: ${JSON.stringify(tasksResult)}</p>`;
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                output.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run tests
+        testProgressEndpoints();
+    </script>
+</body>
+</html> 

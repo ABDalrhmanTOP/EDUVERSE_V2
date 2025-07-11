@@ -22,38 +22,38 @@ const Playlists = ({ currentTaskIndex, tasks }) => {
 
     return (
         <div className="playlist-sidebar">
-            <h1>Playlists</h1>
-            <ul>
-                {playlists.map((playlist) => (
-                    <li key={playlist.id} className="playlist-item">
-                        <span>{playlist.name}</span>
-                        <ul>
-                            {tasks &&
-                                tasks.map((task, index) => (
-                                    <li
-                                        key={task.id}
-                                        className={`playlist-task-item ${
-                                            currentTaskIndex === index
-                                                ? "active"
-                                                : task.status === "success"
-                                                ? "completed-success"
-                                                : task.status === "error"
-                                                ? "completed-error"
-                                                : ""
-                                        }`}
-                                    >
-                                        {task.title}
-                                        {task.status === "success" && (
-                                            <span className="task-status">✔️</span>
-                                        )}
-                                        {task.status === "error" && (
-                                            <span className="task-status">❌</span>
-                                        )}
-                                    </li>
-                                ))}
-                        </ul>
+            <h1>Course Tasks</h1>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+                {tasks && tasks.length > 0 ? (
+                    tasks.map((task, index) => (
+                        <li
+                            key={task.id}
+                            className={`playlist-task-item ${
+                                currentTaskIndex === index
+                                    ? "active"
+                                    : task.status === "success"
+                                    ? "completed-success"
+                                    : task.status === "error"
+                                    ? "completed-error"
+                                    : ""
+                            }`}
+                        >
+                            <span style={{ fontWeight: '500' }}>
+                                {index + 1}. {task.title}
+                            </span>
+                            {task.status === "success" && (
+                                <span className="task-status">✔️</span>
+                            )}
+                            {task.status === "error" && (
+                                <span className="task-status">❌</span>
+                            )}
+                        </li>
+                    ))
+                ) : (
+                    <li style={{ textAlign: 'center', color: '#6c757d', fontStyle: 'italic' }}>
+                        No tasks available for this course
                     </li>
-                ))}
+                )}
             </ul>
         </div>
     );

@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
 import YouTubeEmbed from "../components/YouTubeEmbed";
-import Playlists from "../components/Playlists";
 import "../App.css";
 
 const VideoPage = () => {
@@ -23,11 +22,7 @@ const VideoPage = () => {
   return (
     // Add marginTop to shift content down so the navbar doesn't overlap
     <div style={{ marginTop: "80px", padding: "0 20px" }}>
-      <YouTubeEmbed videoId="8jLOx1hD3_o" playlistId={1} />
-      {/* Optionally, you can include the Playlists sidebar if needed */}
-      <div style={{ marginTop: "20px" }}>
-        <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
-      </div>
+      <YouTubeEmbed videoId="8jLOx1hD3_o" playlistId={1} tasks={tasks} />
     </div>
   );
 };

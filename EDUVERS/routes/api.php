@@ -15,12 +15,16 @@ use App\Http\Controllers\UserDetailController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserRatingController;
 use App\Http\Controllers\FinalProjectController;
+use App\Http\Controllers\FinalTestSubmissionController;
 use App\Http\Controllers\TaskPlaylistVideoController;
 use App\Http\Controllers\EduBotController;
 use App\Http\Controllers\PlacementTestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Admin\FinalProjectController as AdminFinalProjectController;
+use App\Http\Controllers\Admin\FinalProjectQuestionController as AdminFinalProjectQuestionController;
 
 
 /*
@@ -37,6 +41,10 @@ Route::get('/playlists', [PlaylistController::class, 'index']);
 
 // For showing a single playlist by ID:
 Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
+
+// Public routes for final tests
+// Remove all final test and final test submission routes
+// Only keep final project routes
 
 // YouTube video duration route (public, no auth required)
 Route::get('/youtube/video-duration/{videoId}', [CourseController::class, 'getVideoDuration']);
@@ -64,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user-progress', [UserProgressController::class, 'saveProgress']);
     Route::get('/user-progress', [UserProgressController::class, 'getProgress']);
     Route::post('/user-progress/tasks', [UserProgressController::class, 'completeTask']);
+    Route::get('/user-progress/tasks', [UserProgressController::class, 'getCompletedTasks']);
     Route::post('/user-progress/completeUpToTimestamp', [UserProgressController::class, 'completeUpToTimestamp']);
     Route::get('/user-progress/course-progress/{userId}', [UserProgressController::class, 'getCourseProgress']);
     Route::post('/user-progress/update', [UserProgressController::class, 'updateProgress']);
@@ -85,7 +94,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/final-project', [FinalProjectController::class, 'submitFinalProject']);
     Route::post('/user-feedback', [UserRatingController::class, 'store']);
 
+    // Final Test Submission
+    // Remove all final test and final test submission routes
+    // Only keep final project routes
+
     // Placement Test
+    Route::post('/placement-test/check-completion', [PlacementTestController::class, 'checkCompletion']);
     Route::post('/placement-test/start', [PlacementTestController::class, 'start']);
     Route::post('/placement-test/submit', [PlacementTestController::class, 'submit']);
 
@@ -102,11 +116,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks/{id}', [TaskController::class, 'show']);
     Route::post('/tasks/{id}/submit', [TaskController::class, 'submit']);
 
-    // User progress routes
-    Route::get('/user-progress', [UserProgressController::class, 'index']);
-    Route::post('/user-progress', [UserProgressController::class, 'store']);
-    Route::put('/user-progress/{id}', [UserProgressController::class, 'update']);
-
     // User rating routes
     Route::get('/user-ratings', [UserRatingController::class, 'index']);
     Route::post('/user-ratings', [UserRatingController::class, 'store']);
@@ -115,7 +124,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Final project routes
     Route::get('/final-projects', [FinalProjectController::class, 'index']);
     Route::post('/final-projects', [FinalProjectController::class, 'store']);
-    Route::get('/final-projects/{id}', [FinalProjectController::class, 'show']);
+    Route::get('/final-projects/check/{playlistId}', [FinalProjectController::class, 'check']);
+    Route::get('/final-projects/{playlistId}', [FinalProjectController::class, 'show']);
 
     // EduBot routes
     Route::post('/edubot/chat', [EduBotController::class, 'chat']);
@@ -143,6 +153,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Return all course progress for the authenticated user
     Route::get('/user-progress/all', [UserProgressController::class, 'getAllCourseProgress']);
 });
+
+Route::middleware('auth:sanctum')->post('/update-user-profile-for-test', [UserController::class, 'updateProfileForTest']);
 
 /*
 |--------------------------------------------------------------------------
@@ -187,6 +199,16 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
 
     // Admin Notification routes
     Route::get('/admin/notifications', [NotificationController::class, 'adminIndex']);
+
+    // Placement & Final Test Management
+    Route::apiResource('/admin/placement-tests', App\Http\Controllers\Admin\PlacementTestController::class);
+    Route::apiResource('/admin/placement-test-questions', App\Http\Controllers\Admin\PlacementTestQuestionController::class);
+    // Remove all final test and final test submission routes
+    // Only keep final project routes
+
+    // Final Project Management
+    Route::apiResource('/admin/final-projects', AdminFinalProjectController::class);
+    Route::apiResource('/admin/final-project-questions', AdminFinalProjectQuestionController::class);
 });
 
 /*

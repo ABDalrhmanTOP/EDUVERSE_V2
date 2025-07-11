@@ -4,28 +4,59 @@ import { FaCheckCircle, FaTimesCircle, FaArrowLeft } from "react-icons/fa";
 import Lottie from "lottie-react";
 import successAnimation from "../animations/success.json";
 import errorAnimation from "../animations/error.json";
+import axios from "../api/axios";
 import "../styles/CodeTask.css";
 
 const CodeTaskTrueFalse = ({ task, onTaskComplete, onReturn }) => {
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [wrongAttempts, setWrongAttempts] = useState(0);
 
-  const handleAnswer = (answer) => {
-    // For True/False tasks, we do not display expected_output.
-    if (String(answer).toLowerCase() === String(task.correct_answer).toLowerCase()) {
-      setFeedback({
-        type: "success",
-        message: "✅ Correct! Returning to the course..."
-      });
-      setTimeout(() => onTaskComplete(), 2000);
-    } else {
-      const newAttempts = wrongAttempts + 1;
-      setWrongAttempts(newAttempts);
-      let msg = "❌ Incorrect answer. Please try again.";
-      if (newAttempts >= 3) {
-        msg += `\nHint: ${task.syntax_hint}`; // syntax_hint holds the hint and correct answer.
+  const handleAnswer = async (answer) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post(
+        "/user-progress/answer",
+        {
+          task_id: task.id,
+          answer: answer,
+          playlist_id: task.playlist_id
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.correct) {
+        setFeedback({
+          type: "success",
+          message: "✅ Correct! Returning to the course..."
+        });
+        setTimeout(() => onTaskComplete(), 2000);
+      } else {
+        const newAttempts = wrongAttempts + 1;
+        setWrongAttempts(newAttempts);
+        let msg = "❌ Incorrect answer. Please try again.";
+        if (newAttempts >= 3) {
+          msg += `\nHint: ${task.syntax_hint}`; // syntax_hint holds the hint and correct answer.
+        }
+        setFeedback({ type: "error", message: msg });
       }
-      setFeedback({ type: "error", message: msg });
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+      // Fallback to client-side checking if API fails
+      if (String(answer).toLowerCase() === String(task.expected_output).toLowerCase()) {
+        setFeedback({
+          type: "success",
+          message: "✅ Correct! Returning to the course..."
+        });
+        setTimeout(() => onTaskComplete(), 2000);
+      } else {
+        const newAttempts = wrongAttempts + 1;
+        setWrongAttempts(newAttempts);
+        let msg = "❌ Incorrect answer. Please try again.";
+        if (newAttempts >= 3) {
+          msg += `\nHint: ${task.syntax_hint}`; // syntax_hint holds the hint and correct answer.
+        }
+        setFeedback({ type: "error", message: msg });
+      }
     }
   };
 

@@ -186,16 +186,44 @@ class TaskController extends Controller
                 },
             ],
             'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'prompt' => 'nullable|string',
             'expected_output' => 'nullable|string',
             'syntax_hint' => 'nullable|string',
             'type' => 'required|string',
             'options' => 'nullable|json',
+            'question' => 'nullable|string',
+            'correct_answer' => 'nullable',
+            'tf_question' => 'nullable|string',
+            'tf_answer' => 'nullable',
+            'coding_question' => 'nullable|string',
+            'coding_test_cases' => 'nullable|json',
+            'coding_solution' => 'nullable|string',
+            'coding_language' => 'nullable|string',
+            'points' => 'nullable|integer',
         ]);
 
         $task = Task::create($validated);
 
         return response()->json($task, 201);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $task = Task::findOrFail($id);
+            $task->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Task deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete task'
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
@@ -233,11 +261,21 @@ class TaskController extends Controller
                 },
             ],
             'title' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
             'prompt' => 'nullable|string',
             'expected_output' => 'nullable|string',
             'syntax_hint' => 'nullable|string',
             'type' => 'sometimes|string',
             'options' => 'nullable|json',
+            'question' => 'nullable|string',
+            'correct_answer' => 'nullable',
+            'tf_question' => 'nullable|string',
+            'tf_answer' => 'nullable',
+            'coding_question' => 'nullable|string',
+            'coding_test_cases' => 'nullable|json',
+            'coding_solution' => 'nullable|string',
+            'coding_language' => 'nullable|string',
+            'points' => 'nullable|integer',
         ]);
 
         $task->update($validated);

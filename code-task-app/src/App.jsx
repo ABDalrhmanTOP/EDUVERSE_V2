@@ -5,6 +5,8 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
+  useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -32,6 +34,7 @@ import UsersList from "./components/admin/UsersList";
 import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
 import TasksDashboard from "./components/admin/TasksDashboard";
+import TestsDashboard from './components/admin/TestsDashboard';
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -60,6 +63,20 @@ const AdminProtectedRoute = ({ children }) => {
     return <Navigate to="/" />;
   }
   return children;
+};
+
+const FinalProjectWrapper = () => {
+  // Try to get courseId from query string or global state if needed
+  const params = useParams();
+  const location = useLocation();
+  let courseId = params.courseId;
+  if (!courseId) {
+    // Try to get from query string
+    const searchParams = new URLSearchParams(location.search);
+    courseId = searchParams.get("courseId");
+  }
+  // Fallback: could use context or global state if needed
+  return <FinalProject courseId={courseId} />;
 };
 
 const App = () => {
@@ -130,10 +147,12 @@ const App = () => {
           path="/final-project"
           element={
             <ProtectedRoute>
-              <FinalProject />
+              <FinalProjectWrapper />
             </ProtectedRoute>
           }
         />
+
+        {/* Remove all FinalTest routes and references */}
 
         <Route
           path="/placement-test/:courseId"
@@ -190,6 +209,7 @@ const App = () => {
           <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
           <Route path="edubot" element={<div>EduBot Settings - Coming Soon</div>} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="tests" element={<TestsDashboard />} />
         </Route>
 
         {/* Catch-all */}

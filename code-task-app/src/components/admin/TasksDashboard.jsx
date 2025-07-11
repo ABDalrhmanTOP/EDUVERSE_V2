@@ -105,7 +105,7 @@ const TasksDashboard = () => {
 
   const confirmDeleteTask = async () => {
     try {
-      await apiClient.delete(`/task/${deleteModal.taskId}`);
+      await apiClient.delete(`/admin/tasks/${deleteModal.taskId}`);
       setTasks(tasks.filter(task => task.id !== deleteModal.taskId));
       setDeleteModal({ isOpen: false, taskId: null, taskTitle: '' });
       
@@ -179,21 +179,27 @@ const TasksDashboard = () => {
     return taskType;
   };
 
-  const getCourseName = (courseId, playlist) => {
-    if (playlist && playlist.name) return playlist.name;
-    const course = courses.find(c => c.id === courseId || c.id === (playlist && playlist.id));
+  const getCourseName = (task) => {
+    // First check if task has playlist relationship loaded
+    if (task.playlist && task.playlist.name) {
+      return task.playlist.name;
+    }
+    
+    // Fallback to courses array if playlist not loaded
+    const courseId = task.playlist_id || task.course_id;
+    const course = courses.find(c => c.id === courseId);
     return course ? course.name : t('admin.tasks.unknownCourse');
   };
 
   const filteredTasks = tasks.filter(task => {
-    const taskCourseId = task.course_id ?? (task.playlist && task.playlist.id);
+    const taskCourseId = task.playlist_id ?? task.course_id ?? (task.playlist && task.playlist.id);
     const matchesSearch = (task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           task.description?.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCourse = !selectedCourse || String(taskCourseId) === String(selectedCourse);
     const matchesType = filterType === 'all' ||
       (filterType === 'coding' && isCodingType(task.type)) ||
-      ((filterType === 'true_false' || filterType === 'truefalse') && isTrueFalseType(task.type)) ||
-      (filterType !== 'coding' && filterType !== 'true_false' && filterType !== 'truefalse' && task.type === filterType);
+      (filterType === 'truefalse' && isTrueFalseType(task.type)) ||
+      (filterType === 'mcq' && task.type === 'mcq');
     return matchesSearch && matchesCourse && matchesType;
   });
 
@@ -349,7 +355,7 @@ const TasksDashboard = () => {
                 >
                   <option value="all">{t('admin.tasks.allTypes')}</option>
                   <option value="mcq">{t('admin.tasks.multipleChoice')}</option>
-                  <option value="true_false">{t('admin.tasks.trueFalse')}</option>
+                  <option value="truefalse">{t('admin.tasks.trueFalse')}</option>
                   <option value="coding">{t('admin.tasks.coding')}</option>
                 </select>
               </div>
@@ -392,7 +398,7 @@ const TasksDashboard = () => {
                               <div className="task-description">{task.description}</div>
                             )}
                           </td>
-                          <td className="task-course">{getCourseName(task.course_id, task.playlist)}</td>
+                          <td className="task-course">{getCourseName(task)}</td>
                           <td>
                             <div className="task-type">
                               {getTaskTypeIcon(task.type)}

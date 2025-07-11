@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User; // تأكد من استخدام المسار الصحيح للنموذ
 use Illuminate\Support\Facades\Storage;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -209,5 +210,35 @@ class UserController extends Controller
                 'error' => 'فشل في رفع الصورة: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function updateProfileForTest(Request $request)
+    {
+        $user = $request->user();
+
+        $validatedData = $request->validate([
+            'job' => 'nullable|string|max:255',
+            'university' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'experience' => 'nullable|string|max:255',
+            'careerGoals' => 'nullable|string',
+            'hobbies' => 'nullable|array',
+            'expectations' => 'nullable|array',
+            'educationLevel' => 'nullable|string|max:255',
+            'fieldOfStudy' => 'nullable|string|max:255',
+            'studentYear' => 'nullable|string|max:255',
+            'yearsOfExperience' => 'nullable|string|max:255',
+            'specialization' => 'nullable|string|max:255',
+            'teachingSubject' => 'nullable|string|max:255',
+            'researchField' => 'nullable|string|max:255',
+            'companySize' => 'nullable|string|max:255',
+            'industry' => 'nullable|string|max:255',
+        ]);
+
+        $user->fill($validatedData);
+        $user->has_completed_general_form = true;
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully']);
     }
 }
