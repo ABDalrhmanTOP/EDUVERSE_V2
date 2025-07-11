@@ -292,6 +292,13 @@ const DashboardContent = ({ user, actions }) => {
             action: actions.goToSubscriptionPage,
             key: "subscribe"
           },
+          {
+            icon: FiMessageSquare,
+            title: "Community",
+            desc: "Join discussions & share posts",
+            action: () => actions.navigate("/community"),
+            key: "community"
+          },
           ...(user?.role === "admin"
             ? [
                 {
@@ -420,7 +427,8 @@ const Homepage = ({ formType, setFormType }) => {
     goToChatPage: () => navigate("/chat"),
     goToProfilePage: () => navigate("/profile"),
     goToSubscriptionPage: () => navigate("/subscription-plans"),
-    goToAdminPage: () => navigate("/AdminDashboard")
+    goToAdminPage: () => navigate("/AdminDashboard"),
+    navigate: (path) => navigate(path)
   };
 
   const handleLogout = async () => {

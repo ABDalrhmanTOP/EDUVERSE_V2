@@ -25,6 +25,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\FinalProjectController as AdminFinalProjectController;
 use App\Http\Controllers\Admin\FinalProjectQuestionController as AdminFinalProjectQuestionController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\CommunityController;
+
+
 
 
 /*
@@ -147,11 +151,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/subscription-history', [StripeController::class, 'getSubscriptionHistory']);
 
     // كورسات الاشتراكات النشطة وحذف اشتراك كورس
-    Route::get('/subscriptions/active-courses', [StripeController::class, 'activeCourses']);
+    Route::get('/subscriptions/active-courses', [StripeController::class, 'getSubscriptionHistory']);
     Route::delete('/subscriptions/remove/{playlistId}', [StripeController::class, 'removeCourseSubscription']);
 
     // Return all course progress for the authenticated user
     Route::get('/user-progress/all', [UserProgressController::class, 'getAllCourseProgress']);
+
+    // Community routes
+    Route::get('/community/posts', [CommunityController::class, 'index']);
+    Route::get('/community/posts/{id}', [CommunityController::class, 'show']);
+    Route::post('/community/posts', [CommunityController::class, 'store']);
+    Route::post('/community/posts/{id}/comments', [CommunityController::class, 'comment']);
+    Route::put('/community/posts/{id}', [CommunityController::class, 'updatePost']);
+    Route::delete('/community/posts/{id}', [CommunityController::class, 'deletePost']);
+    Route::put('/community/comments/{id}', [CommunityController::class, 'updateComment']);
+    Route::delete('/community/comments/{id}', [CommunityController::class, 'deleteComment']);
 });
 
 Route::middleware('auth:sanctum')->post('/update-user-profile-for-test', [UserController::class, 'updateProfileForTest']);
@@ -209,6 +223,15 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     // Final Project Management
     Route::apiResource('/admin/final-projects', AdminFinalProjectController::class);
     Route::apiResource('/admin/final-project-questions', AdminFinalProjectQuestionController::class);
+
+    // Admin Subscription Management
+    Route::get('/admin/subscriptions', [SubscriptionController::class, 'index']);
+    Route::get('/admin/subscriptions/statistics', [SubscriptionController::class, 'statistics']);
+    Route::get('/admin/subscriptions/search', [SubscriptionController::class, 'search']);
+    Route::get('/admin/subscriptions/{id}', [SubscriptionController::class, 'show']);
+    Route::put('/admin/subscriptions/{id}', [SubscriptionController::class, 'update']);
+    Route::delete('/admin/subscriptions/{id}', [SubscriptionController::class, 'destroy']);
+    Route::get('/admin/subscriptions/export', [SubscriptionController::class, 'export']);
 });
 
 /*

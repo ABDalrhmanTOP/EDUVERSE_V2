@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Rename table
-        Schema::rename('final_test_questions', 'final_project_questions');
-        // Rename column
-        Schema::table('final_project_questions', function (Blueprint $table) {
-            $table->renameColumn('final_test_id', 'final_project_id');
-        });
-    }
+        if (Schema::hasTable('final_test_questions')) {
+            Schema::rename('final_test_questions', 'final_project_questions');
 
+            Schema::table('final_project_questions', function (Blueprint $table) {
+                if (Schema::hasColumn('final_project_questions', 'final_test_id')) {
+                    $table->renameColumn('final_test_id', 'final_project_id');
+                }
+            });
+    }
+    }
     /**
      * Reverse the migrations.
      */

@@ -203,6 +203,8 @@
   box-shadow: 0 4px 16px -1px rgba(181,160,121,0.18);
   margin-top: auto;
   letter-spacing: 0.5px;
+  width: 100%;
+  display: block;
 }
 
 .subscribe-btn:hover {
@@ -322,62 +324,177 @@
 
 .confirmation-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(44, 62, 80, 0.25);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
 .confirmation-modal {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(44,62,80,0.18);
-  padding: 2.5rem 2rem 2rem 2rem;
-  max-width: 520px;
-  text-align: center;
   position: relative;
-  animation: modalPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+  max-height: 98vh;
+  overflow-y: auto;
+}
+
+/* Premium Glassmorphism Modal & Checkout */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Poppins:wght@700&display=swap');
+
+body, .modal-title, .checkout-title {
+  font-family: 'Poppins', 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.modal-glass, .glassy, .checkout-form-container {
+  background: linear-gradient(120deg, rgba(255,255,255,0.97) 60%, rgba(227,207,164,0.93) 100%);
+  box-shadow:
+    0 16px 48px 0 #b5a07922,
+    0 2px 12px 0 #e3cfa444,
+    0 0 0 4px #e3cfa455,
+    0 0 0 2px #b5a07933,
+    inset 0 2px 24px 0 #e3cfa422;
+  backdrop-filter: blur(28px) saturate(1.5);
+  border-radius: 32px;
+  border: 2.5px solid #e3cfa4;
+  padding: 3rem 2.5rem 2.5rem 2.5rem;
+  max-width: 520px;
+  margin: 0 auto;
+  position: relative;
+  animation: modalPop 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.modal-glass::before, .glassy::before, .checkout-form-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, #fffbe9cc 0%, #e3cfa4cc 100%);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes modalPop {
-  0% { transform: scale(0.85); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.92) translateY(40px); opacity: 0; }
+  80% { transform: scale(1.03) translateY(-8px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-.modal-icon {
-  font-size: 2.5rem;
+.modal-title-icon {
+  margin-right: 0.7rem;
+  display: flex;
+  align-items: center;
+}
+
+input:focus, .pay-button:hover, .gradient-btn:hover {
+  border-color: #b5a079;
+  box-shadow: 0 0 14px #b5a07933;
+  outline: none;
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.7rem;
+  padding: 0 0.2rem;
+  gap: 0.5rem;
 }
 
-.confirmation-modal h3 {
-  color: #7d6a4d;
-  font-size: 1.3rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
+.modal-title, .checkout-title {
+  flex: 1;
+  text-align: left;
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, #b5a079 30%, #e3cfa4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 12px #e3cfa4;
+  letter-spacing: 1.2px;
+  margin: 0;
+  animation: titleGlow 2.5s infinite alternate;
 }
 
-.confirmation-modal p {
-  color: #7d6a4d;
-  font-size: 1.05rem;
-  margin-bottom: 1.2rem;
+.modal-title-decor {
+  display: block;
+  width: 70px;
+  height: 5px;
+  margin: 0.2rem 0 1.1rem 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e3cfa4 0%, #b5a079 100%);
+  opacity: 0.85;
+  box-shadow: 0 2px 8px 0 rgba(181,160,121,0.10);
 }
 
 .close-modal-btn {
-  background: linear-gradient(135deg, #b5a079, #e3cfa4);
-  color: #fff;
-  border: none;
-  padding: 0.7rem 2.2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
+  background: rgba(245,241,235,0.85);
+  border: 2px solid #e3cfa4;
+  border-radius: 50%;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px 0 rgba(181,160,121,0.13);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  margin-left: 1rem;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px -1px rgba(181,160,121,0.13);
+  padding: 0;
+  outline: none;
+  font-size: 1.3rem;
+  color: #b5a079;
+}
+.close-modal-btn:hover, .close-modal-btn:focus {
+  background: linear-gradient(135deg, #e3cfa4 60%, #b5a079 100%);
+  box-shadow: 0 6px 18px 0 rgba(181,160,121,0.18);
+  transform: scale(1.12);
+  color: #fff;
+}
+.close-x-animate {
+  transition: transform 0.3s;
+}
+.close-modal-btn:hover .close-x-animate {
+  transform: rotate(90deg) scale(1.15);
 }
 
-.close-modal-btn:hover {
-  background: linear-gradient(135deg, #e3cfa4, #b5a079);
-  transform: translateY(-2px) scale(1.04);
-} 
+@keyframes titleGlow {
+  0%,100% { text-shadow: 0 2px 12px #e3cfa4, 0 0 8px #b5a07944; }
+  50% { text-shadow: 0 4px 24px #e3cfa4, 0 0 16px #b5a07988; }
+}
+
+.lock-animate {
+  animation: lockBounce 1.8s infinite alternate;
+}
+@keyframes lockBounce {
+  0%,100% { transform: translateY(0);}
+  50% { transform: translateY(-4px);}
+}
+
+@media (max-width: 700px) {
+  .modal-glass, .confirmation-modal, .glassy, .checkout-form-container {
+    border-radius: 18px;
+    padding: 1.5rem 0.7rem 1.2rem 0.7rem;
+    max-width: 98vw;
+  }
+  .modal-title, .checkout-title {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+  }
+  .close-modal-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 1.1rem;
+  }
+  .modal-title-decor {
+    width: 40px;
+    height: 3px;
+    margin-bottom: 0.7rem;
+  }
+}
+
+

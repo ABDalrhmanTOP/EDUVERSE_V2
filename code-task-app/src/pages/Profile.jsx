@@ -90,7 +90,7 @@ const Profile = () => {
   const nodeRef = activeTab === "profile" ? profileTabRef : courseTabRef;
 
   // New: Add active courses state
-  const [activeCourses, setActiveCourses] = useStateReact([]);
+  const [activeCourses, setActiveCourses] = useState([]);
   const [activeCoursesLoading, setActiveCoursesLoading] = useStateReact(false);
   const [activeCoursesError, setActiveCoursesError] = useStateReact("");
   const [showSubscribeBtn, setShowSubscribeBtn] = useStateReact({}); // { [playlistId]: true/false }
@@ -150,8 +150,10 @@ const Profile = () => {
   useEffect(() => {
     if (activeTab === "course") {
       setActiveCoursesLoading(true);
-      fetchActiveCourses().then(setActiveCourses).catch(()=>setActiveCoursesError("Failed to load active courses"))
-        .finally(()=>setActiveCoursesLoading(false));
+      fetchActiveCourses()
+        .then(data => setActiveCourses(Array.isArray(data) ? data : []))
+        .catch(() => setActiveCoursesError("Failed to load active courses"))
+        .finally(() => setActiveCoursesLoading(false));
     }
   }, [activeTab]);
 
@@ -701,21 +703,27 @@ const Profile = () => {
                 {activeTab === "course" && (
                   <section className="active-courses-section">
                     <h2>Your Active Courses</h2>
-                    {activeCoursesLoading ? <div>Loading...</div> :
-                      activeCoursesError ? <div className="form-message error">{activeCoursesError}</div> :
-                      activeCourses.length === 0 ? <div>No active courses</div> :
+                    {activeCoursesLoading ? (
+                      <div>Loading...</div>
+                    ) : activeCoursesError ? (
+                      <div className="form-message error">{activeCoursesError}</div>
+                    ) : Array.isArray(activeCourses) && activeCourses.length === 0 ? (
+                      <div>No active courses</div>
+                    ) : (
                       <ul className="active-courses-list">
-                        {activeCourses.map(course => (
+                        {Array.isArray(activeCourses) && activeCourses.map(course => (
                           <li key={course.id} className="active-course-item">
                             <span>{course.name || course.title}</span>
-                            <button className="button secondary small" onClick={async()=>{
+                            <button className="button secondary small" onClick={async () => {
                               await removeCourseSubscription(course.id);
-                              setActiveCourses(activeCourses.filter(c=>c.id!==course.id));
-                            }}>Remove Subscription</button>
+                              setActiveCourses(activeCourses.filter(c => c.id !== course.id));
+                            }}>
+                              Remove Subscription
+                            </button>
                           </li>
                         ))}
                       </ul>
-                    }
+                    )}
                   </section>
                 )}
               </div>

@@ -5,7 +5,7 @@ import axios from '../api/axios';
 import '../styles/CheckoutForm.css';
 import { useNavigate } from 'react-router-dom';
 import SuccessCelebration from './SuccessCelebration';
-import { FaLock, FaCreditCard, FaExclamationCircle, FaCheckCircle, FaCrown, FaRocket, FaGift } from 'react-icons/fa';
+import { FaLock, FaCreditCard, FaExclamationCircle, FaCheckCircle, FaCrown, FaRocket, FaGift, FaShieldAlt, FaStar } from 'react-icons/fa';
 import Spinner from './Spinner';
 
 const stripePromise = loadStripe("pk_test_51Re9HPC6InkpE6BbDySFemIfUDICccZwwtm12tvgrAFLhTDkbSM3De6Uy8t3wcuEglqsFHtbrlByLyX2XFDJIXOz00WbzyaYqO");
@@ -166,12 +166,68 @@ const CheckoutFormInner = ({ plan, onSuccess }) => {
     );
   };
 
+  // Payment confirmation component
+  const PaymentConfirmation = ({ plan }) => {
+    return (
+      <div className="payment-confirmation-overlay">
+        <div className="payment-confirmation-modal glassy fade-in-up">
+          <div className="confirmation-header">
+            <div className="success-icon-container">
+              <FaCheckCircle className="success-icon" />
+            </div>
+            <h2 className="confirmation-title">Payment Successful! 🎉</h2>
+            <p className="confirmation-subtitle">Thank you for your subscription</p>
+          </div>
+          
+          <div className="plan-confirmation-details">
+            <div className="confirmed-plan-card">
+              <div className="plan-header">
+                <FaCrown className="plan-icon" />
+                <h3>{plan.title}</h3>
+              </div>
+              <div className="plan-price-confirmed">{plan.price}</div>
+              <div className="plan-features">
+                <h4>Your subscription includes:</h4>
+                <ul>
+                  <li><FaStar /> Full access to selected courses</li>
+                  <li><FaShieldAlt /> Secure and encrypted platform</li>
+                  <li><FaGift /> Lifetime access to content</li>
+                  <li><FaRocket /> Premium learning experience</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="confirmation-actions">
+            <button 
+              className="primary-action-btn gradient-btn"
+              onClick={() => navigate('/dashboard')}
+            >
+              <FaRocket /> Start Learning Now
+            </button>
+            <button 
+              className="secondary-action-btn"
+              onClick={() => navigate('/subscription-history')}
+            >
+              View Subscription History
+            </button>
+          </div>
+          
+          <div className="welcome-message">
+            <p>🎓 Welcome to EduVerse! Your learning journey begins now.</p>
+            <p>We're excited to help you achieve your educational goals.</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   console.log('Current success state:', success);
   console.log('Component re-rendering, success =', success);
   
   if (success) {
-    console.log('Rendering SubscriptionConfirmation');
-    return <SubscriptionConfirmation plan={plan} />;
+    console.log('Rendering PaymentConfirmation');
+    return <PaymentConfirmation plan={plan} />;
   }
 
   return (
@@ -181,10 +237,10 @@ const CheckoutFormInner = ({ plan, onSuccess }) => {
           <p className="checkout-subtitle">Complete your payment securely and unlock your learning journey!</p>
         </div>
         <form onSubmit={handleSubmit} className="checkout-form">
-          <div className="checkout-header">
-            <h2>Checkout</h2>
+          <div className="checkout-header" style={{ textAlign: 'center' }}>
+            <h2 className="checkout-title checkout-title-gradient">Checkout</h2>
           </div>
-          <div className="plan-summary card-style">
+          <div className="plan-summary card-style plan-summary-centered">
             <h3>{plan.title}</h3>
             <p className="plan-price accent">{plan.price}</p>
           </div>
@@ -201,8 +257,8 @@ const CheckoutFormInner = ({ plan, onSuccess }) => {
             {isProcessing ? <Spinner className="inline-spinner" /> : `Pay ${plan.price}`}
           </button>
           <div className="security-notice">
-            <FaCheckCircle style={{ marginRight: 6, color: '#A97C78' }} />
-            <span> Your payment is secure and encrypted via Stripe.</span>
+            <FaLock className="security-lock-icon" />
+            Your payment is <span className="security-accent">secure</span> and encrypted via <span className="security-accent">Stripe</span>
           </div>
         </form>
       </div>

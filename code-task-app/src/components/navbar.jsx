@@ -113,6 +113,7 @@ const Navbar = ({ setFormType }) => {
             <>
               <NavLink to="/homevideo" className={navLinkClass}>Courses</NavLink>
               <NavLink to="/chat" className={navLinkClass}>EduBot</NavLink>
+              <NavLink to="/community" className={navLinkClass}>Community</NavLink>
               <NavLink to="/subscription-plans" className={navLinkClass}>Subscribe</NavLink>
               {userRole === "admin" && (
                  <NavLink to="/AdminDashboard" className={navLinkClass}>Admin Panel</NavLink>
@@ -184,6 +185,7 @@ const Navbar = ({ setFormType }) => {
                     </div>
                     <button onClick={() => handleNavLinkClick('/homevideo')} className="mobile-nav-link">Courses</button>
                     <button onClick={() => handleNavLinkClick('/chat')} className="mobile-nav-link">EduBot</button>
+                    <button onClick={() => handleNavLinkClick('/community')} className="mobile-nav-link">Community</button>
                     <button onClick={() => handleNavLinkClick('/subscription-plans')} className="mobile-nav-link">Subscribe</button>
                     <button onClick={() => handleNavLinkClick('/subscription-history')} className="mobile-nav-link">Subscription History</button>
                     {userRole === 'admin' && <button onClick={() => handleNavLinkClick('/AdminDashboard')} className="mobile-nav-link">Admin Panel</button>}

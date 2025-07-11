@@ -26,6 +26,9 @@ import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
 import SubscriptionHistory from "./pages/SubscriptionHistory";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
+import Community from "./pages/Community";
+import CommunityPost from "./pages/CommunityPost";
+import NewCommunityPost from "./pages/NewCommunityPost";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -35,6 +38,7 @@ import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
 import TasksDashboard from "./components/admin/TasksDashboard";
 import TestsDashboard from './components/admin/TestsDashboard';
+import AdminSubscriptions from './pages/admin/AdminSubscriptions';
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -190,6 +194,32 @@ const App = () => {
           }
         />
 
+        {/* Community */}
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <Community />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/new"
+          element={
+            <ProtectedRoute>
+              <NewCommunityPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/posts/:id"
+          element={
+            <ProtectedRoute>
+              <CommunityPost />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Admin */}
         <Route
           path="/AdminDashboard"
@@ -210,6 +240,7 @@ const App = () => {
           <Route path="edubot" element={<div>EduBot Settings - Coming Soon</div>} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="tests" element={<TestsDashboard />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
         </Route>
 
         {/* Catch-all */}
