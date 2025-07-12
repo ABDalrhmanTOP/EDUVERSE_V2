@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('message');
             $table->json('data')->nullable(); // Additional data for the notification
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade'); // For user-specific notifications
-            $table->foreignId('admin_id')->nullable()->constrained('users')->onDelete('cascade'); // For admin-specific notifications
+            $table->unsignedBigInteger('user_id')->nullable(); // For user-specific notifications
+            $table->unsignedBigInteger('admin_id')->nullable(); // For admin-specific notifications
             $table->boolean('is_read')->default(false);
             $table->boolean('email_sent')->default(false);
             $table->timestamp('read_at')->nullable();

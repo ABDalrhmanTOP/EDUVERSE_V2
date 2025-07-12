@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             TasksSeeder::class,
             LevelSeeder::class,
             QuestionSeeder::class,
-            PlacementQuestionsSeeder::class
+            PlacementTestQuestionsSeeder::class
             // Add other seeders as required
         ]);
 

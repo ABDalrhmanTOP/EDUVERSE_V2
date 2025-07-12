@@ -11,14 +11,27 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('playlist_id')->constrained()->onDelete('cascade');
-            $table->unsignedBigInteger('video_id')->nullable();
+            $table->string('video_id')->nullable();
             $table->string('title');
-            $table->text('prompt'); // if prompt may also be large
-            $table->string('expected_output')->nullable();
+            $table->text('description')->nullable();
+            $table->text('prompt')->nullable();
+            $table->text('expected_output')->nullable();
             $table->text('syntax_hint')->nullable();
             $table->string('timestamp');
             $table->string('type')->nullable();
             $table->json('options')->nullable();
+
+            // Additional task fields
+            $table->text('question')->nullable();
+            $table->text('correct_answer')->nullable();
+            $table->text('tf_question')->nullable();
+            $table->boolean('tf_answer')->nullable();
+            $table->text('coding_question')->nullable();
+            $table->json('coding_test_cases')->nullable();
+            $table->text('coding_solution')->nullable();
+            $table->string('coding_language')->default('javascript');
+            $table->integer('points')->default(1);
+
             $table->timestamps();
         });
     }

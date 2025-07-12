@@ -116,7 +116,15 @@
     "updateCourse": "تحديث الدورة",
     "optional": "اختياري",
     "saving": "جاري الحفظ...",
-    "timestampFormat": "(د:ث)"
+    "timestampFormat": "(د:ث)",
+    "generateTasksAuto": "إنشاء المهام تلقائياً",
+    "generatingContent": "جاري إنشاء المحتوى...",
+    "generateContentInfo": "سيتم إنشاء اختبار تحديد المستوى ومهام الدورة وأسئلة المشروع النهائي تلقائياً باستخدام الذكاء الاصطناعي بناءً على محتوى الدورة.",
+    "videoValid": "الفيديو صحيح وجاهز",
+    "videoNotDuplicate": "هذا الفيديو ليس مكرراً",
+    "videoAlreadyExists": "هذا الفيديو موجود بالفعل في دورة أخرى",
+    "existingCourse": "الدورة الموجودة",
+    "durationAutoFetched": "تم جلب المدة تلقائياً من يوتيوب"
   },
   "admin": {
     "dashboard": {

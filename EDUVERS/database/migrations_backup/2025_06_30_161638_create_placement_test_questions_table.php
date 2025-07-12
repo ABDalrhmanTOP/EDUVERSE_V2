@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('type'); // 'mcq', 'true_false', 'code'
             $table->json('options')->nullable();
             $table->string('correct_answer');
-            $table->string('difficulty')->default('easy');
+            $table->integer('difficulty')->default(1);
             $table->text('code_template')->nullable();
             $table->json('test_cases')->nullable();
             $table->timestamps();

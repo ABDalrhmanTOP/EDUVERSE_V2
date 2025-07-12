@@ -27,6 +27,8 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   const [durationAutoFetched, setDurationAutoFetched] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [paid, setPaid] = useState(false);
+  const [generatingContent, setGeneratingContent] = useState(false);
+  const [contentGenerationError, setContentGenerationError] = useState('');
   const { t, i18n } = useTranslation();
 
   // Real-time validation state
@@ -436,6 +438,38 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     }
   };
 
+  // Fetch video info (title, description) from YouTube API
+  const fetchVideoInfo = async (videoId) => {
+    if (!videoId || videoId.length !== 11) return;
+    
+    try {
+      const response = await apiClient.get(`/youtube/video-info/${videoId}`);
+      if (response.data) {
+        // Auto-fill the course name and description
+        setName(response.data.title || name);
+        setDescription(response.data.description || description);
+        
+        // Store captions data for later use
+        if (response.data.captions) {
+          // Store captions in component state or localStorage for n8n
+          localStorage.setItem('video_captions', response.data.captions);
+          console.log('Video captions fetched and stored');
+        }
+        
+        // Store video duration for n8n
+        if (videoDuration) {
+          localStorage.setItem('video_duration', videoDuration);
+          console.log('Video duration stored:', videoDuration);
+        }
+        
+        // Show success message
+        console.log('Video info auto-fetched:', response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching video info:', error);
+    }
+  };
+
   const handleVideoUrlChange = (e) => {
     const value = e.target.value;
     setVideo_id(value);
@@ -451,6 +485,9 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
       if (!durationAutoFetched && !fetchingDuration) {
         fetchVideoDuration(extractedId);
       }
+      
+      // Auto-fetch video info (title and description)
+      fetchVideoInfo(extractedId);
     } else {
       setVideo_id(value);
       validateField('video_id', value);
@@ -462,6 +499,191 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
         duplicateCourse: null
       });
     }
+  };
+
+  const handleGenerateContent = async () => {
+    if (!video_id) {
+      setContentGenerationError('Please enter a YouTube URL first.');
+      return;
+    }
+
+    setGeneratingContent(true);
+    setContentGenerationError('');
+
+    try {
+      // Extract timestamp from video duration or use default
+      const timestamp = videoDuration || '00:05:30';
+
+      // Get stored captions data and duration
+      const storedCaptions = localStorage.getItem('video_captions');
+      const storedDuration = localStorage.getItem('video_duration');
+      
+      // Call our Laravel API
+      const response = await fetch('http://localhost:8000/api/course/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          youtube_url: `https://www.youtube.com/watch?v=${video_id}`,
+          timestamp: timestamp,
+          // Add the fetched video information
+          video_title: name,
+          video_description: description,
+          video_channel: 'Unknown Channel', // You can add a field for this if needed
+          video_published: null,
+          // Add captions data for AI analysis
+          video_captions: storedCaptions || null,
+          // Add video duration for timestamp validation
+          video_duration: storedDuration || timestamp
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to start course generation');
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'Course generation failed');
+      }
+
+      // Show success notification for starting the process
+      window.dispatchEvent(new CustomEvent('showSuccessNotification', {
+        detail: { 
+          message: 'Course generation started successfully! The AI is analyzing the video and creating content. This may take 3-5 minutes. Please be patient.' 
+        }
+      }));
+
+      // If status is 'processing', poll for completion
+      if (result.status === 'processing') {
+        await pollForGenerationCompletion(result.request_id);
+      } else if (result.status === 'completed') {
+        // Handle immediate completion
+        if (result.course) {
+          setName(result.course.name || name);
+          setDescription(result.course.description || description);
+          
+          window.dispatchEvent(new CustomEvent('showSuccessNotification', {
+            detail: { 
+              message: `Course "${result.course.name}" generated successfully! The form has been auto-filled with the AI-generated content.` 
+            }
+          }));
+        }
+      }
+
+    } catch (error) {
+      console.error('Error generating content:', error);
+      setContentGenerationError(error.message || 'Failed to generate course content. Please try again.');
+      
+      // Show error notification
+      window.dispatchEvent(new CustomEvent('showErrorNotification', {
+        detail: { message: error.message || 'Content generation failed' }
+      }));
+    } finally {
+      setGeneratingContent(false);
+    }
+  };
+
+  const pollForGenerationCompletion = async (requestId) => {
+    const maxAttempts = 120; // 10 minutes with 5-second intervals
+    let attempts = 0;
+
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      
+      try {
+        // Show progress update every 30 seconds
+        if (attempts % 6 === 0) {
+          window.dispatchEvent(new CustomEvent('showSuccessNotification', {
+            detail: { 
+              message: `AI is still processing... (${Math.floor(attempts * 5 / 60)} minutes elapsed)` 
+            }
+          }));
+        }
+
+        const statusResponse = await fetch(`http://localhost:8000/api/course/status?request_id=${requestId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        const statusData = await statusResponse.json();
+        
+        if (statusData.status === 'completed') {
+          clearInterval(pollInterval);
+          
+          // Get the generated course data
+          const courseDataResponse = await fetch(`http://localhost:8000/api/course/generated?request_id=${requestId}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            }
+          });
+
+          const courseData = await courseDataResponse.json();
+          
+          if (courseData.success && courseData.course) {
+            // Auto-fill form with generated course data
+            setName(courseData.course.name || name);
+            setDescription(courseData.course.description || description);
+            
+            // Set difficulty based on course analysis
+            if (courseData.courseAnalysis && courseData.courseAnalysis.difficulty) {
+              // Map difficulty to year/semester
+              const difficulty = courseData.courseAnalysis.difficulty;
+              if (difficulty === 'beginner') {
+                setYear('1');
+                setSemester('1');
+              } else if (difficulty === 'intermediate') {
+                setYear('2');
+                setSemester('1');
+              } else if (difficulty === 'advanced') {
+                setYear('3');
+                setSemester('1');
+              }
+            }
+
+            // Show success notification with auto-fill info
+            window.dispatchEvent(new CustomEvent('showSuccessNotification', {
+              detail: { 
+                message: `Course "${courseData.course.name}" generated successfully! The form has been auto-filled with the AI-generated content. You can now review and save the course.` 
+              }
+            }));
+          }
+          
+        } else if (statusData.status === 'failed') {
+          clearInterval(pollInterval);
+          setContentGenerationError('Course generation failed. Please try again.');
+          
+          window.dispatchEvent(new CustomEvent('showErrorNotification', {
+            detail: { message: 'Course generation failed. Please try again.' }
+          }));
+        } else if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setContentGenerationError('Course generation timed out after 10 minutes. Please try again.');
+          
+          window.dispatchEvent(new CustomEvent('showErrorNotification', {
+            detail: { message: 'Course generation timed out after 10 minutes. Please try again.' }
+          }));
+        }
+        
+      } catch (error) {
+        console.error('Error polling for completion:', error);
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setContentGenerationError('Error checking generation status. Please try again.');
+          
+          window.dispatchEvent(new CustomEvent('showErrorNotification', {
+            detail: { message: 'Error checking generation status. Please try again.' }
+          }));
+        }
+      }
+    }, 5000); // Check every 5 seconds
   };
 
   const getTaskTypeIcon = (type) => {
@@ -1023,77 +1245,118 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
               </div>
             )}
             
-            {!videoValidation.isChecking && videoValidation.error && (
+            {videoValidation.isValid && !videoValidation.isChecking && (
+              <div className="course-form-validation-success">
+                <FaCheckCircle className="success-icon" />
+                <span>{t('common.videoValid')}</span>
+                {!videoValidation.isDuplicate && (
+                  <span className="course-form-validation-note">
+                    {t('common.videoNotDuplicate')}
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {videoValidation.error && !videoValidation.isChecking && (
               <div className="course-form-validation-error">
                 <FaExclamationTriangle className="error-icon" />
                 <span>{videoValidation.error}</span>
               </div>
             )}
             
-            {!videoValidation.isChecking && !videoValidation.error && videoValidation.isDuplicate && (
-              <div className="course-form-validation-error">
-                <FaExclamationTriangle className="error-icon" />
-                <span>
-                  {t('common.videoIdAlreadyExists', { 
-                    courseName: videoValidation.duplicateCourse.name,
-                    year: videoValidation.duplicateCourse.year,
-                    semester: videoValidation.duplicateCourse.semester
-                  })}
-                </span>
-              </div>
-            )}
-            
-            {!videoValidation.isChecking && !videoValidation.error && !videoValidation.isDuplicate && videoValidation.isValid && (
-              <div className="course-form-validation-success">
-                <FaCheck className="success-icon" />
-                <span>{t('common.videoValidationSuccessful')}</span>
-              </div>
-            )}
-            
-            {!videoValidation.isChecking && !videoValidation.error && !videoValidation.isDuplicate && video_id && !fieldErrors.video_id && (
-              <div className="course-form-video-preview">
-                <img
-                  src={`https://img.youtube.com/vi/${video_id}/hqdefault.jpg`}
-                  alt="Video thumbnail"
-                  className="course-form-thumbnail"
-                />
-                <span className="course-form-video-id">{t('common.videoId')}: {video_id}</span>
+            {videoValidation.isDuplicate && !videoValidation.isChecking && (
+              <div className="course-form-validation-warning">
+                <FaExclamationTriangle className="warning-icon" />
+                <span>{t('common.videoAlreadyExists')}</span>
+                {videoValidation.duplicateCourse && (
+                  <span className="course-form-validation-note">
+                    {t('common.existingCourse')}: {videoValidation.duplicateCourse.name}
+                  </span>
+                )}
               </div>
             )}
           </div>
 
           <div className="course-form-group">
             <label className="course-form-label">
+              <FaClock className="course-form-label-icon" />
               {t('common.videoDuration')} *
             </label>
-            <div className="course-form-duration-container">
             <input
               type="text"
               name="video_duration"
               value={videoDuration}
                 onChange={(e) => {
                   setVideoDuration(e.target.value);
-                  setDurationAutoFetched(false);
                   validateField('videoDuration', e.target.value);
                 }}
                 className={`course-form-input ${fieldErrors.videoDuration ? 'error' : ''}`}
-              placeholder={t('common.enterDuration')}
+              placeholder="HH:MM:SS"
               ref={videoDurationRef}
             />
+            {fieldErrors.videoDuration && <ErrorMessage message={fieldErrors.videoDuration} />}
               {fetchingDuration && (
-                <div className="course-form-duration-loading">
+              <div className="course-form-validation-loading">
                   <FaSpinner className="spinning" />
                   <span>{t('common.fetchingDuration')}</span>
                 </div>
               )}
-              {video_id && !fetchingDuration && !fieldErrors.video_id && (
-                <div className="course-form-duration-info">
-                  <span>{durationAutoFetched ? t('common.durationAutoFetched') : t('common.durationWillBeAutoFetched')}</span>
+            {durationAutoFetched && !fetchingDuration && (
+              <div className="course-form-validation-success">
+                <FaCheckCircle className="success-icon" />
+                <span>{t('common.durationAutoFetched')}</span>
                 </div>
               )}
             </div>
-            {fieldErrors.videoDuration && <ErrorMessage message={fieldErrors.videoDuration} />}
+
+          {/* Auto-Generate Content Button */}
+          {video_id && (
+            <div className="course-form-group">
+              <div className="course-form-generate-section">
+                <motion.button
+                  type="button"
+                  onClick={handleGenerateContent}
+                  disabled={generatingContent || videoValidation.isChecking || !video_id}
+                  className="course-form-generate-btn"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {generatingContent ? (
+                    <>
+                      <FaSpinner className="spinning" />
+                      AI is analyzing video and generating content...
+                    </>
+                  ) : (
+                    <>
+                      <FaCode />
+                      🚀 Auto-Generate Course Content
+                    </>
+                  )}
+                </motion.button>
+                
+                <div className="course-form-generate-info">
+                  <FaInfoCircle />
+                  <span>AI will analyze the YouTube video and automatically generate course title, description, placement tests, tasks, and final projects.</span>
+                </div>
           </div>
+              
+              {contentGenerationError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="course-form-error"
+                >
+                  <FaExclamationTriangle className="error-icon" />
+                  {contentGenerationError}
+                </motion.div>
+              )}
+              
+              <div className="course-form-generate-info">
+                <FaInfoCircle className="info-icon" />
+                <span>{t('common.generateContentInfo')}</span>
+          </div>
+            </div>
+          )}
 
           {/* Enhanced Task Management Section */}
           <div className="course-form-tasks-section">

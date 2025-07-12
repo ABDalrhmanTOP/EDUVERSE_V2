@@ -6,30 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('placement_test_questions', function (Blueprint $table) {
+        Schema::create('final_project_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('placement_test_id')->constrained('placement_tests')->onDelete('cascade');
+            $table->foreignId('final_project_id')->constrained('final_projects')->onDelete('cascade');
             $table->text('question');
-            $table->string('type'); // 'mcq', 'true_false', 'code'
+            $table->string('type'); // 'mcq', 'true_false', 'code', 'text'
             $table->json('options')->nullable();
-            $table->string('correct_answer');
+            $table->text('correct_answer');
             $table->string('difficulty')->default('easy');
             $table->text('code_template')->nullable();
             $table->json('test_cases')->nullable();
+            $table->integer('points')->default(1);
+            $table->text('explanation')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('placement_test_questions');
+        Schema::dropIfExists('final_project_questions');
     }
 };

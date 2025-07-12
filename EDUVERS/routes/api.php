@@ -24,6 +24,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\FinalProjectController as AdminFinalProjectController;
 use App\Http\Controllers\Admin\FinalProjectQuestionController as AdminFinalProjectQuestionController;
+use App\Http\Controllers\CourseGenerationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +47,16 @@ Route::get('/playlists/{id}', [PlaylistController::class, 'show']);
 
 // YouTube video duration route (public, no auth required)
 Route::get('/youtube/video-duration/{videoId}', [CourseController::class, 'getVideoDuration']);
+Route::get('/youtube/video-info/{videoId}', [CourseController::class, 'getVideoInfo']);
 Route::get('/youtube/test/{videoId}', [CourseController::class, 'testVideoDuration']);
+Route::get('/youtube/test-captions/{videoId}', [CourseController::class, 'testCaptions']);
+Route::get('/youtube/debug-captions/{videoId}', [CourseController::class, 'debugCaptions']);
+
+// Course Generation Routes (public, no auth required)
+Route::post('/course/generate', [CourseGenerationController::class, 'generateCourse']);
+Route::get('/course/status', [CourseGenerationController::class, 'checkStatus']);
+Route::get('/course/generated', [CourseGenerationController::class, 'getGeneratedCourse']);
+Route::get('/course/admin-token', [CourseGenerationController::class, 'getAdminToken']);
 
 // Test route for debugging
 Route::get('/test-admin', function () {

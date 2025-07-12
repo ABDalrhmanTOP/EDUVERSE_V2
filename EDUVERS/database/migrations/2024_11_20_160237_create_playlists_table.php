@@ -4,30 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePlaylistsTable extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
+    public function up(): void
     {
         Schema::create('playlists', function (Blueprint $table) {
             $table->id();
-            $table->string('video_id')->nullable(); // Corrected syntax for adding `video_id`
+            $table->string('video_id')->nullable();
             $table->string('name');
-            $table->string('description')->nullable();
-            $table->integer('year')->default(1); // Year of the course
-            $table->integer('semester')->default(1); // Semester of the course
-            $table->boolean('paid')->default(false); // false = free, true = paid
+            $table->text('description')->nullable();
+            $table->integer('year')->default(1);
+            $table->integer('semester')->default(1);
+            $table->boolean('paid')->default(false);
+            $table->integer('video_duration')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('playlists');
     }
-}
+};

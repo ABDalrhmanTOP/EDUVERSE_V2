@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('final_projects', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->foreignId('course_id')->constrained('playlists')->onDelete('cascade');
-            $table->timestamps();
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->string('video_id', 255)->nullable()->change();
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('final_projects');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->unsignedBigInteger('video_id')->nullable()->change();
+        });
     }
 };

@@ -9,8 +9,8 @@ class EduBot extends Model
 {
     use HasFactory;
 
-    // Explicitly set the table name to 'EduBot'
-    protected $table = 'EduBot';
+    // Explicitly set the table name to 'edu_bot'
+    protected $table = 'edu_bot';
 
     /**
      * The attributes that are mass assignable.

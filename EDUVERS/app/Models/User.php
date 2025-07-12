@@ -44,6 +44,9 @@ class User extends Authenticatable
         'industry',
         'semester',
         'has_completed_general_form',
+        'faculty',
+        'cs_field',
+        'current_year',
     ];
 
     /**
