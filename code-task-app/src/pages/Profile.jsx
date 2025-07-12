@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "../api/axios";
 import "../styles/Profile.css";
 import "bootstrap/dist/css/bootstrap-grid.min.css";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { 
   FaSave, FaTimes, FaSpinner, FaExclamationTriangle, 
   FaUserCircle, FaEnvelope, FaCalendarAlt, FaGraduationCap, 
@@ -12,6 +12,7 @@ import { CSSTransition, SwitchTransition } from "react-transition-group";
 import { useAuth } from "../context/AuthContext";
 import CropModal from "../components/CropModal";
 import defaultProfile from "../assets/user.png";
+import { useEffect as useEffectReact, useState as useStateReact } from "react";
 
 const Profile = () => {
   const { videoId } = useParams();
@@ -88,6 +89,12 @@ const Profile = () => {
   const courseTabRef = useRef(null);
   const nodeRef = activeTab === "profile" ? profileTabRef : courseTabRef;
 
+  // New: Add active courses state
+  const [activeCourses, setActiveCourses] = useState([]);
+  const [activeCoursesLoading, setActiveCoursesLoading] = useStateReact(false);
+  const [activeCoursesError, setActiveCoursesError] = useStateReact("");
+  const [showSubscribeBtn, setShowSubscribeBtn] = useStateReact({}); // { [playlistId]: true/false }
+
   // Animate progress circle when Course Progress tab is active
   useEffect(() => {
     if (activeTab === "course") {
@@ -139,6 +146,16 @@ const Profile = () => {
       setPreviewSource(null);
     }
   }, [selectedFile]);
+
+  useEffect(() => {
+    if (activeTab === "course") {
+      setActiveCoursesLoading(true);
+      fetchActiveCourses()
+        .then(data => setActiveCourses(Array.isArray(data) ? data : []))
+        .catch(() => setActiveCoursesError("Failed to load active courses"))
+        .finally(() => setActiveCoursesLoading(false));
+    }
+  }, [activeTab]);
 
   const fetchProfile = async () => {
     setProfileLoading(true);
@@ -329,6 +346,15 @@ const Profile = () => {
 
   const renderSpinner = (size = "1em") => <FaSpinner className="spinner-icon" style={{ fontSize: size }} />;
   const displayImageUrl = previewSource || profilePhotoUrl || defaultProfile;
+
+  // New: Add fetchActiveCourses and removeCourseSubscription functions
+  async function fetchActiveCourses() {
+    const res = await axios.get('/subscriptions/active-courses');
+    return res.data;
+  }
+  async function removeCourseSubscription(playlistId) {
+    await axios.delete(`/subscriptions/remove/${playlistId}`);
+  }
 
   if (profileLoading) {
     return (
@@ -671,6 +697,32 @@ const Profile = () => {
                       <div className="form-message info">
                         No active course data found or course has no lessons.
                       </div>
+                    )}
+                  </section>
+                )}
+                {activeTab === "course" && (
+                  <section className="active-courses-section">
+                    <h2>Your Active Courses</h2>
+                    {activeCoursesLoading ? (
+                      <div>Loading...</div>
+                    ) : activeCoursesError ? (
+                      <div className="form-message error">{activeCoursesError}</div>
+                    ) : Array.isArray(activeCourses) && activeCourses.length === 0 ? (
+                      <div>No active courses</div>
+                    ) : (
+                      <ul className="active-courses-list">
+                        {Array.isArray(activeCourses) && activeCourses.map(course => (
+                          <li key={course.id} className="active-course-item">
+                            <span>{course.name || course.title}</span>
+                            <button className="button secondary small" onClick={async () => {
+                              await removeCourseSubscription(course.id);
+                              setActiveCourses(activeCourses.filter(c => c.id !== course.id));
+                            }}>
+                              Remove Subscription
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </section>
                 )}

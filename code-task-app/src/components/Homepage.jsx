@@ -10,7 +10,8 @@ import {
   FiTrendingUp,
   FiCpu,
   FiX,
-  FiUser
+  FiUser,
+  FiCreditCard
 } from "react-icons/fi";
 import Navbar from './navbar';
 
@@ -284,6 +285,20 @@ const DashboardContent = ({ user, actions }) => {
             action: actions.goToProfilePage,
             key: "profile"
           },
+          {
+            icon: FiCreditCard,
+            title: "Subscribe",
+            desc: "Access premium content",
+            action: actions.goToSubscriptionPage,
+            key: "subscribe"
+          },
+          {
+            icon: FiMessageSquare,
+            title: "Community",
+            desc: "Join discussions & share posts",
+            action: () => actions.navigate("/community"),
+            key: "community"
+          },
           ...(user?.role === "admin"
             ? [
                 {
@@ -327,15 +342,28 @@ const WelcomeContent = ({ setFormType }) => (
         <motion.p variants={textVariant} transition={{ delay: 0.2 }}>
           Personalized learning paths, AI-powered assistance, and a universe of knowledge await.
         </motion.p>
-        <motion.button
-          onClick={() => setFormType("register")}
-          className="hero-cta-button"
-          variants={buttonVariant}
-          whileHover={{ scale: 1.05, boxShadow: "0 6px 25px rgba(200, 159, 156, 0.4)" }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Start Learning Today
-        </motion.button>
+        <div className="hero-buttons">
+          <motion.button
+            onClick={() => setFormType("register")}
+            className="hero-cta-button"
+            variants={buttonVariant}
+            whileHover={{ scale: 1.05, boxShadow: "0 6px 25px rgba(200, 159, 156, 0.4)" }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Start Learning Today
+          </motion.button>
+          <motion.button
+            onClick={() => setFormType("login")}
+            className="hero-subscribe-button"
+            variants={buttonVariant}
+            transition={{ delay: 0.1 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 6px 25px rgba(99, 102, 241, 0.4)" }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FiCreditCard style={{ marginRight: '8px' }} />
+            View Plans
+          </motion.button>
+        </div>
       </div>
     </div>
     {/* Features Section */}
@@ -398,7 +426,9 @@ const Homepage = ({ formType, setFormType }) => {
     goToVideoPage: () => navigate("/homevideo"),
     goToChatPage: () => navigate("/chat"),
     goToProfilePage: () => navigate("/profile"),
-    goToAdminPage: () => navigate("/AdminDashboard")
+    goToSubscriptionPage: () => navigate("/subscription-plans"),
+    goToAdminPage: () => navigate("/AdminDashboard"),
+    navigate: (path) => navigate(path)
   };
 
   const handleLogout = async () => {

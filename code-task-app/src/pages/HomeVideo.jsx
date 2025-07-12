@@ -96,6 +96,13 @@ const CourseCard = ({ course, handleCourseClick, index }) => {
               <div className="course-level">
                 {course.year && course.semester ? `Year ${course.year}` : 'Beginner'}
               </div>
+              {/* Show paid badge if course is paid */}
+              {course.paid && (
+                <div className="course-paid-badge">
+                  <span className="paid-icon">💰</span>
+                  <span>Paid Course</span>
+                </div>
+              )}
             </div>
             {/* Action Button */}
             <button
@@ -107,7 +114,7 @@ const CourseCard = ({ course, handleCourseClick, index }) => {
                 handleCourseClick(course);
               }}
             >
-              Start Course
+              {course.paid ? 'Unlock Course' : 'Start Course'}
               <FaPlay className="btn-icon" />
             </button>
           </>

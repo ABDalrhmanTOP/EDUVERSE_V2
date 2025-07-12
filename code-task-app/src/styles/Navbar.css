@@ -129,6 +129,8 @@
   gap: 15px;
 }
 
+
+
 /* Notification Dropdown in Navbar */
 .navbar-right .notification-dropdown-container {
   position: relative;
@@ -599,4 +601,20 @@
 .mobile-courses-filter-dropdown .dropdown-item:hover {
   background: #f0e6d2;
   color: #b5a079;
+}
+
+/* زر المجتمع في الشريط العلوي والموبايل */
+.nav-link.community, .mobile-nav-link.community {
+  color: #b5a079;
+  font-weight: bold;
+  background: transparent;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+}
+.nav-link.community.active, .mobile-nav-link.community.active,
+.nav-link.community:hover, .mobile-nav-link.community:hover {
+  background: #e3cfa4;
+  color: #fff;
 }

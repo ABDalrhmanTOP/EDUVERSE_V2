@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
-import { FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi'; // Example icons
+import { FiUser, FiLogOut, FiMenu, FiX, FiCreditCard, FiClock } from 'react-icons/fi'; // Example icons
 import { FaChevronDown } from 'react-icons/fa';
 import "../styles/Navbar.css"; // <-- Use the NEW Navbar.css
 import eduverseLogo from "../assets/1.png"; // Make sure path is correct
@@ -113,6 +113,8 @@ const Navbar = ({ setFormType }) => {
             <>
               <NavLink to="/homevideo" className={navLinkClass}>Courses</NavLink>
               <NavLink to="/chat" className={navLinkClass}>EduBot</NavLink>
+              <NavLink to="/community" className={navLinkClass}>Community</NavLink>
+              <NavLink to="/subscription-plans" className={navLinkClass}>Subscribe</NavLink>
               {userRole === "admin" && (
                  <NavLink to="/AdminDashboard" className={navLinkClass}>Admin Panel</NavLink>
               )}
@@ -141,6 +143,12 @@ const Navbar = ({ setFormType }) => {
                       >
                           <button className="profile-dropdown-item" onClick={handleProfileLink}>
                               <FiUser className="dropdown-icon" /> My Profile
+                          </button>
+                          <button className="profile-dropdown-item" onClick={() => handleNavLinkClick('/subscription-plans')}>
+                              <FiCreditCard className="dropdown-icon" /> Subscribe
+                          </button>
+                          <button className="profile-dropdown-item" onClick={() => handleNavLinkClick('/subscription-history')}>
+                              <FiClock className="dropdown-icon" /> Subscription History
                           </button>
                           <button className="profile-dropdown-item logout" onClick={handleLogout}>
                               <FiLogOut className="dropdown-icon" /> Logout
@@ -177,6 +185,9 @@ const Navbar = ({ setFormType }) => {
                     </div>
                     <button onClick={() => handleNavLinkClick('/homevideo')} className="mobile-nav-link">Courses</button>
                     <button onClick={() => handleNavLinkClick('/chat')} className="mobile-nav-link">EduBot</button>
+                    <button onClick={() => handleNavLinkClick('/community')} className="mobile-nav-link">Community</button>
+                    <button onClick={() => handleNavLinkClick('/subscription-plans')} className="mobile-nav-link">Subscribe</button>
+                    <button onClick={() => handleNavLinkClick('/subscription-history')} className="mobile-nav-link">Subscription History</button>
                     {userRole === 'admin' && <button onClick={() => handleNavLinkClick('/AdminDashboard')} className="mobile-nav-link">Admin Panel</button>}
                     <hr className="mobile-menu-divider" />
                      <button onClick={handleProfileLink} className="mobile-nav-link"><FiUser className="dropdown-icon" /> My Profile</button>

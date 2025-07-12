@@ -1,0 +1,500 @@
+.subscription-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  direction: rtl;
+  background: #f5f1eb;
+}
+
+.subscription-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.subscription-header h1 {
+  font-size: 2.7rem;
+  color: #b5a079;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.subscription-header p {
+  font-size: 1.15rem;
+  color: #7d6a4d;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.subscription-plans-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+  direction: ltr;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.plans-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: center;
+}
+
+.plan-card {
+  background: #f5f1eb;
+  border-radius: 18px;
+  padding: 2.2rem 1.5rem 2rem 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(181,160,121,0.13), 0 1.5px 8px 0 rgba(107,79,75,0.07);
+  border: 2px solid #e3cfa4;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s, background 0.2s;
+}
+
+.plan-card:hover {
+  border-color: #b5a079;
+  box-shadow: 0 16px 40px 0 rgba(181,160,121,0.18), 0 2px 12px 0 rgba(107,79,75,0.10);
+  /* background: #e3cfa4; */
+  transform: translateY(-6px) scale(1.04);
+}
+
+.plan-card.selected {
+  border-color: #b5a079;
+  box-shadow: 0 0 0 4px rgba(181,160,121,0.13);
+  background: #e3cfa4;
+}
+
+.plan-card.popular {
+  border-color: #b5a079;
+  box-shadow: 0 0 0 6px rgba(181,160,121,0.18);
+  background: linear-gradient(135deg, #f5f1eb 80%, #b5a079 100%);
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.popular-badge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: linear-gradient(135deg, #b5a079, #7d6a4d);
+  color: #fff;
+  padding: 0.4rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px 0 rgba(181,160,121,0.13);
+  border: 2px solid #f5f1eb;
+}
+
+.plan-header {
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.plan-header h2 {
+  font-size: 1.45rem;
+  color: #b5a079;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.plan-header p {
+  font-size: 1.05rem;
+  color: #7d6a4d;
+  margin-bottom: 0.2rem;
+}
+
+.plan-price {
+  font-size: 2.3rem;
+  color: #b5a079;
+  font-weight: 800;
+  margin-bottom: 1.1rem;
+  text-shadow: 0 1px 4px #b5a079;
+}
+
+.plan-features {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.plan-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.plan-features li {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  color: #7d6a4d;
+  font-size: 1.08rem;
+}
+
+.check-icon {
+  color: #10b981;
+  font-weight: bold;
+  margin-right: 0.7rem;
+  font-size: 1.15rem;
+}
+
+.select-plan-btn {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e3cfa4;
+  border-radius: 8px;
+  background: white;
+  color: #7d6a4d;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.select-plan-btn:hover {
+  border-color: #b5a079;
+  color: #b5a079;
+}
+
+.select-plan-btn.selected {
+  background: #b5a079;
+  border-color: #b5a079;
+  color: white;
+}
+
+.subscription-actions {
+  text-align: center;
+  padding: 2rem;
+  background: #f5f1eb;
+  border-radius: 12px;
+  margin-bottom: 3rem;
+}
+
+.selected-plan-summary {
+  margin-bottom: 1.5rem;
+}
+
+.selected-plan-summary h3 {
+  color: #7d6a4d;
+  margin-bottom: 0.5rem;
+}
+
+.plan-price-display {
+  font-size: 1.25rem;
+  color: #b5a079;
+  font-weight: 600;
+}
+
+.subscribe-btn {
+  background: linear-gradient(135deg, #b5a079 40%, #e3cfa4 60%);
+  color: #fff;
+  border: none;
+  padding: 0.9rem 2.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px -1px rgba(181,160,121,0.18);
+  margin-top: auto;
+  letter-spacing: 0.5px;
+  width: 100%;
+  display: block;
+}
+
+.subscribe-btn:hover {
+  background: linear-gradient(135deg, #e3cfa4 55%, #b5a079 45%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px -2px rgba(181,160,121,0.22);
+}
+
+.subscription-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.info-card h4 {
+  color: #7d6a4d;
+  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+}
+
+.info-card p {
+  color: #7d6a4d;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.back-button {
+  background: #7d6a4d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  transition: background 0.3s ease;
+}
+
+.back-button:hover {
+  background: #b5a079;
+}
+
+.checkout-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .plans-list {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .plan-card {
+    width: 95%;
+    min-width: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .subscription-container {
+    padding: 1rem;
+  }
+  
+  .subscription-header h1 {
+    font-size: 2rem;
+  }
+  
+  .subscription-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+.paid-benefits-section {
+  background: linear-gradient(90deg, #f5f1eb 60%, #e3cfa4 100%);
+  border-radius: 18px;
+  margin: 2.5rem auto 0 auto;
+  padding: 2.5rem 1.5rem;
+  max-width: 900px;
+  box-shadow: 0 2px 12px 0 rgba(181,160,121,0.08);
+  text-align: left;
+}
+
+.paid-benefits-section h2 {
+  color: #7d6a4d;
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin-bottom: 1.1rem;
+  text-align: center;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefits-list li {
+  color: #7d6a4d;
+  font-size: 1.08rem;
+  margin-bottom: 0.7rem;
+}
+
+.benefits-list .check-icon {
+  color: #10b981;
+  margin-right: 0.7rem;
+  font-size: 1.15rem;
+}
+
+.confirmation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(44, 62, 80, 0.25);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.confirmation-modal {
+  position: relative;
+  z-index: 10000;
+  max-height: 98vh;
+  overflow-y: auto;
+}
+
+/* Premium Glassmorphism Modal & Checkout */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Poppins:wght@700&display=swap');
+
+body, .modal-title, .checkout-title {
+  font-family: 'Poppins', 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.modal-glass, .glassy, .checkout-form-container {
+  background: linear-gradient(120deg, rgba(255,255,255,0.97) 60%, rgba(227,207,164,0.93) 100%);
+  box-shadow:
+    0 16px 48px 0 #b5a07922,
+    0 2px 12px 0 #e3cfa444,
+    0 0 0 4px #e3cfa455,
+    0 0 0 2px #b5a07933,
+    inset 0 2px 24px 0 #e3cfa422;
+  backdrop-filter: blur(28px) saturate(1.5);
+  border-radius: 32px;
+  border: 2.5px solid #e3cfa4;
+  padding: 3rem 2.5rem 2.5rem 2.5rem;
+  max-width: 520px;
+  margin: 0 auto;
+  position: relative;
+  animation: modalPop 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.modal-glass::before, .glassy::before, .checkout-form-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, #fffbe9cc 0%, #e3cfa4cc 100%);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.92) translateY(40px); opacity: 0; }
+  80% { transform: scale(1.03) translateY(-8px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.modal-title-icon {
+  margin-right: 0.7rem;
+  display: flex;
+  align-items: center;
+}
+
+input:focus, .pay-button:hover, .gradient-btn:hover {
+  border-color: #b5a079;
+  box-shadow: 0 0 14px #b5a07933;
+  outline: none;
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.7rem;
+  padding: 0 0.2rem;
+  gap: 0.5rem;
+}
+
+.modal-title, .checkout-title {
+  flex: 1;
+  text-align: left;
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, #b5a079 30%, #e3cfa4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 12px #e3cfa4;
+  letter-spacing: 1.2px;
+  margin: 0;
+  animation: titleGlow 2.5s infinite alternate;
+}
+
+.modal-title-decor {
+  display: block;
+  width: 70px;
+  height: 5px;
+  margin: 0.2rem 0 1.1rem 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e3cfa4 0%, #b5a079 100%);
+  opacity: 0.85;
+  box-shadow: 0 2px 8px 0 rgba(181,160,121,0.10);
+}
+
+.close-modal-btn {
+  background: rgba(245,241,235,0.85);
+  border: 2px solid #e3cfa4;
+  border-radius: 50%;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px 0 rgba(181,160,121,0.13);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  margin-left: 1rem;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  font-size: 1.3rem;
+  color: #b5a079;
+}
+.close-modal-btn:hover, .close-modal-btn:focus {
+  background: linear-gradient(135deg, #e3cfa4 60%, #b5a079 100%);
+  box-shadow: 0 6px 18px 0 rgba(181,160,121,0.18);
+  transform: scale(1.12);
+  color: #fff;
+}
+.close-x-animate {
+  transition: transform 0.3s;
+}
+.close-modal-btn:hover .close-x-animate {
+  transform: rotate(90deg) scale(1.15);
+}
+
+@keyframes titleGlow {
+  0%,100% { text-shadow: 0 2px 12px #e3cfa4, 0 0 8px #b5a07944; }
+  50% { text-shadow: 0 4px 24px #e3cfa4, 0 0 16px #b5a07988; }
+}
+
+.lock-animate {
+  animation: lockBounce 1.8s infinite alternate;
+}
+@keyframes lockBounce {
+  0%,100% { transform: translateY(0);}
+  50% { transform: translateY(-4px);}
+}
+
+@media (max-width: 700px) {
+  .modal-glass, .confirmation-modal, .glassy, .checkout-form-container {
+    border-radius: 18px;
+    padding: 1.5rem 0.7rem 1.2rem 0.7rem;
+    max-width: 98vw;
+  }
+  .modal-title, .checkout-title {
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+  }
+  .close-modal-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 1.1rem;
+  }
+  .modal-title-decor {
+    width: 40px;
+    height: 3px;
+    margin-bottom: 0.7rem;
+  }
+}
+
+
