@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-eduverse
+    restart: unless-stopped
+    ports:
+      - "5680:5678"
+    environment:
+      # Basic n8n settings
+      - NODE_ENV=production
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+      
+      # EduVerse Integration Environment Variables
+      # Get your Google Gemini API key from: https://makersuite.google.com/app/apikey
+      - GEMINI_API_KEY=AIzaSyBS9CvtrPGKDtI2vHtHdSjvFP6O9q01i68
+      - EDUVERSE_API_TOKEN=19|fnvMS6NwkioU6AQ3UBMVExqTNgDukEZUzmctxTYX0964366e
+      - EDUVERSE_API_URL=http://host.docker.internal:8000/api
+      - N8N_WEBHOOK_BASE_URL=http://localhost:5680/webhook
+      
+      # Additional n8n settings
+      - WEBHOOK_URL=http://localhost:5680/
+      - GENERIC_TIMEZONE=UTC
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - n8n_network
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n_network:
+    driver: bridge 
