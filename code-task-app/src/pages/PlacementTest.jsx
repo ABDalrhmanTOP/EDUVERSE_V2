@@ -3,6 +3,7 @@ import apiClient from "../api/axios";
 import "../styles/PlacementTest.css";
 import { useParams, useNavigate } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
+import ConfirmationModal from '../components/admin/ConfirmationModal';
 
 const personalInitial = {
   job: "",
@@ -179,11 +180,16 @@ const expectationsOptions = [
   "Other"
 ];
 
+const PLACEMENT_FORM_KEY = 'placement_personal_form'; // NEW
+
 const PlacementTest = ({ onComplete }) => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [personal, setPersonal] = useState({
+  const [personal, setPersonal] = useState(() => {
+    // Load from localStorage if available
+    const saved = localStorage.getItem(PLACEMENT_FORM_KEY);
+    return saved ? JSON.parse(saved) : {
     job: "",
     university: "",
     country: "",
@@ -200,6 +206,7 @@ const PlacementTest = ({ onComplete }) => {
     researchField: "",
     companySize: "",
     industry: "",
+    };
   });
   const [personalError, setPersonalError] = useState("");
   const [year, setYear] = useState(1);
@@ -214,6 +221,11 @@ const PlacementTest = ({ onComplete }) => {
   const [showPlacementChoice, setShowPlacementChoice] = useState(false);
   const [hasCompletedGeneralForm, setHasCompletedGeneralForm] = useState(false);
   const [testId, setTestId] = useState(null);
+  const [placementComplete, setPlacementComplete] = useState(false); // NEW
+  const [coursePaid, setCoursePaid] = useState(false); // NEW
+  const [profileLoading, setProfileLoading] = useState(true); // NEW
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingPlacementChoice, setPendingPlacementChoice] = useState(null);
   
   // Individual field error states
   const [fieldErrors, setFieldErrors] = useState({
@@ -362,59 +374,132 @@ const PlacementTest = ({ onComplete }) => {
     return Object.values(newFieldErrors).some(error => error !== "");
   };
 
+  // Persist form changes to localStorage
+  useEffect(() => {
+    if (!placementComplete) {
+      localStorage.setItem(PLACEMENT_FORM_KEY, JSON.stringify(personal));
+    }
+  }, [personal, placementComplete]);
+
+  // Clear localStorage on placement complete
+  useEffect(() => {
+    if (placementComplete) {
+      localStorage.removeItem(PLACEMENT_FORM_KEY);
+    }
+  }, [placementComplete]);
+
+  // On mount, check user and course paid status
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      try {
+        const response = await apiClient.get("/user");
+        if (response.data && response.data.has_completed_general_form) {
+          setHasCompletedGeneralForm(true);
+          if (response.data.placement_test_completed || response.data.start_from_scratch) {
+            setPlacementComplete(true);
+            setStep(3);
+          } else {
+            setShowPlacementChoice(true);
+          }
+        } else {
+          setHasCompletedGeneralForm(false);
+          setStep(1);
+        }
+      } catch (err) {
+        setHasCompletedGeneralForm(false);
+        setStep(1);
+      } finally {
+        setProfileLoading(false); // Set loading to false after API call
+      }
+    };
+    const fetchCoursePaid = async () => {
+      try {
+        const res = await apiClient.get(`/courses/${courseId}`);
+        setCoursePaid(!!res.data.paid);
+      } catch (err) {
+        setCoursePaid(false);
+      }
+    };
+    checkUserProfile();
+    fetchCoursePaid();
+  }, [courseId]);
+
+  // Fallback: if hasCompletedGeneralForm is true and placementComplete is false, check payment before redirecting
+  useEffect(() => {
+    const checkAndRedirect = async () => {
+      if (hasCompletedGeneralForm && !placementComplete) {
+        if (coursePaid) {
+          const hasAccess = await checkCourseAccess();
+          if (!hasAccess) {
+            window.location.href = '/subscription-plans';
+            return;
+          }
+        }
+        navigate(`/course/${courseId}`);
+      }
+    };
+    checkAndRedirect();
+  }, [hasCompletedGeneralForm, placementComplete, courseId, navigate, coursePaid]);
+
+  // Helper to check if user has access to the course
+  const checkCourseAccess = async () => {
+    try {
+      const res = await apiClient.get('/subscriptions/active-courses');
+      if (Array.isArray(res.data)) {
+        return res.data.some(c => String(c.id) === String(courseId));
+      }
+      return false;
+    } catch (err) {
+      return false;
+    }
+  };
+
+  // Payment logic: redirect to subscription if needed
+  const triggerPayment = async () => {
+    if (coursePaid) {
+      const hasAccess = await checkCourseAccess();
+      if (!hasAccess) {
+        // Redirect to subscription plans page
+        window.location.href = '/subscription-plans';
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Helper to build correct payload for /profile/general-form
+  const buildProfilePayload = () => ({
+    job: personal.job || '',
+    university: personal.university || '',
+    country: personal.country || '',
+    experience: personal.experience || '',
+    career_goals: personal.careerGoals || '',
+    hobbies: personal.hobbies && personal.hobbies.length > 0 ? JSON.stringify(personal.hobbies) : '[]',
+    expectations: personal.expectations && personal.expectations.length > 0 ? JSON.stringify(personal.expectations) : '[]',
+    education_level: personal.educationLevel || '',
+    field_of_study: personal.fieldOfStudy || '',
+    student_year: personal.studentYear ? String(personal.studentYear) : '',
+    years_of_experience: personal.yearsOfExperience || '',
+    specialization: personal.specialization || '',
+    teaching_subject: personal.teachingSubject || '',
+    research_field: personal.researchField || '',
+    company_size: personal.companySize || '',
+    industry: personal.industry || '',
+    semester: parseInt(semester) || 1,
+  });
+
   // Personal survey validation
   const handlePersonalNext = async () => {
     const hasErrors = validateFields();
-    
-    if (hasErrors) {
-      return;
-    }
-    
+    if (hasErrors) return;
     setPersonalError("");
     setLoading(true);
-    
-    try {
-      // Save profile information to database
-      const profileData = {
-        job: personal.job,
-        university: personal.university || "",
-        country: personal.country,
-        experience: personal.experience,
-        career_goals: personal.careerGoals || "",
-        hobbies: personal.hobbies && personal.hobbies.length > 0 ? JSON.stringify(personal.hobbies) : "[]",
-        expectations: personal.expectations && personal.expectations.length > 0 ? JSON.stringify(personal.expectations) : "[]",
-        education_level: personal.educationLevel || "",
-        field_of_study: personal.fieldOfStudy || "",
-        student_year: personal.studentYear ? String(personal.studentYear) : "",
-        years_of_experience: personal.yearsOfExperience || "",
-        specialization: personal.specialization || "",
-        teaching_subject: personal.teachingSubject || "",
-        research_field: personal.researchField || "",
-        company_size: personal.companySize || "",
-        industry: personal.industry || "",
-        semester: parseInt(semester),
-      };
-      
-      console.log('Sending profile data:', profileData);
-      
-      await apiClient.post('/profile/general-form', profileData);
-      
-      // Show placement choice for ALL users
-      setShowPlacementChoice(true);
-    } catch (err) {
-      console.error('Error saving profile:', err);
-      console.error('Error response:', err.response?.data);
-      
-      if (err.response?.data?.errors) {
-        // Show specific validation errors
-        const errorMessages = Object.values(err.response.data.errors).flat();
-        setPersonalError(errorMessages.join(', '));
-      } else {
-        setPersonalError('Failed to save profile information. Please try again.');
-      }
-    } finally {
+    setTimeout(() => {
       setLoading(false);
-    }
+      setShowPlacementChoice(true); // Always show placement choice after personal form
+      setStep(1); // Ensure step is 1 so placement choice form is rendered
+      console.log('[handlePersonalNext] showPlacementChoice:', true, 'step:', 1);
+    }, 500);
   };
 
   // Handle placement test choice
@@ -424,24 +509,38 @@ const PlacementTest = ({ onComplete }) => {
       setLoading(true);
       setTestError("");
       try {
-        const res = await apiClient.post(`/placement-test/start`, {
-          course_id: courseId,
-        });
+        const res = await apiClient.post(`/placement-test/start`, { course_id: courseId });
         setQuestions(res.data.questions || []);
         setSkipPlacementTest(false);
         setTestId(res.data.test_id);
-        setStep(2); // Go to the test (not 3)
+        setStep(2);
       } catch (err) {
-        console.error("Error starting placement test:", err);
         setTestError("Failed to load placement test. Please try again or start from scratch.");
-        setShowPlacementChoice(true); // Show choice again on error
+        setShowPlacementChoice(true);
       } finally {
         setLoading(false);
       }
     } else {
+      // If paid course, check access and show modal if needed
+      if (coursePaid) {
+        const hasAccess = await checkCourseAccess();
+        if (!hasAccess) {
+          setPendingPlacementChoice(choice);
+          setShowPaymentModal(true);
+          return;
+        }
+      }
       setSkipPlacementTest(true);
+      setPlacementComplete(true);
+      try {
+        await apiClient.post('/profile/general-form', buildProfilePayload());
+        setHasCompletedGeneralForm(true); // Mark as completed
+      } catch (err) {}
+      const paidOk = await triggerPayment();
+      if (paidOk) {
       if (onComplete) onComplete(result, true);
       navigate(`/course/${courseId}`);
+      }
     }
   };
 
@@ -495,12 +594,16 @@ const PlacementTest = ({ onComplete }) => {
         question_id: parseInt(questionId),
         answer: answers[questionId]
       }));
-
       const res = await apiClient.post(`/placement-test/submit`, {
         test_id: testId,
         answers: formattedAnswers,
       });
-      
+      // POST personal form to backend after test completion
+      try {
+        await apiClient.post('/profile/general-form', buildProfilePayload());
+      } catch (err) {
+        // Optionally handle error
+      }
       // Set result with the correct structure
       setResult({
         passed: res.data.percentage >= 70, // Assuming 70% is passing
@@ -509,11 +612,12 @@ const PlacementTest = ({ onComplete }) => {
         percentage: res.data.percentage
       });
       setStep(3); // Go to result page
-      if (onComplete) onComplete();
+      setPlacementComplete(true); // Mark as complete
+      const paidOk = await triggerPayment();
+      if (paidOk && onComplete) onComplete();
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || "Failed to submit answers. Please try again.";
       setTestError(errorMessage);
-      console.error("API Error:", err);
     } finally {
       setLoading(false);
     }
@@ -1383,11 +1487,13 @@ const PlacementTest = ({ onComplete }) => {
       <div className="placement-test-container">
         {renderProgress()}
         <h2>Placement Test</h2>
+        {(!hasCompletedGeneralForm) && (
         <div className="placement-back-btn">
           <button className="placement-back-button" onClick={prevStep}>
             ← Back to Information
           </button>
         </div>
+        )}
         {testError && <div className="placement-error">{testError}</div>}
         {loading ? (
           <div className="placement-loading">
@@ -1563,26 +1669,6 @@ const PlacementTest = ({ onComplete }) => {
     </div>
   );
 
-  // Check if user has completed general form on component mount
-  useEffect(() => {
-    const checkUserProfile = async () => {
-      try {
-        const response = await apiClient.get("/user");
-        if (response.data && response.data.has_completed_general_form) {
-          setHasCompletedGeneralForm(true);
-          setShowPlacementChoice(true); // Go to placement choice
-        } else {
-          setHasCompletedGeneralForm(false);
-          setStep(1); // Start from personal survey
-        }
-      } catch (err) {
-        console.error('Error checking user profile:', err);
-      }
-    };
-    
-    checkUserProfile();
-  }, [courseId, navigate]);
-
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1611,7 +1697,8 @@ const PlacementTest = ({ onComplete }) => {
 
   return (
     <div>
-      {loading ? (
+      {console.log('[render] showPlacementChoice:', showPlacementChoice, 'step:', step, 'hasCompletedGeneralForm:', hasCompletedGeneralForm, 'placementComplete:', placementComplete)}
+      {loading || profileLoading ? (
         <div className="placement-test-page">
           <div className="placement-test-container">
             <div className="placement-loading">
@@ -1621,10 +1708,24 @@ const PlacementTest = ({ onComplete }) => {
         </div>
       ) : (
         <>
-          {step === 1 && !showPlacementChoice && renderPersonalSurvey()}
-          {step === 1 && showPlacementChoice && renderPlacementChoice()}
-          {step === 2 && renderTest()}
-          {step === 3 && renderResult()}
+          {!placementComplete && step === 1 && !showPlacementChoice && !hasCompletedGeneralForm && renderPersonalSurvey()}
+          {!placementComplete && step === 1 && showPlacementChoice && !hasCompletedGeneralForm && renderPlacementChoice()}
+          {!placementComplete && step === 2 && renderTest()}
+          {placementComplete && renderResult()}
+          <ConfirmationModal
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            onConfirm={() => {
+              setShowPaymentModal(false);
+              // Redirect to payment page
+              window.location.href = '/subscription-plans';
+            }}
+            title="Enroll in Paid Course"
+            message="This course requires a subscription. Would you like to enroll and proceed to payment?"
+            confirmText="Proceed to Payment"
+            cancelText="Cancel"
+            type="info"
+          />
         </>
       )}
     </div>

@@ -5,7 +5,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:3000'], // Specific origin for credentials
+    'allowed_origins' => ['http://localhost:3000'], // Change '*' to your frontend URL if needed
 
     'allowed_origins_patterns' => [],
 
@@ -15,6 +15,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // Enable credentials support
+    'supports_credentials' => true,
 
 ];

@@ -44,8 +44,7 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   text-align: center;
   color: #FFFFFF; /* White text on image */
-  /* Computer science related background with similar colors */
-  /* background: url('D:\Junior\assets\Untitled design.png') no-repeat center center/cover; */
+  background: url('../assets/Untitled design.png') no-repeat center center/cover;
   overflow: hidden;
 }
 

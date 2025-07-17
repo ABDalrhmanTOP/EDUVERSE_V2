@@ -438,38 +438,6 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
     }
   };
 
-  // Fetch video info (title, description) from YouTube API
-  const fetchVideoInfo = async (videoId) => {
-    if (!videoId || videoId.length !== 11) return;
-    
-    try {
-      const response = await apiClient.get(`/youtube/video-info/${videoId}`);
-      if (response.data) {
-        // Auto-fill the course name and description
-        setName(response.data.title || name);
-        setDescription(response.data.description || description);
-        
-        // Store captions data for later use
-        if (response.data.captions) {
-          // Store captions in component state or localStorage for n8n
-          localStorage.setItem('video_captions', response.data.captions);
-          console.log('Video captions fetched and stored');
-        }
-        
-        // Store video duration for n8n
-        if (videoDuration) {
-          localStorage.setItem('video_duration', videoDuration);
-          console.log('Video duration stored:', videoDuration);
-        }
-        
-        // Show success message
-        console.log('Video info auto-fetched:', response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching video info:', error);
-    }
-  };
-
   const handleVideoUrlChange = (e) => {
     const value = e.target.value;
     setVideo_id(value);
@@ -485,9 +453,6 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
       if (!durationAutoFetched && !fetchingDuration) {
         fetchVideoDuration(extractedId);
       }
-      
-      // Auto-fetch video info (title and description)
-      fetchVideoInfo(extractedId);
     } else {
       setVideo_id(value);
       validateField('video_id', value);
@@ -514,10 +479,6 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
       // Extract timestamp from video duration or use default
       const timestamp = videoDuration || '00:05:30';
 
-      // Get stored captions data and duration
-      const storedCaptions = localStorage.getItem('video_captions');
-      const storedDuration = localStorage.getItem('video_duration');
-      
       // Call our Laravel API
       const response = await fetch('http://localhost:8000/api/course/generate', {
         method: 'POST',
@@ -525,19 +486,9 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({
           youtube_url: `https://www.youtube.com/watch?v=${video_id}`,
-          timestamp: timestamp,
-          // Add the fetched video information
-          video_title: name,
-          video_description: description,
-          video_channel: 'Unknown Channel', // You can add a field for this if needed
-          video_published: null,
-          // Add captions data for AI analysis
-          video_captions: storedCaptions || null,
-          // Add video duration for timestamp validation
-          video_duration: storedDuration || timestamp
+          timestamp: timestamp
         })
       });
 
@@ -551,29 +502,15 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
         throw new Error(result.message || 'Course generation failed');
       }
 
-      // Show success notification for starting the process
+      // Show success notification
       window.dispatchEvent(new CustomEvent('showSuccessNotification', {
         detail: { 
-          message: 'Course generation started successfully! The AI is analyzing the video and creating content. This may take 3-5 minutes. Please be patient.' 
+          message: 'Course generation started successfully! The AI is analyzing the video and creating content. This may take a few minutes.' 
         }
       }));
 
-      // If status is 'processing', poll for completion
-      if (result.status === 'processing') {
-        await pollForGenerationCompletion(result.request_id);
-      } else if (result.status === 'completed') {
-        // Handle immediate completion
-        if (result.course) {
-          setName(result.course.name || name);
-          setDescription(result.course.description || description);
-          
-          window.dispatchEvent(new CustomEvent('showSuccessNotification', {
-            detail: { 
-              message: `Course "${result.course.name}" generated successfully! The form has been auto-filled with the AI-generated content.` 
-            }
-          }));
-        }
-      }
+      // Poll for completion
+      await pollForGenerationCompletion(result.request_id);
 
     } catch (error) {
       console.error('Error generating content:', error);
@@ -589,22 +526,13 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
   };
 
   const pollForGenerationCompletion = async (requestId) => {
-    const maxAttempts = 120; // 10 minutes with 5-second intervals
+    const maxAttempts = 60; // 5 minutes with 5-second intervals
     let attempts = 0;
 
     const pollInterval = setInterval(async () => {
       attempts++;
       
       try {
-        // Show progress update every 30 seconds
-        if (attempts % 6 === 0) {
-          window.dispatchEvent(new CustomEvent('showSuccessNotification', {
-            detail: { 
-              message: `AI is still processing... (${Math.floor(attempts * 5 / 60)} minutes elapsed)` 
-            }
-          }));
-        }
-
         const statusResponse = await fetch(`http://localhost:8000/api/course/status?request_id=${requestId}`, {
           method: 'GET',
           headers: {
@@ -628,30 +556,20 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
           const courseData = await courseDataResponse.json();
           
           if (courseData.success && courseData.course) {
-            // Auto-fill form with generated course data
-            setName(courseData.course.name || name);
+            // Populate form with generated course data
+            setName(courseData.course.title || name);
             setDescription(courseData.course.description || description);
             
             // Set difficulty based on course analysis
             if (courseData.courseAnalysis && courseData.courseAnalysis.difficulty) {
-              // Map difficulty to year/semester
-              const difficulty = courseData.courseAnalysis.difficulty;
-              if (difficulty === 'beginner') {
-                setYear('1');
-                setSemester('1');
-              } else if (difficulty === 'intermediate') {
-                setYear('2');
-                setSemester('1');
-              } else if (difficulty === 'advanced') {
-                setYear('3');
-                setSemester('1');
-              }
+              // You might want to map difficulty to year/semester or add a difficulty field
+              console.log('Course difficulty:', courseData.courseAnalysis.difficulty);
             }
 
-            // Show success notification with auto-fill info
+            // Show success notification
             window.dispatchEvent(new CustomEvent('showSuccessNotification', {
               detail: { 
-                message: `Course "${courseData.course.name}" generated successfully! The form has been auto-filled with the AI-generated content. You can now review and save the course.` 
+                message: `Course "${courseData.course.title}" generated successfully! The AI has analyzed the video and created comprehensive educational content.` 
               }
             }));
           }
@@ -660,28 +578,14 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
           clearInterval(pollInterval);
           setContentGenerationError('Course generation failed. Please try again.');
           
-          window.dispatchEvent(new CustomEvent('showErrorNotification', {
-            detail: { message: 'Course generation failed. Please try again.' }
-          }));
         } else if (attempts >= maxAttempts) {
           clearInterval(pollInterval);
-          setContentGenerationError('Course generation timed out after 10 minutes. Please try again.');
-          
-          window.dispatchEvent(new CustomEvent('showErrorNotification', {
-            detail: { message: 'Course generation timed out after 10 minutes. Please try again.' }
-          }));
+          setContentGenerationError('Course generation timed out. Please check the generated content manually.');
         }
         
       } catch (error) {
-        console.error('Error polling for completion:', error);
-        if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
-          setContentGenerationError('Error checking generation status. Please try again.');
-          
-          window.dispatchEvent(new CustomEvent('showErrorNotification', {
-            detail: { message: 'Error checking generation status. Please try again.' }
-          }));
-        }
+        clearInterval(pollInterval);
+        setContentGenerationError(`Status check error: ${error.message}`);
       }
     }, 5000); // Check every 5 seconds
   };
@@ -1338,7 +1242,7 @@ const CourseForm = ({ editingCourse, onSuccess, onClose }) => {
                   <FaInfoCircle />
                   <span>AI will analyze the YouTube video and automatically generate course title, description, placement tests, tasks, and final projects.</span>
                 </div>
-          </div>
+              </div>
               
               {contentGenerationError && (
                 <motion.div

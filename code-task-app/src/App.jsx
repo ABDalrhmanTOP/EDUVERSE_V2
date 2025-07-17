@@ -24,6 +24,13 @@ import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
 import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
+import SubscriptionPlans from "./pages/SubscriptionPlans";
+import SubscriptionHistory from "./pages/SubscriptionHistory";
+
+// Community components
+import Community from "./pages/Community";
+import CommunityPost from "./pages/CommunityPost";
+import NewCommunityPost from "./pages/NewCommunityPost";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -149,6 +156,22 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/subscription-plans"
+          element={
+            <ProtectedRoute>
+              <SubscriptionPlans />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscription-history"
+          element={
+            <ProtectedRoute>
+              <SubscriptionHistory />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Remove all FinalTest routes and references */}
 
@@ -166,6 +189,32 @@ const App = () => {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Community */}
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <Community />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/new"
+          element={
+            <ProtectedRoute>
+              <NewCommunityPost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/posts/:id"
+          element={
+            <ProtectedRoute>
+              <CommunityPost />
             </ProtectedRoute>
           }
         />

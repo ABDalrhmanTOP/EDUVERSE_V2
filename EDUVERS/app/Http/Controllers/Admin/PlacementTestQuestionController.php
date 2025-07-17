@@ -31,7 +31,7 @@ class PlacementTestQuestionController extends Controller
             'type' => 'required|string|in:mcq,true_false,code',
             'options' => 'nullable|array',
             'correct_answer' => 'required|string',
-            'difficulty' => 'nullable|string|in:easy,medium,hard',
+            'difficulty' => 'nullable|string',
             'code_template' => 'nullable|string',
             'test_cases' => 'nullable|array',
         ]);
@@ -66,7 +66,7 @@ class PlacementTestQuestionController extends Controller
             'type' => 'sometimes|required|string|in:mcq,true_false,code',
             'options' => 'nullable|array',
             'correct_answer' => 'sometimes|required|string',
-            'difficulty' => 'nullable|string|in:easy,medium,hard',
+            'difficulty' => 'nullable|string',
             'code_template' => 'nullable|string',
             'test_cases' => 'nullable|array',
         ]);

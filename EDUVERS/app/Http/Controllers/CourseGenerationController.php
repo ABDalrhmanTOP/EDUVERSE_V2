@@ -15,20 +15,10 @@ class CourseGenerationController extends Controller
      */
     public function generateCourse(Request $request): JsonResponse
     {
-        // Set PHP execution time to 5 minutes for AI processing
-        set_time_limit(300);
-        ini_set('max_execution_time', 300);
-
         // Validate input
         $validator = Validator::make($request->all(), [
             'youtube_url' => 'required|url',
             'timestamp' => 'required|string|regex:/^\d{2}:\d{2}:\d{2}$/',
-            'video_title' => 'nullable|string',
-            'video_description' => 'nullable|string',
-            'video_channel' => 'nullable|string',
-            'video_published' => 'nullable|string',
-            'video_captions' => 'nullable|string',
-            'video_duration' => 'nullable|string|regex:/^\d{2}:\d{2}:\d{2}$/',
         ]);
 
         if ($validator->fails()) {
@@ -43,69 +33,21 @@ class CourseGenerationController extends Controller
             // Get n8n webhook URL from environment
             $n8nWebhookUrl = env('N8N_WEBHOOK_URL', 'http://localhost:5680/webhook-test/generate-course-content');
 
-            // Clean and prepare captions data
-            $captions = $request->video_captions;
-            if ($captions) {
-                // Remove duplicate lines and clean captions
-                $lines = explode("\n", $captions);
-                $uniqueLines = array_unique(array_filter($lines, 'trim'));
-                $captions = implode("\n", $uniqueLines);
-
-                // Clean captions: remove special characters that might break JSON
-                $captions = preg_replace('/[\x00-\x1F\x7F]/', '', $captions); // Remove control characters
-                $captions = preg_replace('/\s+/', ' ', $captions); // Normalize whitespace
-                $captions = trim($captions);
-
-                // Limit captions length to prevent JSON size issues
-                if (strlen($captions) > 30000) {
-                    $captions = substr($captions, 0, 30000) . '... [truncated]';
-                }
-            }
-
             // Prepare data for n8n workflow
             $workflowData = [
                 'youtube_url' => $request->youtube_url,
                 'timestamp' => $request->timestamp, // Course duration timestamp
                 'request_id' => uniqid('course_gen_'),
-                'request_timestamp' => now()->toISOString(), // Request time
-                // Include video metadata for AI analysis
-                'video_title' => $request->video_title,
-                'video_description' => $request->video_description,
-                'video_channel' => $request->video_channel,
-                'video_published' => $request->video_published,
-                'video_captions' => $captions,
-                'video_duration' => $request->video_duration, // Course duration for timestamp validation
+                'request_timestamp' => now()->toISOString() // Request time
             ];
 
-            // Log the data being sent to n8n for debugging
-            Log::info('Sending data to n8n workflow', [
-                'workflow_data_keys' => array_keys($workflowData),
-                'has_captions' => !empty($captions),
-                'captions_length' => $captions ? strlen($captions) : 0,
-                'has_title' => !empty($request->video_title),
-                'has_description' => !empty($request->video_description),
-                'has_duration' => !empty($request->video_duration),
-            ]);
-
-            // Validate JSON before sending
-            $jsonData = json_encode($workflowData);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('JSON encoding error', [
-                    'error' => json_last_error_msg(),
-                    'data_keys' => array_keys($workflowData)
-                ]);
-                throw new \Exception('Invalid data format: ' . json_last_error_msg());
-            }
-
-            Log::info('JSON validation passed', ['json_length' => strlen($jsonData)]);
-
-            // Trigger n8n workflow with extended timeout for AI processing
-            $response = Http::timeout(300)->post($n8nWebhookUrl, $workflowData);
+            // Trigger n8n workflow
+            $response = Http::timeout(30)->post($n8nWebhookUrl, $workflowData);
 
             if ($response->successful()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Course generation started successfully! The AI is analyzing the video and creating content. This may take a few minutes.',
+                    'message' => 'Course generation started successfully',
                     'request_id' => $workflowData['request_id'],
                     'status' => 'processing'
                 ]);
@@ -217,51 +159,12 @@ class CourseGenerationController extends Controller
             ], 422);
         }
 
-        try {
-            // For now, we'll return the most recently created course
-            // In a production system, you'd want to track the request_id and return the specific course
-            $latestCourse = \App\Models\Playlist::with('tasks')
-                ->orderBy('created_at', 'desc')
-                ->first();
+        // TODO: Implement logic to retrieve generated course data
+        // This would fetch the course, placement test, tasks, etc. from database
 
-            if (!$latestCourse) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No generated course found'
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Generated course data retrieved successfully',
-                'course' => [
-                    'name' => $latestCourse->name,
-                    'description' => $latestCourse->description,
-                    'video_id' => $latestCourse->video_id,
-                    'video_duration' => $latestCourse->video_duration,
-                    'year' => $latestCourse->year,
-                    'semester' => $latestCourse->semester,
-                    'paid' => $latestCourse->paid,
-                    'tasks' => $latestCourse->tasks
-                ],
-                'courseAnalysis' => [
-                    'difficulty' => 'intermediate', // This would come from AI analysis
-                    'mainTopics' => ['Computer Science', 'Programming'],
-                    'prerequisites' => ['Basic programming knowledge'],
-                    'learningObjectives' => ['Understand core concepts', 'Apply practical skills']
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Get generated course error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve generated course data',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Course data retrieval endpoint - implement based on your needs'
+        ]);
     }
 }
