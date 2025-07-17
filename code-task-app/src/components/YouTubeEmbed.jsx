@@ -31,7 +31,7 @@ const convertSecondsToTimestamp = (seconds) => {
   return `${hrs}:${mins}:${secs}`;
 };
 
-const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initialCompletedTasks = [], onTaskComplete, initialTimestamp = "00:00:00" }) => {
+const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initialCompletedTasks = [], onTaskComplete, initialTimestamp = "00:00:00", renderComments }) => {
   const navigate = useNavigate();
   const [playerReady, setPlayerReady] = useState(false);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
@@ -47,6 +47,26 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
   const taskTriggeredRef = useRef(false);
+  // const commentsRef = useRef(null); // Removed
+  // const [commentsHeight, setCommentsHeight] = useState(null); // Removed
+
+  // Measure comments height after render
+  // useEffect(() => { // Removed
+  //   if (commentsRef.current) { // Removed
+  //     setCommentsHeight(commentsRef.current.offsetHeight); // Removed
+  //   } // Removed
+  // }, [renderComments]); // Removed
+
+  // Optionally, update on window resize
+  // useEffect(() => { // Removed
+  //   const handleResize = () => { // Removed
+  //     if (commentsRef.current) { // Removed
+  //       setCommentsHeight(commentsRef.current.offsetHeight); // Removed
+  //     } // Removed
+  //   }; // Removed
+  //   window.addEventListener('resize', handleResize); // Removed
+  //   return () => window.removeEventListener('resize', handleResize); // Removed
+  // }, []); // Removed
 
   // Debounced saving (3s delay)
   const debouncedSaveProgress = useCallback(
@@ -332,38 +352,43 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
   }, [playlistId]);
 
   return (
-    <div className="youtube-layout-container">
-      <div className="left-column">
+    <div className="youtube-layout-container" style={{ display: 'flex', alignItems: 'stretch', minHeight: '100vh', height: '100%' }}>
+      <div className="left-column" style={{ display: 'flex', flexDirection: 'column', flex: 2, height: '100%' }}>
         <div className="video-progress-container">
-          <div className={`video-container ${currentTaskIndex === null ? "" : "hidden"}`}>
+          <div className={`video-container ${currentTaskIndex === null ? '' : 'hidden'}`}> 
             <div className="youtube-player" ref={playerRef} id="player" />
           </div>
           <div className="course-progress-bar">
-            <div className="course-progress-bar-inner" style={{ width: progressPercent + "%" }}>
+            <div className="course-progress-bar-inner" style={{ width: progressPercent + '%' }}>
               <span className="progress-percent">{progressPercent}%</span>
             </div>
           </div>
           {showFinalProjectButton && (
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <button onClick={handleGoToFinalProject} className="submit-final-button">
-                {hasFinalTest ? "Go to Final Project" : "Go to Final Project"}
+                {hasFinalTest ? 'Go to Final Project' : 'Go to Final Project'}
               </button>
             </div>
           )}
         </div>
-        {tasks.length > 0 && currentTaskIndex !== null && (
-          <div className="code-task-container">
-            <CodeTask
-              task={tasks[currentTaskIndex]}
-              onTaskComplete={handleTaskComplete}
-              onReturn={handleReturn}
-            />
-          </div>
-        )}
+        {/* Show comments only if no task is active, otherwise show the task in the same place */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {currentTaskIndex === null ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>{renderComments}</div>
+          ) : (
+            <div className="code-task-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <CodeTask
+                task={tasks[currentTaskIndex]}
+                onTaskComplete={handleTaskComplete}
+                onReturn={handleReturn}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="playlist-sidebar">
+      <div className="playlist-sidebar" style={{ flex: 1, height: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <h3>Playlist</h3>
-        <ul>
+        <ul style={{ flex: 1, overflowY: 'auto' }}>
           {tasks.map((t) => {
             const active = currentTaskIndex !== null && tasks[currentTaskIndex].id === t.id;
             const completed = completedTasks.includes(String(t.id));
@@ -371,14 +396,13 @@ const YouTubeEmbed = ({ videoId, playlistId, tasks = [], completedTasks: initial
               <li
                 key={t.id}
                 id={`playlist-item-${t.id}`}
-                className={`playlist-item ${active ? "active" : ""} ${completed ? "completed" : ""}`}
+                className={`playlist-item ${active ? 'active' : ''} ${completed ? 'completed' : ''}`}
                 onClick={() => {
                   if (playerInstanceRef.current) {
                     const sec = convertTimestampToSeconds(t.timestamp);
                     let targetTime = sec - 30;
                     if (targetTime < 0) targetTime = 0;
                     playerInstanceRef.current.seekTo(targetTime, true);
-                    
                     // Find the task index and show it
                     const taskIndex = tasks.findIndex(task => task.id === t.id);
                     if (taskIndex !== -1) {

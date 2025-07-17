@@ -8,7 +8,7 @@ import SuccessCelebration from './SuccessCelebration';
 import { FaLock, FaCreditCard, FaExclamationCircle, FaCheckCircle, FaCrown, FaRocket, FaGift, FaShieldAlt, FaStar } from 'react-icons/fa';
 import Spinner from './Spinner';
 
-const stripePromise = loadStripe("pk_test_51Re9HPC6InkpE6BbDySFemIfUDICccZwwtm12tvgrAFLhTDkbSM3De6Uy8t3wcuEglqsFHtbrlByLyX2XFDJIXOz00WbzyaYqO");
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_KEY);
 
 const CheckoutFormInner = ({ plan, onSuccess }) => {
   const stripe = useStripe();

@@ -156,56 +156,70 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'playlist_id' => 'required|integer',
-            'video_id' => 'required|string',
-            'timestamp' => [
-                'required',
-                'string',
-                function ($attribute, $value, $fail) use ($request) {
-                    // Validate format hh:mm:ss
-                    if (!preg_match('/^([0-9]{1,2}):([0-5][0-9]):([0-5][0-9])$/', $value)) {
-                        $fail('Timestamp must be in hh:mm:ss format.');
-                        return;
-                    }
-                    $exists = Task::where('playlist_id', $request->playlist_id)
-                        ->where('timestamp', $value)
-                        ->exists();
-                    if ($exists) {
-                        $fail('The timestamp must be unique for this course.');
-                        return;
-                    }
-                    // Validate timestamp < video duration (if provided)
-                    if ($request->has('video_duration')) {
-                        $duration = $this->convertTimestampToSeconds($request->video_duration);
-                        $ts = $this->convertTimestampToSeconds($value);
-                        if ($ts >= $duration) {
-                            $fail('Task timestamp must be less than the course video duration.');
+        try {
+            $validated = $request->validate([
+                'playlist_id' => 'required|integer',
+                'video_id' => 'required|string',
+                'timestamp' => [
+                    'required',
+                    'string',
+                    function ($attribute, $value, $fail) use ($request) {
+                        // Validate format hh:mm:ss
+                        if (!preg_match('/^([0-9]{1,2}):([0-5][0-9]):([0-5][0-9])$/', $value)) {
+                            $fail('Timestamp must be in hh:mm:ss format.');
+                            return;
                         }
-                    }
-                },
-            ],
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'prompt' => 'nullable|string',
-            'expected_output' => 'nullable|string',
-            'syntax_hint' => 'nullable|string',
-            'type' => 'required|string',
-            'options' => 'nullable|json',
-            'question' => 'nullable|string',
-            'correct_answer' => 'nullable',
-            'tf_question' => 'nullable|string',
-            'tf_answer' => 'nullable',
-            'coding_question' => 'nullable|string',
-            'coding_test_cases' => 'nullable|json',
-            'coding_solution' => 'nullable|string',
-            'coding_language' => 'nullable|string',
-            'points' => 'nullable|integer',
-        ]);
+                        $exists = Task::where('playlist_id', $request->playlist_id)
+                            ->where('timestamp', $value)
+                            ->exists();
+                        if ($exists) {
+                            $fail('The timestamp must be unique for this course.');
+                            return;
+                        }
+                        // Validate timestamp < video duration (if provided)
+                        if ($request->has('video_duration')) {
+                            $duration = $this->convertTimestampToSeconds($request->video_duration);
+                            $ts = $this->convertTimestampToSeconds($value);
+                            if ($ts >= $duration) {
+                                $fail('Task timestamp must be less than the course video duration.');
+                            }
+                        }
+                    },
+                ],
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'prompt' => 'nullable|string',
+                'expected_output' => 'nullable|string',
+                'syntax_hint' => 'nullable|string',
+                'type' => 'required|string',
+                'options' => 'nullable|json',
+                'question' => 'nullable|string',
+                'correct_answer' => 'nullable',
+                'tf_question' => 'nullable|string',
+                'tf_answer' => 'nullable',
+                'coding_question' => 'nullable|string',
+                'coding_test_cases' => 'nullable|json',
+                'coding_solution' => 'nullable|string',
+                'coding_language' => 'nullable|string',
+                'points' => 'nullable|integer',
+            ]);
 
-        $task = Task::create($validated);
+            $task = Task::create($validated);
 
-        return response()->json($task, 201);
+            return response()->json($task, 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create task',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy($id)

@@ -289,7 +289,7 @@ const DashboardContent = ({ user, actions }) => {
             icon: FiCreditCard,
             title: "Subscribe",
             desc: "Access premium content",
-            action: actions.goToSubscriptionPage,
+            action: () => actions.navigate("/subscription-plans"),
             key: "subscribe"
           },
           {

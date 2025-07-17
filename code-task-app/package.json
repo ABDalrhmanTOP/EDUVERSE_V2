@@ -45,6 +45,7 @@
     "react-youtube": "^10.1.0",
     "slick-carousel": "^1.8.1",
     "web-vitals": "^2.1.4",
+    "webpack-sources": "^3.3.3",
     "ytdl-core": "^4.11.5"
   },
   "scripts": {

@@ -9,6 +9,11 @@ class PlacementTestQuestion extends Model
 {
     use HasFactory;
     protected $guarded = [];
+    protected $casts = [
+        'options' => 'array',
+        'test_cases' => 'array',
+        'difficulty' => 'integer',
+    ];
     public function placementTest()
     {
         return $this->belongsTo(PlacementTest::class);

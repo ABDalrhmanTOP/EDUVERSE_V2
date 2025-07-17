@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import YouTubeEmbed from "../components/YouTubeEmbed";
-import Playlists from "../components/Playlists";
+import CommentSection from "../components/CommentSection";
 import "../App.css";
 
 const CoursePage = () => {
@@ -13,14 +13,90 @@ const CoursePage = () => {
   const [error, setError] = useState("");
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
-  const [locked, setLocked] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
-  const [loadingSubscription, setLoadingSubscription] = useState(true);
-
-  const isSubscribed = false;
   const [lastTimestamp, setLastTimestamp] = useState("00:00:00");
 
+  // Comments state and user
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentsError, setCommentsError] = useState("");
+  const [user, setUser] = useState(null);
+
+  // Fetch user and comments
+  useEffect(() => {
+    const fetchUserAndComments = async () => {
+      setCommentsLoading(true);
+      try {
+        // Get user from localStorage or API
+        const userStr = localStorage.getItem("user");
+        let userObj = userStr ? JSON.parse(userStr) : null;
+        if (!userObj) {
+          const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+          if (token) {
+            const res = await axios.get("/user", { headers: { Authorization: `Bearer ${token}` } });
+            userObj = res.data;
+            localStorage.setItem("user", JSON.stringify(userObj));
+          }
+        }
+        setUser(userObj);
+        // Fetch comments for this course
+        const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+        setComments(res.data);
+        setCommentsError("");
+      } catch (err) {
+        setCommentsError("Failed to load comments.");
+      }
+      setCommentsLoading(false);
+    };
+    if (courseId) fetchUserAndComments();
+  }, [courseId]);
+
+  // Handler functions for CommentSection
+  const handleAddComment = async (content) => {
+    if (!content.trim()) return;
+    try {
+      await axios.post(`/courses/${courseId}/comments`, { content });
+      // Refetch comments
+      const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+      setComments(res.data);
+    } catch {}
+  };
+  const handleEditComment = async (id, content) => {
+    if (!content.trim()) return;
+    try {
+      await axios.put(`/comments/${id}`, { content });
+      const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+      setComments(res.data);
+    } catch {}
+  };
+  const handleDeleteComment = async (id) => {
+    try {
+      await axios.delete(`/comments/${id}`);
+      const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+      setComments(res.data);
+    } catch {}
+  };
+  const handleLikeComment = async (id) => {
+    try {
+      await axios.post(`/comments/${id}/like`, { type: "like" });
+      const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+      setComments(res.data);
+    } catch {}
+  };
+  const handleDislikeComment = async (id) => {
+    try {
+      await axios.post(`/comments/${id}/like`, { type: "dislike" });
+      const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+      setComments(res.data);
+    } catch {}
+  };
+  const handleReplyComment = async (parentId, content) => {
+    if (!content.trim()) return;
+    try {
+      await axios.post(`/comments/${parentId}/reply`, { content });
+      const res = await axios.get(`/courses/${courseId}/comments?sort=newest`);
+      setComments(res.data);
+    } catch {}
+  };
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -32,7 +108,6 @@ const CoursePage = () => {
         const courseResponse = await axios.get(`/courses/${courseId}`);
         const courseData = courseResponse.data;
         setCourse(courseData);
-        setIsUnlocked(courseData.is_unlocked || false);
         
         // Use tasks that are already included in the course data
         const sortedTasks = (courseData.tasks || []).sort(
@@ -43,16 +118,6 @@ const CoursePage = () => {
           }
         );
         setTasks(sortedTasks);
-        
-        // Fetch subscription status if course is paid
-        if (courseData.paid) {
-          try {
-            const subscriptionResponse = await axios.get('/subscription/status');
-            setSubscriptionStatus(subscriptionResponse.data);
-          } catch (err) {
-            console.error('Error fetching subscription status:', err);
-          }
-        }
         
         // Load user progress (both video progress and completed tasks)
         const token = localStorage.getItem("token") || localStorage.getItem("authToken");
@@ -103,29 +168,16 @@ const CoursePage = () => {
           // No token, force login
           setError("You are not logged in. Please login to continue.");
         }
-
       } catch (err) {
         setError("Failed to load course. Please try again.");
       } finally {
         setLoading(false);
-        setLoadingSubscription(false);
       }
     };
     if (courseId) {
       fetchCourseData();
     }
   }, [courseId]);
-
-
-  const handleUnlockCourse = async () => {
-    try {
-      await axios.post(`/courses/${course.id}/unlock`);
-      setIsUnlocked(true);
-      alert("Course unlocked successfully!");
-    } catch (err) {
-      alert(err.response?.data?.error || "Failed to unlock course.");
-    }
-  };
 
   const handleTaskComplete = async (taskId) => {
     try {
@@ -207,149 +259,31 @@ const CoursePage = () => {
     );
   }
 
-  if (locked) {
-    return (
-      <div style={{ marginTop: "80px", textAlign: "center" }}>
-        <h2>Video Locked</h2>
-        <p>To continue, please subscribe to the course.</p>
-        <button onClick={() => navigate("/subscription")}>Subscribe Now</button>
-      </div>
-    );
-  }
-
-  const currentTaskIndex = tasks.findIndex(
-    (task) => !completedTasks.includes(String(task.id))
-  );
-
   return (
     <div style={{ marginTop: "80px", padding: "0 20px" }}>
-      {course.paid && !isUnlocked && (
-        <div style={{ margin: "20px 0", textAlign: "center" }}>
-          {subscriptionStatus && subscriptionStatus.has_active_subscription ? (
-            <div style={{ marginBottom: "20px" }}>
-              <div style={{ 
-                padding: "15px", 
-                backgroundColor: "#f0f9ff", 
-                border: "1px solid #0ea5e9", 
-                borderRadius: "8px",
-                marginBottom: "15px"
-              }}>
-                <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>
-                  Subscription Information
-                </h4>
-                <p style={{ margin: "5px 0", color: "#0369a1" }}>
-                  Plan: {subscriptionStatus.subscription.plan_name}
-                </p>
-                <p style={{ margin: "5px 0", color: "#0369a1" }}>
-                  Remaining Courses: {subscriptionStatus.remaining_courses} of {subscriptionStatus.total_allowed_courses}
-                </p>
-                <p style={{ margin: "5px 0", color: "#0369a1" }}>
-                  Subscription End Date: {new Date(subscriptionStatus.subscription.end_date).toLocaleDateString('en-US')}
-                </p>
-              </div>
-              {subscriptionStatus.remaining_courses > 0 ? (
-                <button
-                  onClick={handleUnlockCourse}
-                  style={{
-                    padding: "12px 24px",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                    fontWeight: "bold"
-                  }}
-                >
-                  Unlock this course ({subscriptionStatus.remaining_courses} courses remaining)
-                </button>
-              ) : (
-                <div style={{ 
-                  padding: "15px", 
-                  backgroundColor: "#fef2f2", 
-                  border: "1px solid #ef4444", 
-                  borderRadius: "8px",
-                  color: "#dc2626"
-                }}>
-                  <p style={{ margin: "0", fontWeight: "bold" }}>
-                    No remaining courses in your current subscription
-                  </p>
-                  <p style={{ margin: "10px 0 0 0" }}>
-                    You can upgrade your subscription or purchase a new plan
-                  </p>
-                  <button 
-                    onClick={() => navigate("/subscription-plans")}
-                    style={{
-                      marginTop: "10px",
-                      padding: "8px 16px",
-                      backgroundColor: "#dc2626",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "5px",
-                      cursor: "pointer"
-                    }}
-                  >
-                    Upgrade Subscription
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ 
-              padding: "20px", 
-              backgroundColor: "#fef2f2", 
-              border: "1px solid #ef4444", 
-              borderRadius: "8px",
-              marginBottom: "20px"
-            }}>
-              <h3 style={{ margin: "0 0 15px 0", color: "#dc2626" }}>
-                This course requires a subscription
-              </h3>
-              <p style={{ margin: "0 0 15px 0", color: "#991b1b" }}>
-                To access this course, please subscribe to one of our plans
-              </p>
-              <button 
-                onClick={() => navigate("/subscription-plans")}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#dc2626",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                  fontWeight: "bold"
-                }}
-              >
-                Subscribe Now
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-      {(!course.paid || isUnlocked) ? (
-        <>
       <YouTubeEmbed 
         videoId={course.video_id} 
-        playlistId={course.id}
+        playlistId={course.id} 
         tasks={tasks}
         completedTasks={completedTasks}
         onTaskComplete={handleTaskComplete}
         initialTimestamp={lastTimestamp}
+        renderComments={
+          <CommentSection
+            comments={comments}
+            setComments={setComments}
+            user={user}
+            onAddComment={handleAddComment}
+            onEdit={handleEditComment}
+            onDelete={handleDeleteComment}
+            onLike={handleLikeComment}
+            onDislike={handleDislikeComment}
+            onReply={handleReplyComment}
+          />
+        }
       />
-
-      <div style={{ marginTop: "20px" }}>
-        <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
-      </div>
-        </>
-      ) : (
-        <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <h2>This course is locked</h2>
-          <p>Please unlock this course to access its content.</p>
-        </div>
-      )}
     </div>
   );
 };
 
-export default CoursePage;
+export default CoursePage; 
