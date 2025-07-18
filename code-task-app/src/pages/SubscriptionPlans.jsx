@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CheckoutForm from "../components/CheckoutForm";
 import "../styles/SubscriptionPlans.css";
+import { useLocation } from "react-router-dom";
 
 const plans = [
   {
@@ -42,6 +43,24 @@ const plans = [
 ];
 
 const CheckoutModal = ({ open, plan, onClose }) => {
+  const [showRedirectMsg, setShowRedirectMsg] = useState(false);
+  const [redirectCourseId, setRedirectCourseId] = useState(null);
+
+  // منطق إعادة التوجيه بعد الدفع
+  const handleAfterPayment = () => {
+    const courseId = localStorage.getItem('redirectAfterPaymentCourseId');
+    if (courseId) {
+      setShowRedirectMsg(true);
+      setRedirectCourseId(courseId);
+      localStorage.removeItem('redirectAfterPaymentCourseId');
+      setTimeout(() => {
+        window.location.href = `/course/${courseId}`;
+      }, 2000); // انتظر ثانيتين قبل إعادة التوجيه
+    } else {
+      onClose();
+    }
+  };
+
   if (!open || !plan) return null;
   return (
     <div className="confirmation-modal-overlay">
@@ -62,18 +81,43 @@ const CheckoutModal = ({ open, plan, onClose }) => {
           </button>
         </div>
         <span className="modal-title-decor"></span>
-        <CheckoutForm plan={plan} onSuccess={onClose} />
+        {showRedirectMsg ? (
+          <div style={{textAlign: 'center', padding: '2rem'}}>
+            <h2 style={{color: '#10b981'}}>تم تفعيل اشتراكك بنجاح!</h2>
+            <p>سيتم تحويلك تلقائيًا إلى الكورس الذي كنت ترغب في الدخول إليه...</p>
+            {redirectCourseId && (
+              <>
+                <button
+                  style={{marginTop: '1.5rem', padding: '12px 28px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer'}}
+                  onClick={() => window.location.href = `/course/${redirectCourseId}`}
+                >
+                  الذهاب إلى الكورس الآن
+                </button>
+                <button
+                  style={{marginTop: '1.5rem', padding: '12px 28px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer'}}
+                  onClick={onClose}
+                >
+                  العودة إلى الصفحة الرئيسية
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <CheckoutForm plan={plan} onSuccess={handleAfterPayment} />
+        )}
       </div>
     </div>
   );
 };
 
 const SubscriptionPlans = () => {
+  const location = useLocation();
+  const courseId = location.state?.courseId;
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   const handleSubscribe = (plan) => {
-    setSelectedPlan(plan);
+    setSelectedPlan(courseId ? { ...plan, courseId } : plan);
     setModalOpen(true);
   };
 

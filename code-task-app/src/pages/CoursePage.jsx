@@ -3,7 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import YouTubeEmbed from "../components/YouTubeEmbed";
 import CommentSection from "../components/CommentSection";
+import Playlists from "../components/Playlists";
 import "../App.css";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CoursePage = () => {
   const { courseId } = useParams();
@@ -20,6 +23,9 @@ const CoursePage = () => {
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentsError, setCommentsError] = useState("");
   const [user, setUser] = useState(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   // Fetch user and comments
   useEffect(() => {
@@ -49,6 +55,24 @@ const CoursePage = () => {
     };
     if (courseId) fetchUserAndComments();
   }, [courseId]);
+
+  // تحميل حالة الاشتراك دائماً بعد تحميل المستخدم
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+        if (token) {
+          const res = await axios.get('/subscription/status', { headers: { Authorization: `Bearer ${token}` } });
+          setSubscriptionStatus(res.data);
+        } else {
+          setSubscriptionStatus(null);
+        }
+      } catch (err) {
+        setSubscriptionStatus(null);
+      }
+    };
+    if (user) fetchSubscriptionStatus();
+  }, [user]);
 
   // Handler functions for CommentSection
   const handleAddComment = async (content) => {
@@ -118,7 +142,7 @@ const CoursePage = () => {
           }
         );
         setTasks(sortedTasks);
-        
+
         // Load user progress (both video progress and completed tasks)
         const token = localStorage.getItem("token") || localStorage.getItem("authToken");
         if (token) {
@@ -178,6 +202,44 @@ const CoursePage = () => {
       fetchCourseData();
     }
   }, [courseId]);
+
+  const handleUnlockCourse = async () => {
+    try {
+      await axios.post(`/courses/${course.id}/unlock`);
+      setIsUnlocked(true);
+      toast.success('🎉 Course unlocked successfully! Enjoy your new course.', {
+        position: 'top-center',
+        autoClose: 3500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        style: {
+          background: '#e0f7fa',
+          color: '#00695c',
+          fontWeight: 'bold',
+          fontSize: '1.1rem',
+          borderRadius: '10px',
+          boxShadow: '0 2px 12px #b2dfdb',
+        },
+        icon: '✅',
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to unlock course.", {
+        position: 'top-center',
+        autoClose: 3500,
+        style: {
+          background: '#ffebee',
+          color: '#b71c1c',
+          fontWeight: 'bold',
+          fontSize: '1.1rem',
+          borderRadius: '10px',
+        },
+        icon: '❌',
+      });
+    }
+  };
 
   const handleTaskComplete = async (taskId) => {
     try {
@@ -259,6 +321,140 @@ const CoursePage = () => {
     );
   }
 
+  const currentTaskIndex = tasks.findIndex(
+    (task) => !completedTasks.includes(String(task.id))
+  );
+
+  return (
+    <div style={{ marginTop: "80px", padding: "0 20px" }}>
+      {course.paid && !isUnlocked && (
+        <div style={{ margin: "20px 0", textAlign: "center" }}>
+          {subscriptionStatus && subscriptionStatus.has_active_subscription ? (
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{
+                padding: "15px",
+                backgroundColor: "#f0f9ff",
+                border: "1px solid #0ea5e9",
+                borderRadius: "8px",
+                marginBottom: "15px"
+              }}>
+                <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>
+                  Subscription Information
+                </h4>
+
+                {/* ملخص الإجمالي */}
+                <div style={{ marginTop: "10px", color: "#0369a1" }}>
+                  <b>Total Remaining Courses:</b> {subscriptionStatus.total_remaining_courses} of {subscriptionStatus.total_allowed_courses}
+                </div>
+                <div style={{ color: "#0369a1" }}>
+                  <b>Total Used Courses:</b> {subscriptionStatus.total_used_courses}
+                </div>
+              </div>
+              {subscriptionStatus.total_remaining_courses > 0 ? (
+                <button
+                  onClick={handleUnlockCourse}
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#28a745",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Unlock this course ({subscriptionStatus.total_remaining_courses} courses remaining)
+                </button>
+              ) : (
+                <div style={{
+                  padding: "15px",
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #ef4444",
+                  borderRadius: "8px",
+                  color: "#dc2626"
+                }}>
+                  <p style={{ margin: "0", fontWeight: "bold" }}>
+                    No remaining courses in your current subscriptions
+                  </p>
+                  <p style={{ margin: "10px 0 0 0" }}>
+                    You can upgrade your subscription or purchase a new plan
+                  </p>
+                  <button
+                    onClick={() => navigate("/subscription-plans", { state: { courseId: course.id } })}
+                    style={{
+                      marginTop: "10px",
+                      padding: "8px 16px",
+                      backgroundColor: "#dc2626",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Upgrade Subscription
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{
+              padding: "20px",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #ef4444",
+              borderRadius: "8px",
+              marginBottom: "20px"
+            }}>
+              <h3 style={{ margin: "0 0 15px 0", color: "#dc2626" }}>
+                This course requires a subscription
+              </h3>
+              <p style={{ margin: "0 0 15px 0", color: "#991b1b" }}>
+                To access this course, please subscribe to one of our plans
+              </p>
+              <button
+                onClick={() => navigate("/subscription-plans", { state: { courseId: course.id } })}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  fontWeight: "bold"
+                }}
+              >
+                Subscribe Now
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {(!course.paid || isUnlocked) ? (
+        <>
+      <YouTubeEmbed
+        videoId={course.video_id}
+        playlistId={course.id}
+        tasks={tasks}
+        completedTasks={completedTasks}
+        onTaskComplete={handleTaskComplete}
+        initialTimestamp={lastTimestamp}
+      />
+
+      <div style={{ marginTop: "20px" }}>
+        <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
+      </div>
+        </>
+      ) : (
+        <div style={{ textAlign: "center", marginTop: "40px" }}>
+          <h2>This course is locked</h2>
+          <p>Please unlock this course to access its content.</p>
+        </div>
+      )}
+    </div>
+  );
+  
+
   return (
     <div style={{ marginTop: "80px", padding: "0 20px" }}>
       <YouTubeEmbed 
@@ -286,4 +482,4 @@ const CoursePage = () => {
   );
 };
 
-export default CoursePage; 
+export default CoursePage;

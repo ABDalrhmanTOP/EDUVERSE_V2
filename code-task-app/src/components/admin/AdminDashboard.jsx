@@ -14,7 +14,8 @@ import {
   FaSync,
   FaPlus,
   FaSignOutAlt,
-  FaClipboardCheck
+  FaClipboardCheck,
+  FaCreditCard
 } from 'react-icons/fa';
 import apiClient from '../../api/axios';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -111,6 +112,7 @@ const AdminDashboard = () => {
     else if (path.includes('/analytics')) setActiveTab('analytics');
     else if (path.includes('/settings')) setActiveTab('settings');
     else if (path.includes('/profile')) setActiveTab('profile');
+    else if (path.includes('/payments')) setActiveTab('payments');
     else setActiveTab('dashboard');
   }, [location.pathname]);
 
@@ -125,6 +127,7 @@ const AdminDashboard = () => {
     { id: 'courses', label: t('admin.navigation.courses'), icon: FaBook, path: '/AdminDashboard/courses' },
     { id: 'tasks', label: t('admin.navigation.tasks'), icon: FaTasks, path: '/AdminDashboard/tasks' },
     { id: 'tests', label: t('admin.navigation.tests') || 'Tests', icon: FaClipboardCheck, path: '/AdminDashboard/tests' },
+    { id: 'subscriptions', label: 'Subscriptions', icon: FaCreditCard, path: '/AdminDashboard/subscriptions' },
     { id: 'edubot', label: getEduBotText(), icon: FaRobot, path: '/AdminDashboard/edubot' },
     { id: 'users', label: t('admin.navigation.users'), icon: FaUsers, path: '/AdminDashboard/users' },
     { id: 'analytics', label: t('admin.navigation.reports'), icon: FaChartBar, path: '/AdminDashboard/analytics' },

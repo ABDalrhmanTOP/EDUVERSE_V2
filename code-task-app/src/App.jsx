@@ -40,9 +40,13 @@ import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
 import TasksDashboard from "./components/admin/TasksDashboard";
 import TestsDashboard from './components/admin/TestsDashboard';
+import AdminSubscriptions from "./components/admin/AdminSubscriptions";
+// import AdminPayments from "./components/admin/AdminPayments"; // removed
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // ----------------- ProtectedRoute -----------------
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +98,7 @@ const App = () => {
 
   return (
     <>
+      <ToastContainer />
       <Navbar setFormType={setFormType} />
       <Routes>
         {/* Public/Homepage */}
@@ -239,6 +244,8 @@ const App = () => {
           <Route path="edubot" element={<div>EduBot Settings - Coming Soon</div>} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="tests" element={<TestsDashboard />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
+          {/* <Route path="payments" element={<AdminPayments />} /> removed */}
         </Route>
 
         {/* Catch-all */}

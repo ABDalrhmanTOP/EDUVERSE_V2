@@ -117,21 +117,7 @@ const SubscriptionHistory = () => {
     }).format(amount / 100);
   };
 
-  // Calculate total subscriptions
-  // Ensure the amount is a valid number
-  // Calculate total active subscriptions only
-  // Calculate total remaining courses from all active subscriptions
-  // Add remaining courses from the current subscription
-  // Add remaining courses from other active subscriptions
-  // One course available for each active subscription
-  // Calculate total used courses from all active subscriptions
-  // Add used courses from the current subscription
-  // Add used courses from other active subscriptions
-  // Calculate total active subscriptions (each active subscription = one course)
-  // Add the current subscription if active
-  // Add other active subscriptions
-  // Decorative background
-  // حساب مجموع الاشتراكات
+
   const calculateTotalSubscriptions = () => {
     if (!subscriptions || subscriptions.length === 0) return 0;
     
@@ -147,7 +133,7 @@ const SubscriptionHistory = () => {
     if (!subscriptions || subscriptions.length === 0) return 0;
     
     return subscriptions.reduce((total, subscription) => {
-      if (subscription.status === 'active') {
+      if (subscription?.status === 'active') {
         const amount = typeof subscription.amount === 'number' ? subscription.amount : 0;
         return total + amount;
       }
@@ -167,7 +153,7 @@ const SubscriptionHistory = () => {
     // إضافة الكورسات المتبقية من الاشتراكات الأخرى النشطة
     if (subscriptions && subscriptions.length > 0) {
       subscriptions.forEach(subscription => {
-        if (subscription.status === 'active') {
+        if (subscription?.status === 'active') {
         
           if (subscription.used_courses === 0 || subscription.used_courses === undefined) {
             totalRemaining += 1; // كورس واحد متاح لكل اشتراك نشط
@@ -191,7 +177,7 @@ const SubscriptionHistory = () => {
     // إضافة الكورسات المستخدمة من الاشتراكات الأخرى النشطة
     if (subscriptions && subscriptions.length > 0) {
       subscriptions.forEach(subscription => {
-        if (subscription.status === 'active') {
+        if (subscription?.status === 'active') {
           if (subscription.used_courses !== undefined) {
             totalUsed += subscription.used_courses;
           }
@@ -214,7 +200,7 @@ const SubscriptionHistory = () => {
     // إضافة الاشتراكات النشطة الأخرى
     if (subscriptions && subscriptions.length > 0) {
       subscriptions.forEach(subscription => {
-        if (subscription.status === 'active') {
+        if (subscription?.status === 'active') {
           totalActive += 1;
         }
       });
@@ -222,6 +208,8 @@ const SubscriptionHistory = () => {
     
     return totalActive;
   };
+
+  const activeSubscription = subscriptions.find(sub => sub?.status === 'active');
 
   if (loading) {
     return (
@@ -352,7 +340,7 @@ const SubscriptionHistory = () => {
                 textShadow: '0 2px 4px rgba(181,160,121,0.2)',
                 marginBottom: '0.5rem'
               }}>
-                {subscriptions.filter(sub => sub.status === 'active').length}
+                {subscriptions.filter(sub => sub?.status === 'active').length}
               </div>
               <div style={{ 
                 fontSize: '0.95rem', 
@@ -387,276 +375,95 @@ const SubscriptionHistory = () => {
       </div>
 
       {/* Show current subscription */}
-      {currentSubscription && currentSubscription.has_active_subscription && (
+      {activeSubscription && (
         <div style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
-          marginTop: '2rem'
+          marginTop: '2rem',
+          marginBottom: '2.5rem',
         }}>
           <div className="current-subscription-card" style={{
-            maxWidth: '420px',
-            width: '100%'
+            maxWidth: '440px',
+            width: '100%',
+            background: 'linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%)',
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px #b5a07933',
+            padding: '2.2rem 1.7rem',
+            border: '2.5px solid #b5a079',
+            position: 'relative',
+            fontFamily: 'Tahoma, Arial, sans-serif',
           }}>
-            
-          <div className="subscription-card active">
-            <div className="subscription-header">
-              <div className="plan-info">
-              <h2>Current Subscription</h2>
+            <div style={{ position: 'absolute', top: 18, right: 18, fontSize: '2.2rem', color: '#b5a079' }}>⭐</div>
+            <div className="subscription-card active">
+              <div className="subscription-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '1.2rem' }}>
+                <div className="plan-info" style={{ flex: 1 }}>
+                  <h2 style={{ margin: 0, color: '#7d6a4d', fontWeight: 800, fontSize: '1.45rem', letterSpacing: '0.5px' }}>Current Subscription</h2>
+                  <div style={{ color: '#b5a079', fontSize: '1.08rem', marginTop: 4, fontWeight: 600 }}>{activeSubscription.plan_name}</div>
+                </div>
+                <div
+                  className="status-badge"
+                  style={{ backgroundColor: getStatusColor(activeSubscription?.status), color: '#fff', padding: '7px 20px', borderRadius: '14px', fontWeight: 'bold', fontSize: '1.05rem', marginLeft: 12, boxShadow: '0 2px 8px #b5a07933' }}
+                >
+                  {getStatusText(activeSubscription?.status)}
+                </div>
               </div>
-              <div 
-                className="status-badge"
-                style={{ backgroundColor: getStatusColor(currentSubscription.subscription.status) }}
-              >
-                Active
-              </div>
-            </div>
-
-            <div className="subscription-details">
-             
-              
-              <div className="detail-row">
-                <span className="detail-label">Total Subscriptions:</span>
-                <span className="detail-value" style={{ 
-                  color: '#b5a079', 
-                  fontWeight: 'bold',
-                  fontSize: '1.05rem'
-                }}>
-                  {formatCurrency(calculateTotalSubscriptions(), currentSubscription.subscription.currency)}
-                </span>
-              </div>
-              
-              <div className="detail-row">
-                <span className="detail-label">Active Subscriptions:</span>
-                <span className="detail-value" style={{ 
-                  color: '#b5a079', 
-                  fontWeight: 'bold',
-                  fontSize: '1.05rem'
-                }}>
-                  {formatCurrency(calculateActiveSubscriptionsTotal(), currentSubscription.subscription.currency)}
-                </span>
-              </div>
-              
-              <div className="detail-row">
-                <span className="detail-label">Start Date:</span>
-                <span className="detail-value">
-                  {formatDate(currentSubscription.subscription.start_date)}
-                </span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">End Date:</span>
-                <span className="detail-value">
-                  {formatDate(currentSubscription.subscription.end_date)}
-                </span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Total Courses Used:</span>
-                <span className="detail-value" style={{ 
-                  color: '#b5a079', 
-                  fontWeight: 'bold',
-                  fontSize: '1.05rem'
-                }}>
-                   {calculateTotalUsedCourses()} of {calculateTotalActiveSubscriptions()}
-                </span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Available Courses:</span>
-                <span className="detail-value" style={{ 
-                  color: calculateTotalRemainingCourses() > 0 ? '#b5a079' : '#ef4444',
-                  fontWeight: 'bold',
-                  fontSize: '1.15rem',
-                  textShadow: calculateTotalRemainingCourses() > 0 ? '0 1px 2px rgba(181,160,121,0.2)' : 'none'
-                }}>
-                  {calculateTotalRemainingCourses()} courses available
-                </span>
-              </div>
+              <div className="subscription-details" style={{ fontSize: '1.13rem', color: '#7d6a4d', fontWeight: 500 }}>
+                <div className="detail-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>Start Date:</span>
+                  <span className="detail-value" style={{ marginLeft: 8 }}>{formatDate(activeSubscription.start_date)}</span>
+                </div>
+                <div className="detail-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>End Date:</span>
+                  <span className="detail-value" style={{ marginLeft: 8 }}>{formatDate(activeSubscription.end_date)}</span>
+                </div>
+                <div className="detail-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>Allowed Courses:</span>
+                  <span className="detail-value" style={{ marginLeft: 8 }}>{activeSubscription.allowed_courses}</span>
+                </div>
+                <div className="detail-row" style={{ display: 'flex', alignItems: 'center' }}>
+                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>Remaining Courses:</span>
+                  <span className="detail-value" style={{ marginLeft: 8 }}>{activeSubscription.remaining_courses !== undefined ? activeSubscription.remaining_courses : '-'}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {subscriptions.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <h3>No Subscriptions</h3>
-          <p>You have not subscribed yet. Start your learning journey now!</p>
-          <button 
-            className="subscribe-now-btn"
-            onClick={() => window.location.href = '/subscription-plans'}
-          >
-            Subscribe Now
-          </button>
-        </div>
-      ) : (
-        <div className="subscriptions-section" style={{
-          maxWidth: '1000px',
-          margin: '0 auto',
-          padding: '0 2rem'
-        }}>
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '2rem'
-          }}>
-            <h2 style={{
-              fontSize: '2rem',
-              color: '#b5a079',
-              fontWeight: '700',
-              marginBottom: '0.5rem'
-            }}>Previous Subscriptions</h2>
-            <p style={{
-              fontSize: '1.1rem',
-              color: '#7d6a4d',
-              maxWidth: '600px',
-              margin: '0 auto'
-            }}>Browse through your subscription history</p>
-          </div>
-          
-          <div className="scroll-controls">
-            <button 
-              type="button"
-              className="scroll-btn left-btn" 
-              onClick={() => {
-                console.log('Left button clicked');
-                scrollLeft();
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 50%, #b5a079 100%)';
-                e.target.style.transform = 'translateY(-50%) scale(1.1)';
-                e.target.style.boxShadow = '0 8px 25px rgba(181,160,121,0.6), 0 4px 12px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)';
-                e.target.style.transform = 'translateY(-50%) scale(1)';
-                e.target.style.boxShadow = '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)';
-              }}
-              style={{ 
-                position: 'absolute', 
-                left: '10px', 
-                top: '50%', 
-                transform: 'translateY(-50%)',
-                zIndex: 100,
-                background: 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)',
-                color: 'white',
-                border: '2px solid rgba(255,255,255,0.3)',
-                borderRadius: '50%',
-                width: '55px',
-                height: '55px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <FaChevronLeft />
-            </button>
-            <button 
-              type="button"
-              className="scroll-btn right-btn" 
-              onClick={() => {
-                console.log('Right button clicked');
-                scrollRight();
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 50%, #b5a079 100%)';
-                e.target.style.transform = 'translateY(-50%) scale(1.1)';
-                e.target.style.boxShadow = '0 8px 25px rgba(181,160,121,0.6), 0 4px 12px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)';
-                e.target.style.transform = 'translateY(-50%) scale(1)';
-                e.target.style.boxShadow = '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)';
-              }}
-              style={{ 
-                position: 'absolute', 
-                right: '10px', 
-                top: '50%', 
-                transform: 'translateY(-50%)',
-                zIndex: 100,
-                background: 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)',
-                color: 'white',
-                border: '2px solid rgba(255,255,255,0.3)',
-                borderRadius: '50%',
-                width: '55px',
-                height: '55px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-          
-          <div 
-            className="subscriptions-scroll-container"
-            ref={scrollContainerRef}
-            onScroll={checkScrollButtons}
-            style={{ margin: '0 70px' }}
-          >
-          {subscriptions.map((subscription) => (
-            <div key={subscription.id} className="subscription-card">
-              <div className="subscription-header">
-                <div className="plan-info">
-                  <h3>{subscription.plan_name}</h3>
-                </div>
-                <div 
-                  className="status-badge"
-                  style={{ backgroundColor: getStatusColor(subscription.status) }}
-                >
-                  {getStatusText(subscription.status)}
-                </div>
-              </div>
-
-              <div className="subscription-details">
-                <div className="detail-row">
-                  <span className="detail-label">Amount:</span>
-                  <span className="detail-value">
-                    {formatCurrency(subscription.amount, subscription.currency)}
-                  </span>
-                </div>
-                
-                <div className="detail-row">
-                  <span className="detail-label">Start Date:</span>
-                  <span className="detail-value">
-                    {formatDate(subscription.start_date)}
-                  </span>
-                </div>
-
-                <div className="detail-row">
-                  <span className="detail-label">End Date:</span>
-                  <span className="detail-value">
-                    {formatDate(subscription.end_date)}
-                  </span>
-                </div>
-
-                {subscription.transaction_id && (
-                  <div className="detail-row">
-                    <span className="detail-label">Transaction ID:</span>
-                    <span className="detail-value transaction-id">
-                      {subscription.transaction_id}
+      {/* جدول الاشتراكات السابقة */}
+      {subscriptions && subscriptions.length > 0 && (
+        <div style={{ marginTop: '2.5rem' }}>
+          <h2 style={{ color: '#b5a079', fontWeight: 800, fontSize: '1.25rem', marginBottom: '1.2rem', textAlign: 'center', letterSpacing: '0.5px' }}>Subscription History</h2>
+          <table className="subscriptions-table" style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 12px #b5a07922', fontFamily: 'Tahoma, Arial, sans-serif' }}>
+            <thead>
+              <tr style={{ background: '#f5f1eb', color: '#b5a079', fontSize: '1.05rem' }}>
+                <th style={{ padding: '12px 8px' }}>Plan</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Allowed Courses</th>
+                <th>Remaining Courses</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subscriptions.map((sub) => (
+                <tr key={sub.id} style={{ borderBottom: '1px solid #e3cfa4', background: sub?.status === 'active' ? '#f0f9ff' : '#fff' }}>
+                  <td style={{ padding: '10px 8px', fontWeight: 600 }}>{sub.plan_name}</td>
+                  <td>
+                    <span className="status-badge" style={{ backgroundColor: getStatusColor(sub?.status), color: '#fff', padding: '4px 12px', borderRadius: '8px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                      {getStatusText(sub?.status)}
                     </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          </div>
+                  </td>
+                  <td>{formatDate(sub.start_date)}</td>
+                  <td>{formatDate(sub.end_date)}</td>
+                  <td>{sub.allowed_courses}</td>
+                  <td>{sub.remaining_courses !== undefined ? sub.remaining_courses : '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

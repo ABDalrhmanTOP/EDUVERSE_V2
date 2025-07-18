@@ -352,17 +352,6 @@ const WelcomeContent = ({ setFormType }) => (
           >
             Start Learning Today
           </motion.button>
-          <motion.button
-            onClick={() => setFormType("login")}
-            className="hero-subscribe-button"
-            variants={buttonVariant}
-            transition={{ delay: 0.1 }}
-            whileHover={{ scale: 1.05, boxShadow: "0 6px 25px rgba(99, 102, 241, 0.4)" }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <FiCreditCard style={{ marginRight: '8px' }} />
-            View Plans
-          </motion.button>
         </div>
       </div>
     </div>
