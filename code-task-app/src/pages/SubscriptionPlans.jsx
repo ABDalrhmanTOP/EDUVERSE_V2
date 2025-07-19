@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import CheckoutForm from "../components/CheckoutForm";
 import "../styles/SubscriptionPlans.css";
 import { useLocation } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 
 const plans = [
   {

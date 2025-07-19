@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\FinalProjectController as AdminFinalProjectContro
 use App\Http\Controllers\Admin\FinalProjectQuestionController as AdminFinalProjectQuestionController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\SocialAuthController;
 
 
 
@@ -39,6 +40,12 @@ use App\Http\Controllers\CommunityController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
+// Socialite OAuth routes
+Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+Route::get('/auth/github/redirect', [SocialAuthController::class, 'redirectToGithub']);
+Route::get('/auth/github/callback', [SocialAuthController::class, 'handleGithubCallback']);
 
 // For showing all playlists (fixing the 404):
 Route::get('/playlists', [PlaylistController::class, 'index']);
@@ -58,6 +65,9 @@ Route::get('/youtube/test/{videoId}', [CourseController::class, 'testVideoDurati
 Route::get('/test-admin', function () {
     return response()->json(['message' => 'Admin route test successful']);
 });
+
+Route::get('/check-username', [AuthController::class, 'checkUsername']);
+Route::get('/check-email', [AuthController::class, 'checkEmail']);
 
 /*
 |--------------------------------------------------------------------------
@@ -233,8 +243,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminMiddleware::class])
     Route::put('/admin/subscriptions/{id}', [SubscriptionController::class, 'update']);
     Route::delete('/admin/subscriptions/{id}', [SubscriptionController::class, 'destroy']);
     Route::get('/admin/subscriptions/export', [SubscriptionController::class, 'export']);
-
-   });
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -258,4 +267,3 @@ Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 Route::fallback(function () {
     return response()->json(['error' => 'API endpoint not found'], 404);
 });
-

@@ -9,7 +9,7 @@ import {
   FaCertificate, FaCamera, FaListAlt 
 } from "react-icons/fa";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 import CropModal from "../components/CropModal";
 import defaultProfile from "../assets/user.png";
 import { useEffect as useEffectReact, useState as useStateReact } from "react";

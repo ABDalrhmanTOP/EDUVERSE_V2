@@ -45,6 +45,7 @@ class User extends Authenticatable
         'industry',
         'semester',
         'has_completed_general_form',
+        'email_verified_at',
     ];
 
     /**

@@ -97,4 +97,26 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    // Add async username availability check
+    public function checkUsername(Request $request)
+    {
+        $username = $request->query('username');
+        if (!$username) {
+            return response()->json(['available' => false, 'message' => 'Username is required'], 400);
+        }
+        $exists = \App\Models\User::where('username', $username)->exists();
+        return response()->json(['available' => !$exists]);
+    }
+
+    // Add async email availability check
+    public function checkEmail(Request $request)
+    {
+        $email = $request->query('email');
+        if (!$email) {
+            return response()->json(['available' => false, 'message' => 'Email is required'], 400);
+        }
+        $exists = \App\Models\User::where('email', $email)->exists();
+        return response()->json(['available' => !$exists]);
+    }
 }

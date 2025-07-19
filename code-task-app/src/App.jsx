@@ -8,7 +8,7 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // i18n
 import { initializeLanguage } from "./i18n";
@@ -20,6 +20,7 @@ import HomeVideo from "./pages/HomeVideo";
 import VideoPage from "./pages/VideoPage";
 import CoursePage from "./pages/CoursePage";
 import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
 import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
 import PlacementTest from "./pages/PlacementTest";
@@ -47,6 +48,7 @@ import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AuthCallback from "./pages/AuthCallback";
 
 // ----------------- ProtectedRoute -----------------
 const ProtectedRoute = ({ children }) => {
@@ -99,7 +101,7 @@ const App = () => {
   return (
     <>
       <ToastContainer />
-      <Navbar setFormType={setFormType} />
+      <Navbar setFormType={setFormType} formType={formType} />
       <Routes>
         {/* Public/Homepage */}
         <Route
@@ -108,6 +110,8 @@ const App = () => {
             <Homepage formType={formType} setFormType={setFormType} />
           }
         />
+        {/* Social Auth Callback */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* Protected */}
         <Route
@@ -142,6 +146,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
             </ProtectedRoute>
           }
         />

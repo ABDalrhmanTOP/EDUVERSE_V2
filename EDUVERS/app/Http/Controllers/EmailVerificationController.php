@@ -25,10 +25,27 @@ class EmailVerificationController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // Optional: check if email already used by a confirmed user
-        $exists = User::where('email', $request->email)->exists();
-        if ($exists) {
-            return response()->json(['message' => 'Email already taken'], 409);
+        // Check if user exists
+        $user = User::where('email', $request->email)->orWhere('username', $request->username)->first();
+        if ($user) {
+            if ($user->email_verified_at) {
+                return response()->json(['message' => 'Email already taken'], 409);
+            }
+            // User exists but not verified, update info and resend code
+            $user->update([
+                'name' => $request->name,
+                'username' => $request->username,
+                'password' => Hash::make($request->password),
+            ]);
+        } else {
+            // Create user with email_verified_at = null
+            $user = User::create([
+                'name' => $request->name,
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'email_verified_at' => null,
+            ]);
         }
 
         // Generate random 6-digit code
@@ -41,14 +58,8 @@ class EmailVerificationController extends Controller
             'created_at' => now()
         ]);
 
-        // Send email
-        // This can be a real Mailable. For simplicity:
-        Mail::raw(
-            "Your verification code is: {$code}. It expires in 1 minute.",
-            function ($message) use ($request) {
-                $message->to($request->email)->subject('Email Verification Code');
-            }
-        );
+        // Send styled email using a Mailable
+        Mail::to($request->email)->send(new \App\Mail\VerificationCodeMail($request->name, $code));
 
         return response()->json([
             'message' => 'Verification code sent to your email. Please enter it within 1 minute.'
@@ -85,14 +96,22 @@ class EmailVerificationController extends Controller
             return response()->json(['message' => 'Verification code expired'], 400);
         }
 
-        // If valid & not expired, we create the user
-        // or you can call your existing registration logic
-        $user = User::create([
+        // Find the user
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Update user as verified
+        $user->update([
+            'email_verified_at' => now(),
             'name' => $request->name,
             'username' => $request->username,
-            'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        // Send welcome notification and email
+        \App\Services\NotificationService::welcomeUser($user);
 
         // Optionally, create token if you want to log them in immediately
         $token = $user->createToken('auth_token')->plainTextToken;

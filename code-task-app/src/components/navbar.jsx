@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiLogOut, FiMenu, FiX, FiCreditCard, FiClock } from 'react-icons/fi'; // Example icons
 import { FaChevronDown } from 'react-icons/fa';
 import "../styles/Navbar.css"; // <-- Use the NEW Navbar.css
-import eduverseLogo from "../assets/1.png"; // Make sure path is correct
+import eduverseLogo from "../assets/2.png";
 import defaultProfile from "../assets/user.png";
 import NotificationDropdown from "./admin/NotificationDropdown";
 import apiClient from "../api/axios";
 
-const Navbar = ({ setFormType }) => {
+const navItemVariants = {
+  hidden: { opacity: 0, y: -16 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: 0.07 * i, duration: 0.35, type: 'spring', stiffness: 90 } })
+};
+
+const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
   const { isAuthenticated, user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // For mobile
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const profileMenuRef = useRef(null);
 
@@ -65,9 +71,14 @@ const Navbar = ({ setFormType }) => {
   };
 
    const handleAuthButtonClick = (type) => {
-     setFormType(type);
-     setIsMobileMenuOpen(false); // Close mobile menu
-  };
+     navigate("/");
+     setMobileMenuOpen(false);
+     if (formType === type) {
+       setFormType(null); // Toggle off if already open
+     } else {
+       setFormType(type);
+     }
+   };
 
   // --- Close dropdown on outside click ---
   useEffect(() => {
@@ -78,8 +89,8 @@ const Navbar = ({ setFormType }) => {
        // Close mobile menu if clicking outside navbar (optional)
        // Add ref to mobile menu container if needed for more specific logic
         if (!event.target.closest('.navbar-main')) {
-            setIsMobileMenuOpen(false);
-        }
+        setIsMobileMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -90,116 +101,197 @@ const Navbar = ({ setFormType }) => {
   return (
     <motion.nav
       className={`navbar-main ${isScrolled ? "scrolled" : ""}`}
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 120, damping: 18 }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        zIndex: 2000,
+        background: 'linear-gradient(120deg, rgba(255,248,240,0.82) 0%, rgba(191,174,158,0.18) 100%)',
+        boxShadow: '0 8px 32px 0 rgba(191,174,158,0.10)',
+        borderBottom: '1.5px solid rgba(191,174,158,0.10)',
+        backdropFilter: 'blur(18px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+        borderRadius: '0 0 32px 32px',
+        padding: '0',
+        minHeight: 64,
+        height: 64,
+        display: 'flex',
+        alignItems: 'center',
+      }}
     >
-      <div className="navbar-container">
-        {/* Left: Logo */}
-        <div className="navbar-left">
-          <img
-            src={eduverseLogo}
-            alt="Eduverse Logo"
-            className="navbar-logo"
-            onClick={handleLogoClick}
-            title="Go to Homepage"
-          />
-           {/*<span className="navbar-brand-text" onClick={handleLogoClick}>Eduverse</span>*/}
+      <div className="navbar-container" style={{ maxWidth: 1300, margin: '0 auto', padding: '0 32px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
+        <div className="navbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <img src={eduverseLogo} alt="Eduverse Logo" className="navbar-logo" style={{ height: 32, width: 'auto', cursor: 'pointer', borderRadius: 0, boxShadow: 'none', display: 'block', margin: '0 auto' }} onClick={handleLogoClick} />
         </div>
-
-        {/* Center: Desktop Links */}
-        <div className="navbar-center">
+        {/* Desktop Nav */}
+        <motion.div className="navbar-center" style={{ display: 'flex', gap: 34, alignItems: 'center' }}>
+          {isAuthenticated && [
+            { to: '/homevideo', label: 'Courses' },
+            { to: '/chat', label: 'EduBot' },
+            { to: '/community', label: 'Community' },
+            { to: '/subscription-plans', label: 'Subscribe' },
+            ...(user?.role === 'admin' ? [{ to: '/AdminDashboard', label: 'Admin Panel' }] : [])
+          ].map((item, i) => (
+            <motion.div
+              key={item.to}
+              custom={i}
+              initial="hidden"
+              animate="visible"
+              variants={navItemVariants}
+              style={{ display: 'inline-block' }}
+            >
+              <NavLink
+                to={item.to}
+                className={navLinkClass}
+                style={{ fontSize: '1.08rem', fontWeight: 600, color: '#7a6a6a', padding: '8px 0', borderRadius: 8, transition: 'background 0.2s, color 0.2s' }}
+              >
+                {item.label}
+              </NavLink>
+            </motion.div>
+          ))}
+        </motion.div>
+        <div className="navbar-right" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {!isAuthenticated && !hideAuthButtons && (
+            <div className="auth-buttons-desktop" style={{ display: 'flex', gap: 10 }}>
+              <motion.button
+                whileHover={{ scale: 1.08, background: 'linear-gradient(90deg, #fff8f0 0%, #bfae9e 100%)', color: '#a68a6d' }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleAuthButtonClick('login')}
+                className="navbar-button btn-secondary"
+                style={{
+                  background: 'rgba(255,255,255,0.7)',
+                  color: '#a68a6d',
+                  border: '1.5px solid #bfae9e',
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  fontSize: '1.08rem',
+                  padding: '10px 28px',
+                  boxShadow: '0 2px 8px rgba(191,174,158,0.08)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Login
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.08, background: 'linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%)', color: '#fff' }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleAuthButtonClick('register')}
+                className="navbar-button btn-primary"
+                style={{
+                  background: 'linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 14,
+                  fontWeight: 800,
+                  fontSize: '1.08rem',
+                  padding: '10px 32px',
+                  boxShadow: '0 4px 16px rgba(191,174,158,0.12)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Register
+              </motion.button>
+            </div>
+          )}
           {isAuthenticated && (
             <>
-              <NavLink to="/homevideo" className={navLinkClass}>Courses</NavLink>
-              <NavLink to="/chat" className={navLinkClass}>EduBot</NavLink>
-              <NavLink to="/community" className={navLinkClass}>Community</NavLink>
-              <NavLink to="/subscription-plans" className={navLinkClass}>Subscribe</NavLink>
-              {userRole === "admin" && (
-                 <NavLink to="/AdminDashboard" className={navLinkClass}>Admin Panel</NavLink>
-              )}
+              <div style={{ fontSize: 28, display: 'flex', alignItems: 'center' }}>
+                <NotificationDropdown />
+        </div>
+              <div className="profile-container" ref={profileMenuRef} style={{ position: 'relative' }}>
+                <button className="profile-button" onClick={toggleProfileMenu} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <img src={profileImageUrl} alt="Profile" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(191,174,158,0.10)' }} />
+                  <span style={{ fontWeight: 700, color: '#a68a6d', fontSize: '1.08rem' }}>{username}</span>
+                  <FaChevronDown style={{ color: '#bfae9e', fontSize: 16, marginLeft: 2 }} />
+              </button>
+                {showProfileMenu && (
+                  <div className="profile-dropdown glassmorphism" style={{ position: 'absolute', top: 48, right: 0, minWidth: 180, background: 'rgba(255,255,255,0.98)', borderRadius: 16, boxShadow: '0 4px 24px rgba(191,174,158,0.14)', zIndex: 100, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <NavLink to="/dashboard" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>Dashboard</NavLink>
+                    <NavLink to="/profile" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>Profile</NavLink>
+                    <NavLink to="/subscription-history" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>Payment History</NavLink>
+                    <button onClick={handleLogout} className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#e53935', background: 'none', border: 'none', fontWeight: 800, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <FiLogOut style={{ color: '#e53935', fontSize: 20 }} /> Logout
+                    </button>
+                  </div>
+                )}
+            </div>
             </>
           )}
-        </div>
-
-        {/* Right: Auth/Profile & Mobile Menu Toggle */}
-        <div className="navbar-right">
-           {isAuthenticated ? (
-             <>
-               {/* Notification Bell for All Authenticated Users */}
-               <NotificationDropdown />
-               <div className="profile-container" ref={profileMenuRef}>
-                 <button className="profile-button" onClick={toggleProfileMenu} aria-label="User Menu">
-                   <img src={profileImageUrl} alt="Profile" className="navbar-profile-picture" />
-                   <span className="profile-username-desktop">{username}</span>
-                 </button>
-                  {showProfileMenu && (
-                      <motion.div
-                          className="profile-dropdown-menu"
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }} // Needs AnimatePresence in parent if used
-                          transition={{ duration: 0.2 }}
-                      >
-                          <button className="profile-dropdown-item" onClick={handleProfileLink}>
-                              <FiUser className="dropdown-icon" /> My Profile
-                          </button>
-                          <button className="profile-dropdown-item" onClick={() => handleNavLinkClick('/subscription-plans')}>
-                              <FiCreditCard className="dropdown-icon" /> Subscribe
-                          </button>
-                          <button className="profile-dropdown-item" onClick={() => handleNavLinkClick('/subscription-history')}>
-                              <FiClock className="dropdown-icon" /> Subscription History
-                          </button>
-                          <button className="profile-dropdown-item logout" onClick={handleLogout}>
-                              <FiLogOut className="dropdown-icon" /> Logout
-                          </button>
-                      </motion.div>
-                  )}
-               </div>
-             </>
-           ) : (
-             <div className="auth-buttons-desktop">
-               <button onClick={() => handleAuthButtonClick("login")} className="navbar-button btn-secondary">Login</button>
-               <button onClick={() => handleAuthButtonClick("register")} className="navbar-button btn-primary">Register</button>
-             </div>
-           )}
-           {/* Mobile Menu Button */}
-           <button className="mobile-menu-toggle" onClick={toggleMobileMenu} aria-label="Toggle menu">
-              {isMobileMenuOpen ? <FiX /> : <FiMenu />}
-           </button>
+          {/* Mobile Menu Button */}
+          <button
+            className="mobile-menu-toggle burger-only-mobile"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#a68a6d',
+              fontSize: 28,
+              cursor: 'pointer',
+            }}
+          >
+            {mobileMenuOpen ? <FiX /> : <FiMenu />}
+            </button>
         </div>
       </div>
-
-       {/* Mobile Menu Dropdown */}
-       <motion.div
-            className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}
-            initial={false}
-            animate={isMobileMenuOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-            {isAuthenticated ? (
-                <>
-                    {/* Notification Bell for All Authenticated Users on Mobile */}
-                    <div className="mobile-notification-container">
-                        <NotificationDropdown />
-                    </div>
-                    <button onClick={() => handleNavLinkClick('/homevideo')} className="mobile-nav-link">Courses</button>
-                    <button onClick={() => handleNavLinkClick('/chat')} className="mobile-nav-link">EduBot</button>
-                    <button onClick={() => handleNavLinkClick('/community')} className="mobile-nav-link">Community</button>
-                    <button onClick={() => handleNavLinkClick('/subscription-plans')} className="mobile-nav-link">Subscribe</button>
-                    <button onClick={() => handleNavLinkClick('/subscription-history')} className="mobile-nav-link">Subscription History</button>
-                    {userRole === 'admin' && <button onClick={() => handleNavLinkClick('/AdminDashboard')} className="mobile-nav-link">Admin Panel</button>}
-                    <hr className="mobile-menu-divider" />
-                     <button onClick={handleProfileLink} className="mobile-nav-link"><FiUser className="dropdown-icon" /> My Profile</button>
-                     <button onClick={handleLogout} className="mobile-nav-link logout"><FiLogOut className="dropdown-icon" /> Logout</button>
-                </>
-            ) : (
-                 <>
-                    <button onClick={() => handleAuthButtonClick('login')} className="mobile-nav-link">Login</button>
-                    <button onClick={() => handleAuthButtonClick('register')} className="mobile-nav-link register">Register</button>
-                </>
-            )}
-       </motion.div>
+      {/* Mobile Menu */}
+            <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="mobile-menu glassy"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+            style={{
+              position: 'fixed',
+              top: 68,
+              right: 0,
+              width: '80vw',
+              maxWidth: 340,
+              height: 'calc(100vh - 68px)',
+              background: 'linear-gradient(120deg, rgba(255,248,240,0.98) 0%, rgba(191,174,158,0.22) 100%)',
+              boxShadow: '-8px 0 32px 0 rgba(191,174,158,0.10)',
+              borderRadius: '18px 0 0 18px',
+              zIndex: 3000,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '32px 24px',
+              gap: 18,
+            }}
+          >
+            {!isAuthenticated && !hideAuthButtons && (
+              <>
+                <button onClick={() => handleAuthButtonClick('login')} className="mobile-nav-link" style={{ background: '#fff', color: '#a68a6d', border: '1.5px solid #bfae9e', borderRadius: 12, fontWeight: 700, fontSize: '1.08rem', padding: '12px 0', marginBottom: 10 }}>Login</button>
+                <button onClick={() => handleAuthButtonClick('register')} className="mobile-nav-link register" style={{ background: 'linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: '1.08rem', padding: '12px 0', marginBottom: 18 }}>Register</button>
+                        </>
+                    )}
+            {isAuthenticated && [
+              { to: '/homevideo', label: 'Courses' },
+              { to: '/chat', label: 'EduBot' },
+              { to: '/community', label: 'Community' },
+              { to: '/subscription-plans', label: 'Subscribe' },
+              ...(user?.role === 'admin' ? [{ to: '/AdminDashboard', label: 'Admin Panel' }] : [])
+            ].map((item, i) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className="mobile-nav-link"
+                style={{ fontSize: '1.08rem', fontWeight: 600, color: '#7a6a6a', padding: '12px 0', borderRadius: 8, marginBottom: 8, background: 'none', border: 'none', textAlign: 'left' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
     </motion.nav>
   );
 };

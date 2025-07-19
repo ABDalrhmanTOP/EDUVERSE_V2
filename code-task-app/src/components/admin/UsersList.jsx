@@ -213,8 +213,21 @@ const UsersList = () => {
                       </span>
                     </td>
                     <td className="users-list-cell users-list-status">
-                      <span className={`users-list-status-badge ${user.email_verified_at ? 'verified' : 'pending'}`}>
-                        {user.email_verified_at ? t('admin.users.verified') : t('admin.users.pending')}
+                      <span className={`users-list-status-badge ${user.email_verified_at ? 'verified' : 'pending'}`} style={{
+                        background: user.email_verified_at ? '#e8f5e9' : '#fff8e1',
+                        color: user.email_verified_at ? '#43a047' : '#e53935',
+                        fontWeight: 800,
+                        borderRadius: 12,
+                        padding: '6px 18px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontSize: 15,
+                        boxShadow: user.email_verified_at ? '0 2px 8px #43a04722' : '0 2px 8px #e5393522',
+                        letterSpacing: 1
+                      }}>
+                        {user.email_verified_at ? <FaCheckCircle style={{ color: '#43a047', fontSize: 18, marginRight: 4 }} /> : <FaEnvelope style={{ color: '#e53935', fontSize: 18, marginRight: 4 }} />}
+                        {user.email_verified_at ? 'VERIFIED' : 'PENDING'}
                       </span>
                     </td>
                     <td className="users-list-cell users-list-date">

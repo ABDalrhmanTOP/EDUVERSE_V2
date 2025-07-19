@@ -13,6 +13,14 @@ body {
   color: #333;
 }
 
+html, body {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none !important;
+}
+
 /* ============================================
    Two-Column Layout for Course Page
 ============================================ */

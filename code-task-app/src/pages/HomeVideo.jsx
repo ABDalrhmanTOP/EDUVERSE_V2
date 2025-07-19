@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import axios from "../api/axios"; // Your axios instance
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Your Auth context
+import { useAuth } from '../context/AuthContext';
 import { motion } from "framer-motion";
 import { FaPlay, FaSync, FaGraduationCap, FaCode, FaBook, FaStar, FaChevronDown } from "react-icons/fa";
 import PlacementTest from "./PlacementTest";

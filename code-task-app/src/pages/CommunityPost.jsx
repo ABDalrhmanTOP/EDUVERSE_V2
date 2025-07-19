@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FiUser, FiMessageCircle, FiSend, FiClock, FiEdit3, FiArrowLeft, FiTrash2 } from "react-icons/fi";
 import axios from "../api/axios";
 import "./CommunityPost.css";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 
 function Avatar({ name, src }) {
   if (src) return <img src={src} alt={name} className="avatar-img" />;
