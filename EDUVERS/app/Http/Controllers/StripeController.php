@@ -138,7 +138,7 @@ class StripeController extends Controller
 
             $subscriptionsArr = $subscriptions->map(function($subscription) use ($user, $usedCourses) {
                 // إذا كان لديك منطق منفصل لحساب usedCourses لكل اشتراك، عدله هنا
-                $remainingCourses = max(0, $subscription->allowed_courses - $usedCourses);
+            $remainingCourses = max(0, $subscription->allowed_courses - $usedCourses);
                 return [
                     'id' => $subscription->id,
                     'plan_id' => $subscription->plan_id,
@@ -149,7 +149,7 @@ class StripeController extends Controller
                     'start_date' => $subscription->start_date ? $subscription->start_date->toIso8601String() : null,
                     'end_date' => $subscription->end_date ? $subscription->end_date->toIso8601String() : null,
                     'allowed_courses' => $subscription->allowed_courses,
-                    'remaining_courses' => $remainingCourses,
+                'remaining_courses' => $remainingCourses,
                 ];
             });
 

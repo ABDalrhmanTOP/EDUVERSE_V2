@@ -331,10 +331,10 @@ const CoursePage = () => {
         <div style={{ margin: "20px 0", textAlign: "center" }}>
           {subscriptionStatus && subscriptionStatus.has_active_subscription ? (
             <div style={{ marginBottom: "20px" }}>
-              <div style={{
-                padding: "15px",
-                backgroundColor: "#f0f9ff",
-                border: "1px solid #0ea5e9",
+              <div style={{ 
+                padding: "15px", 
+                backgroundColor: "#f0f9ff", 
+                border: "1px solid #0ea5e9", 
                 borderRadius: "8px",
                 marginBottom: "15px"
               }}>
@@ -367,10 +367,10 @@ const CoursePage = () => {
                   Unlock this course ({subscriptionStatus.total_remaining_courses} courses remaining)
                 </button>
               ) : (
-                <div style={{
-                  padding: "15px",
-                  backgroundColor: "#fef2f2",
-                  border: "1px solid #ef4444",
+                <div style={{ 
+                  padding: "15px", 
+                  backgroundColor: "#fef2f2", 
+                  border: "1px solid #ef4444", 
                   borderRadius: "8px",
                   color: "#dc2626"
                 }}>
@@ -380,7 +380,7 @@ const CoursePage = () => {
                   <p style={{ margin: "10px 0 0 0" }}>
                     You can upgrade your subscription or purchase a new plan
                   </p>
-                  <button
+                  <button 
                     onClick={() => navigate("/subscription-plans", { state: { courseId: course.id } })}
                     style={{
                       marginTop: "10px",
@@ -398,10 +398,10 @@ const CoursePage = () => {
               )}
             </div>
           ) : (
-            <div style={{
-              padding: "20px",
-              backgroundColor: "#fef2f2",
-              border: "1px solid #ef4444",
+            <div style={{ 
+              padding: "20px", 
+              backgroundColor: "#fef2f2", 
+              border: "1px solid #ef4444", 
               borderRadius: "8px",
               marginBottom: "20px"
             }}>
@@ -411,7 +411,7 @@ const CoursePage = () => {
               <p style={{ margin: "0 0 15px 0", color: "#991b1b" }}>
                 To access this course, please subscribe to one of our plans
               </p>
-              <button
+              <button 
                 onClick={() => navigate("/subscription-plans", { state: { courseId: course.id } })}
                 style={{
                   padding: "12px 24px",
@@ -432,8 +432,8 @@ const CoursePage = () => {
       )}
       {(!course.paid || isUnlocked) ? (
         <>
-      <YouTubeEmbed
-        videoId={course.video_id}
+      <YouTubeEmbed 
+        videoId={course.video_id} 
         playlistId={course.id}
         tasks={tasks}
         completedTasks={completedTasks}
