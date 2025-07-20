@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FiPlus, FiMessageCircle, FiUser, FiEdit3, FiTrash2 } from "react-icons/fi";
 import axios from "../api/axios";
 import "./Community.css";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 
 function Avatar({ name, src }) {
   if (src) return (

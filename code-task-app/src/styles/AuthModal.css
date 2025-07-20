@@ -1,0 +1,105 @@
+    /* styles/AuthModal.css */
+    .auth-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .auth-modal-container {
+      position: relative;
+      width: 90%;
+      max-width: 420px;
+      background-color: var(--color-surface);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-medium);
+      overflow: hidden;
+    }
+
+    .auth-modal-close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--color-text-light);
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .auth-flipper {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.7s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+
+    .auth-flipper.is-register {
+      transform: rotateY(180deg);
+    }
+
+    .auth-form-container {
+      padding: 2.5rem;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .register-form-container {
+      transform: rotateY(180deg);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .auth-header h2 {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      color: var(--color-secondary);
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .auth-form input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+    }
+    .auth-form button {
+      padding: 14px;
+      border: none;
+      background-color: var(--color-primary);
+      color: white;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .auth-switcher {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .auth-switcher span {
+      color: var(--color-primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
