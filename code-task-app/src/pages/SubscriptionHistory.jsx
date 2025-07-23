@@ -2,17 +2,59 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/axios';
 import '../styles/SubscriptionHistory.css';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const SubscriptionHistory = () => {
   const { user } = useAuth();
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
   const scrollContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     fetchSubscriptionHistory();
+    fetchCurrentSubscription();
   }, []);
+
+  useEffect(() => {
+    console.log('useEffect triggered, subscriptions length:', subscriptions.length);
+    checkScrollButtons();
+    window.addEventListener('resize', checkScrollButtons);
+    return () => window.removeEventListener('resize', checkScrollButtons);
+  }, [subscriptions]);
+
+  const checkScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      console.log('Scroll check:', { scrollLeft, scrollWidth, clientWidth });
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+      console.log('Can scroll left:', scrollLeft > 0, 'Can scroll right:', scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  const scrollLeft = () => {
+    console.log('scrollLeft function called');
+    if (scrollContainerRef.current) {
+      console.log('Scrolling left, container found');
+      scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    } else {
+      console.log('scrollContainerRef.current is null');
+    }
+  };
+
+  const scrollRight = () => {
+    console.log('scrollRight function called');
+    if (scrollContainerRef.current) {
+      console.log('Scrolling right, container found');
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    } else {
+      console.log('scrollContainerRef.current is null');
+    }
+  };
 
   const fetchSubscriptionHistory = async () => {
     try {
@@ -26,6 +68,17 @@ const SubscriptionHistory = () => {
       setError('Server connection error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCurrentSubscription = async () => {
+    try {
+      const response = await apiClient.get('/subscription/status');
+      if (response.status === 200) {
+        setCurrentSubscription(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching current subscription:', err);
     }
   };
 
@@ -50,39 +103,134 @@ const SubscriptionHistory = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-SA', {
       year: 'numeric',
-      month: 'short',
+      month: 'numeric',
       day: 'numeric'
     });
   };
 
   const formatCurrency = (amount, currency) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-SA', {
       style: 'currency',
       currency: currency || 'USD'
     }).format(amount / 100);
   };
 
-  // Summary calculations
-  const calculateTotalSubscriptions = () =>
-    subscriptions.reduce((total, sub) => total + (typeof sub.amount === 'number' ? sub.amount : 0), 0);
+  // Calculate total subscriptions
+  // Ensure the amount is a valid number
+  // Calculate total active subscriptions only
+  // Calculate total remaining courses from all active subscriptions
+  // Add remaining courses from the current subscription
+  // Add remaining courses from other active subscriptions
+  // One course available for each active subscription
+  // Calculate total used courses from all active subscriptions
+  // Add used courses from the current subscription
+  // Add used courses from other active subscriptions
+  // Calculate total active subscriptions (each active subscription = one course)
+  // Add the current subscription if active
+  // Add other active subscriptions
+  // Decorative background
+  // حساب مجموع الاشتراكات
+  const calculateTotalSubscriptions = () => {
+    if (!subscriptions || subscriptions.length === 0) return 0;
+    
+    return subscriptions.reduce((total, subscription) => {
+      // تأكد من أن المبلغ رقم صحيح
+      const amount = typeof subscription.amount === 'number' ? subscription.amount : 0;
+      return total + amount;
+    }, 0);
+  };
 
-  const calculateActiveSubscriptionsTotal = () =>
-    subscriptions.reduce((total, sub) => sub?.status === 'active' ? total + (typeof sub.amount === 'number' ? sub.amount : 0) : total, 0);
+  // حساب مجموع الاشتراكات النشطة فقط
+  const calculateActiveSubscriptionsTotal = () => {
+    if (!subscriptions || subscriptions.length === 0) return 0;
+    
+    return subscriptions.reduce((total, subscription) => {
+      if (subscription.status === 'active') {
+        const amount = typeof subscription.amount === 'number' ? subscription.amount : 0;
+        return total + amount;
+      }
+      return total;
+    }, 0);
+  };
 
-  const calculateTotalRemainingCourses = () =>
-    subscriptions.reduce((total, sub) => total + (sub?.status === 'active' && typeof sub.total_remaining_courses === 'number' ? sub.total_remaining_courses : 0), 0);
+  // حساب إجمالي الكورسات المتبقية من جميع الاشتراكات النشطة
+  const calculateTotalRemainingCourses = () => {
+    let totalRemaining = 0;
+    
+    // إضافة الكورسات المتبقية من الاشتراك الحالي
+    if (currentSubscription && currentSubscription.has_active_subscription) {
+      totalRemaining += currentSubscription.remaining_courses || 0;
+    }
+    
+    // إضافة الكورسات المتبقية من الاشتراكات الأخرى النشطة
+    if (subscriptions && subscriptions.length > 0) {
+      subscriptions.forEach(subscription => {
+        if (subscription.status === 'active') {
+        
+          if (subscription.used_courses === 0 || subscription.used_courses === undefined) {
+            totalRemaining +=   Number( subscription.plan_id);
+             // كورس واحد متاح لكل اشتراك نشط
+             
+          }
+        }
+      });
+    }
+    
+    return totalRemaining;
+  };
 
-  const calculateTotalUsedCourses = () =>
-    subscriptions.reduce((total, sub) => total + (sub?.status === 'active' && typeof sub.total_used_courses === 'number' ? sub.total_used_courses : 0), 0);
+  // حساب إجمالي الكورسات المستخدمة من جميع الاشتراكات النشطة
+  const calculateTotalUsedCourses = () => {
+    let totalUsed = 0;
+    
+    // إضافة الكورسات المستخدمة من الاشتراك الحالي
+    if (currentSubscription && currentSubscription.has_active_subscription) {
+      totalUsed += currentSubscription.used_courses || 0;
+    }
+    
+    // إضافة الكورسات المستخدمة من الاشتراكات الأخرى النشطة
+    if (subscriptions && subscriptions.length > 0) {
+      subscriptions.forEach(subscription => {
+        if (subscription.status === 'active') {
+          if (subscription.used_courses !== undefined) {
+            totalUsed += subscription.used_courses;
+          }
+        }
+      });
+    }
+    
+    return totalUsed;
+  };
 
-  const activeSubscription = subscriptions.find(sub => sub?.status === 'active');
+  // حساب إجمالي الاشتراكات النشطة (كل اشتراك نشط = كورس واحد)
+  const calculateTotalActiveSubscriptions = () => {
+    let totalActive = 0;
+    
+    // إضافة الاشتراك الحالي إذا كان نشط
+    if (currentSubscription && currentSubscription.has_active_subscription) {
+      totalActive += 1;
+    }
+    
+    // إضافة الاشتراكات النشطة الأخرى
+    if (subscriptions && subscriptions.length > 0) {
+      subscriptions.forEach(subscription => {
+        if (subscription.status === 'active') {
+          totalActive += 1;
+        }
+      });
+    }
+    
+    return totalActive;
+  };
 
   if (loading) {
     return (
       <div className="subscription-history-container">
-        <div><p>Loading subscription history ...</p></div>
+       <div>
+          <p>Loading subscription history ...</p>
+        </div>
       </div>
     );
   }
@@ -93,153 +241,420 @@ const SubscriptionHistory = () => {
         <div className="error-message">
           <h3>Loading Error</h3>
           <p>{error}</p>
-          <button onClick={fetchSubscriptionHistory} className="retry-button">Retry</button>
+          <button onClick={fetchSubscriptionHistory} className="retry-button">
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="subscription-history-container" style={{ background: '#f8fafc', minHeight: '100vh', padding: '0 0 40px 0' }}>
-      {/* Header */}
+    <div className="subscription-history-container">
+      <div className="history-header">
+        <h1>Subscription History</h1>
+        <p>View all your previous and current subscriptions</p>
+        
+        {subscriptions.length > 0 && (
           <div style={{
-        background: 'linear-gradient(90deg, #e3cfa4 0%, #f5f1eb 100%)',
-        padding: '2.5rem 0 1.5rem 0',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            marginTop: '2.5rem'
+          }}>
+            <div className="subscription-summary" style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '3rem',
+              padding: '2.5rem 3rem',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,241,235,0.8))',
+              borderRadius: '25px',
+              border: '2.5px solid rgba(181,160,121,0.2)',
+              boxShadow: '0 8px 32px rgba(181,160,121,0.15), 0 2px 8px rgba(107,79,75,0.1)',
+              backdropFilter: 'blur(10px)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              cursor: 'default',
+              maxWidth: '800px',
+              width: 'fit-content'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 12px 40px rgba(181,160,121,0.2), 0 4px 12px rgba(107,79,75,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 8px 32px rgba(181,160,121,0.15), 0 2px 8px rgba(107,79,75,0.1)';
+            }}>
+            {/* خلفية زخرفية */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              background: 'linear-gradient(90deg, #e3cfa4, #b5a079, #e3cfa4)',
+              borderRadius: '20px 20px 0 0'
+            }}></div>
+            
+            <div className="summary-item" style={{ 
               textAlign: 'center',
-        borderBottom: '2px solid #e3cfa4',
-        marginBottom: '2.5rem',
-        boxShadow: '0 2px 12px #e3cfa422',
-      }}>
-        <h1 style={{ color: '#7d6a4d', fontWeight: 900, fontSize: '2.2rem', letterSpacing: '1px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 12 }}>
-          <span role="img" aria-label="history">📜</span> Subscription History
-        </h1>
-        <p style={{ color: '#b5a079', fontSize: '1.15rem', marginTop: 10 }}>View all your previous and current subscriptions in one place</p>
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{ 
+                fontSize: '2rem', 
+                fontWeight: 'bold', 
+                color: '#b5a079',
+                textShadow: '0 2px 4px rgba(181,160,121,0.2)',
+                marginBottom: '0.5rem'
+              }}>
+                {subscriptions.length}
+              </div>
+              <div style={{ 
+                fontSize: '0.95rem', 
+                color: '#7d6a4d',
+                fontWeight: '500'
+              }}>Total Subscriptions</div>
             </div>
             
-      {/* Summary Section */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: '1.5rem', gap: '2.5rem', flexWrap: 'wrap' }}>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{subscriptions.length}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Total Subscriptions</div>
+            <div className="summary-item" style={{ 
+              textAlign: 'center',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{ 
+                fontSize: '2rem', 
+                fontWeight: 'bold', 
+                color: '#b5a079',
+                textShadow: '0 2px 4px rgba(181,160,121,0.2)',
+                marginBottom: '0.5rem'
+              }}>
+                {formatCurrency(calculateTotalSubscriptions(), 'USD')}
               </div>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{formatCurrency(calculateTotalSubscriptions(), 'USD')}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Total Amount</div>
+              <div style={{ 
+                fontSize: '0.95rem', 
+                color: '#7d6a4d',
+                fontWeight: '500'
+              }}>Total Amount</div>
             </div>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{subscriptions.filter(sub => sub?.status === 'active').length}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Active Plans</div>
+            
+            <div className="summary-item" style={{ 
+              textAlign: 'center',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{ 
+                fontSize: '2rem', 
+                fontWeight: 'bold', 
+                color: '#b5a079',
+                textShadow: '0 2px 4px rgba(181,160,121,0.2)',
+                marginBottom: '0.5rem'
+              }}>
+                {subscriptions.filter(sub => sub.status === 'active').length}
               </div>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{calculateTotalRemainingCourses()}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Available Courses</div>
+              <div style={{ 
+                fontSize: '0.95rem', 
+                color: '#7d6a4d',
+                fontWeight: '500'
+              }}>Active Plans</div>
+            </div>
+            
+            <div className="summary-item" style={{ 
+              textAlign: 'center',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{ 
+                fontSize: '2rem', 
+                fontWeight: 'bold', 
+                color: '#b5a079',
+                textShadow: '0 2px 4px rgba(181,160,121,0.2)',
+                marginBottom: '0.5rem'
+              }}>
+                {calculateTotalRemainingCourses()}
+              </div>
+              <div style={{ 
+                fontSize: '0.95rem', 
+                color: '#7d6a4d',
+                fontWeight: '500'
+              }}>Available Courses</div>
+            </div>
+          </div>
         </div>
+        )}
       </div>
 
-      {/* Current Subscription Card */}
-      {activeSubscription && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: '2.5rem', marginBottom: '2.5rem' }}>
-          <div className="current-subscription-card" style={{ maxWidth: '440px', width: '100%', background: 'linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 100%)', borderRadius: '20px', boxShadow: '0 8px 32px #b5a07933', padding: '2.2rem 1.7rem', border: '2.5px solid #b5a079', position: 'relative', fontFamily: 'Tahoma, Arial, sans-serif', transition: 'box-shadow 0.2s', cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 12px 40px #b5a07955'}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 32px #b5a07933'}>
-            <div style={{ position: 'absolute', top: 18, right: 18, fontSize: '2.2rem', color: '#b5a079' }}>⭐</div>
+      {/* Show current subscription */}
+      {currentSubscription && currentSubscription.has_active_subscription && currentSubscription.subscription && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          marginTop: '2rem'
+        }}>
+          <div className="current-subscription-card" style={{
+            maxWidth: '420px',
+            width: '100%'
+          }}>
+            
           <div className="subscription-card active">
-              <div className="subscription-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '1.2rem' }}>
-                <div className="plan-info" style={{ flex: 1 }}>
-                  <h2 style={{ margin: 0, color: '#7d6a4d', fontWeight: 800, fontSize: '1.45rem', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span role="img" aria-label="star">🌟</span> Current Subscription
-                  </h2>
-                  <div style={{ color: '#b5a079', fontSize: '1.08rem', marginTop: 4, fontWeight: 600 }}>{activeSubscription.plan_name}</div>
+            <div className="subscription-header">
+              <div className="plan-info">
+              <h2>Current Subscription</h2>
               </div>
-                <div className="status-badge" style={{ backgroundColor: getStatusColor(activeSubscription?.status), color: '#fff', padding: '7px 20px', borderRadius: '14px', fontWeight: 'bold', fontSize: '1.05rem', marginLeft: 12, boxShadow: '0 2px 8px #b5a07933' }}>{getStatusText(activeSubscription?.status)}</div>
+              <div 
+                className="status-badge"
+                style={{ backgroundColor: getStatusColor(currentSubscription.subscription?.status) }}
+              >
+                Active
               </div>
-              <div className="subscription-details" style={{ fontSize: '1.13rem', color: '#7d6a4d', fontWeight: 500 }}>
-                <div className="detail-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
-                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>Start Date:</span>
-                  <span className="detail-value" style={{ marginLeft: 8 }}>{formatDate(activeSubscription.start_date)}</span>
             </div>
-                <div className="detail-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
-                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>End Date:</span>
-                  <span className="detail-value" style={{ marginLeft: 8 }}>{formatDate(activeSubscription.end_date)}</span>
+
+            <div className="subscription-details">
+             
+              
+              <div className="detail-row">
+                <span className="detail-label">Total Subscriptions:</span>
+                <span className="detail-value" style={{ 
+                  color: '#b5a079', 
+                  fontWeight: 'bold',
+                  fontSize: '1.05rem'
+                }}>
+                  {formatCurrency(calculateTotalSubscriptions(), currentSubscription.subscription?.currency)}
+                </span>
               </div>
-                <div className="detail-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
-                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>Allowed Courses:</span>
-                  <span className="detail-value" style={{ marginLeft: 8 }}>{activeSubscription.total_allowed_courses}</span>
+              
+              <div className="detail-row">
+                <span className="detail-label">Active Subscriptions:</span>
+                <span className="detail-value" style={{ 
+                  color: '#b5a079', 
+                  fontWeight: 'bold',
+                  fontSize: '1.05rem'
+                }}>
+                  {formatCurrency(calculateActiveSubscriptionsTotal(), currentSubscription.subscription?.currency)}
+                </span>
               </div>
-                <div className="detail-row" style={{ display: 'flex', alignItems: 'center' }}>
-                  <span className="detail-label" style={{ fontWeight: 700, color: '#b5a079', minWidth: 120 }}>Remaining Courses:</span>
-                  <span className="detail-value" style={{ marginLeft: 8 }}>{activeSubscription.total_remaining_courses !== undefined ? activeSubscription.remaining_courses : '-'}</span>
+              
+              <div className="detail-row">
+                <span className="detail-label">Start Date:</span>
+                <span className="detail-value">
+                  {formatDate(currentSubscription.subscription?.start_date)}
+                </span>
+              </div>
+
+              <div className="detail-row">
+                <span className="detail-label">End Date:</span>
+                <span className="detail-value">
+                  {formatDate(currentSubscription.subscription?.end_date)}
+                </span>
+              </div>
+
+              <div className="detail-row">
+                <span className="detail-label">Total Courses Used:</span>
+                <span className="detail-value" style={{ 
+                  color: '#b5a079', 
+                  fontWeight: 'bold',
+                  fontSize: '1.05rem'
+                }}>
+                   {calculateTotalUsedCourses()} of {calculateTotalActiveSubscriptions()}
+                </span>
+              </div>
+
+              <div className="detail-row">
+                <span className="detail-label">Available Courses:</span>
+                <span className="detail-value" style={{ 
+                  color: calculateTotalRemainingCourses() > 0 ? '#b5a079' : '#ef4444',
+                  fontWeight: 'bold',
+                  fontSize: '1.15rem',
+                  textShadow: calculateTotalRemainingCourses() > 0 ? '0 1px 2px rgba(181,160,121,0.2)' : 'none'
+                }}>
+                  {calculateTotalRemainingCourses()} courses available
+                </span>
               </div>
               </div>
-              <button style={{ marginTop: 18, background: 'linear-gradient(90deg, #b5a079 0%, #e3cfa4 100%)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 28px', fontWeight: 700, fontSize: '1.08rem', cursor: 'pointer', boxShadow: '0 2px 8px #e3cfa455', transition: 'background 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(90deg, #e3cfa4 0%, #b5a079 100%)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(90deg, #b5a079 0%, #e3cfa4 100%)'}
-                onClick={() => window.location.href = '/subscription-plans'}>
-                Renew / Upgrade
-              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* إحصائية إجمالية أعلى الصفحة */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: '2.5rem',
-        margin: '2.5rem 0 1.5rem 0',
-        flexWrap: 'wrap',
-      }}>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{calculateTotalUsedCourses()}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Total Used</div>
+      {subscriptions.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📋</div>
+          <h3>No Subscriptions</h3>
+          <p>You have not subscribed yet. Start your learning journey now!</p>
+          <button 
+            className="subscribe-now-btn"
+            onClick={() => window.location.href = '/subscription-plans'}
+          >
+            Subscribe Now
+          </button>
         </div>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{calculateTotalRemainingCourses()}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Total Remaining</div>
-        </div>
-        <div className="summary-item" style={{ textAlign: 'center', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #e3cfa422', padding: '1.2rem 2.2rem', minWidth: 180, margin: '0.5rem' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#b5a079', marginBottom: '0.5rem' }}>{calculateTotalUsedCourses()}</div>
-          <div style={{ fontSize: '0.95rem', color: '#7d6a4d', fontWeight: '500' }}>Total Allowed</div>
-        </div>
-      </div>
-
-      {/* بطاقات الاشتراكات النشطة */}
-      {subscriptions && subscriptions.length > 0 && (
-        <div style={{ marginTop: '2.5rem' }}>
-          <h2 className="section-title" style={{ color: '#b5a079', fontWeight: 800, fontSize: '1.25rem', marginBottom: '1.2rem', textAlign: 'center', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-            <span role="img" aria-label="cards">💳</span> Active Subscriptions
-          </h2>
+      ) : (
+        <div className="subscriptions-section" style={{
+          maxWidth: '1000px',
+          margin: '0 auto',
+          padding: '0 2rem'
+        }}>
           <div style={{
-            display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', alignItems: 'stretch',
+            textAlign: 'center',
+            marginBottom: '2rem'
           }}>
-            {subscriptions.map((sub) => (
-              <div key={sub.id} className={"subscription-card" + (sub?.status === 'active' ? ' active' : '')} style={{
-                minWidth: 340,
-                maxWidth: 400,
-                flex: '1 1 340px',
-                marginBottom: '1.5rem',
-                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              }}>
-                <div style={{ position: 'absolute', top: 18, right: 18, fontSize: '1.7rem', color: '#b5a079' }}>💳</div>
-                <div style={{ marginBottom: 12 }}>
-                  <div className="subscription-header" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <span className={"status-badge " + (sub?.status === 'active' ? 'active' : '')} style={{ backgroundColor: getStatusColor(sub?.status), color: '#fff', padding: '4px 14px', borderRadius: '8px', fontWeight: 'bold', letterSpacing: '0.5px', fontSize: '0.98rem' }}>{getStatusText(sub?.status)}</span>
-                    <span className="plan-info" style={{ color: '#b5a079', fontWeight: 700, fontSize: '1.08rem' }}>{sub.plan_name}</span>
+            <h2 style={{
+              fontSize: '2rem',
+              color: '#b5a079',
+              fontWeight: '700',
+              marginBottom: '0.5rem'
+            }}>Previous Subscriptions</h2>
+            <p style={{
+              fontSize: '1.1rem',
+              color: '#7d6a4d',
+              maxWidth: '600px',
+              margin: '0 auto'
+            }}>Browse through your subscription history</p>
           </div>
-                  <div className="subscription-details">
-                    <div className="detail-row"><span className="detail-label">Start:</span> <span className="detail-value">{formatDate(sub.start_date)}</span></div>
-                    <div className="detail-row"><span className="detail-label">End:</span> <span className="detail-value">{formatDate(sub.end_date)}</span></div>
-                    <div className="detail-row"><span className="detail-label">Allowed:</span> <span className="detail-value">{sub.allowed_courses}</span></div>
-                    <div className="detail-row"><span className="detail-label">Remaining:</span> <span className="detail-value">{sub.remaining_courses !== undefined ? sub.remaining_courses : '-'}</span></div>
-                    {sub.amount && (
-                      <div className="detail-row"><span className="detail-label">Amount:</span> <span className="detail-value">{formatCurrency(sub.amount, sub.currency)}</span></div>
-                    )}
+          
+          <div className="scroll-controls">
+            <button 
+              type="button"
+              className="scroll-btn left-btn" 
+              onClick={() => {
+                console.log('Left button clicked');
+                scrollLeft();
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 50%, #b5a079 100%)';
+                e.target.style.transform = 'translateY(-50%) scale(1.1)';
+                e.target.style.boxShadow = '0 8px 25px rgba(181,160,121,0.6), 0 4px 12px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)';
+                e.target.style.transform = 'translateY(-50%) scale(1)';
+                e.target.style.boxShadow = '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)';
+              }}
+              style={{ 
+                position: 'absolute', 
+                left: '10px', 
+                top: '50%', 
+                transform: 'translateY(-50%)',
+                zIndex: 100,
+                background: 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)',
+                color: 'white',
+                border: '2px solid rgba(255,255,255,0.3)',
+                borderRadius: '50%',
+                width: '55px',
+                height: '55px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.2rem',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <FaChevronLeft />
+            </button>
+            <button 
+              type="button"
+              className="scroll-btn right-btn" 
+              onClick={() => {
+                console.log('Right button clicked');
+                scrollRight();
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'linear-gradient(135deg, #f5f1eb 0%, #e3cfa4 50%, #b5a079 100%)';
+                e.target.style.transform = 'translateY(-50%) scale(1.1)';
+                e.target.style.boxShadow = '0 8px 25px rgba(181,160,121,0.6), 0 4px 12px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)';
+                e.target.style.transform = 'translateY(-50%) scale(1)';
+                e.target.style.boxShadow = '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)';
+              }}
+              style={{ 
+                position: 'absolute', 
+                right: '10px', 
+                top: '50%', 
+                transform: 'translateY(-50%)',
+                zIndex: 100,
+                background: 'linear-gradient(135deg, #e3cfa4 0%, #b5a079 50%, #8b7355 100%)',
+                color: 'white',
+                border: '2px solid rgba(255,255,255,0.3)',
+                borderRadius: '50%',
+                width: '55px',
+                height: '55px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.2rem',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(181,160,121,0.4), 0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <FaChevronRight />
+            </button>
           </div>
+          
+          <div 
+            className="subscriptions-scroll-container"
+            ref={scrollContainerRef}
+            onScroll={checkScrollButtons}
+            style={{ margin: '0 70px' }}
+          >
+          {subscriptions.map((subscription) => (
+            <div key={subscription.id} className="subscription-card">
+              <div className="subscription-header">
+                <div className="plan-info">
+                  <h3>{subscription.plan_name}</h3>
                 </div>
-                <div className="subscription-actions" style={{ marginTop: 10, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                  <button className="action-btn upgrade-btn" onClick={() => window.location.href = '/subscription-plans'}>Renew / Upgrade</button>
+                <div 
+                  className="status-badge"
+                  style={{ backgroundColor: getStatusColor(subscription.status) }}
+                >
+                  {getStatusText(subscription.status)}
+                </div>
+              </div>
+
+              <div className="subscription-details">
+                <div className="detail-row">
+                  <span className="detail-label">Amount:</span>
+                  <span className="detail-value">
+                    {formatCurrency(subscription.amount, subscription.currency)}
+                  </span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Start Date:</span>
+                  <span className="detail-value">
+                    {formatDate(subscription.start_date)}
+                  </span>
+                </div>
+
+                <div className="detail-row">
+                  <span className="detail-label">End Date:</span>
+                  <span className="detail-value">
+                    {formatDate(subscription.end_date)}
+                  </span>
+                </div>
+
+                {subscription.transaction_id && (
+                  <div className="detail-row">
+                    <span className="detail-label">Transaction ID:</span>
+                    <span className="detail-value transaction-id">
+                      {subscription.transaction_id}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           ))}

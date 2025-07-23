@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserProgressController;
+use App\Http\Controllers\RecommendationController;
 
 // Public route for the welcome page
 Route::get('/', function () {
@@ -22,3 +23,6 @@ Route::middleware([
     // Additional routes for authenticated users (if any)
 
 });
+
+Route::get('/export-user-courses', [RecommendationController::class, 'exportUserCourses']);
+Route::get('/recommendations/{userId}', [RecommendationController::class, 'getRecommendations']);

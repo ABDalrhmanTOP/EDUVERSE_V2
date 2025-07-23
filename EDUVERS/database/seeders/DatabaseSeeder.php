@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             LevelSeeder::class,
             QuestionSeeder::class,
             PlacementQuestionsSeeder::class
+            ,UserCourseUnlockSeeder::class
             // Add other seeders as required
         ]);
 

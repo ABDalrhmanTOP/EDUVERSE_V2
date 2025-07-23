@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import CheckoutForm from "../components/CheckoutForm";
 import "../styles/SubscriptionPlans.css";
 import { useLocation } from "react-router-dom";
@@ -47,7 +47,6 @@ const CheckoutModal = ({ open, plan, onClose }) => {
   const [showRedirectMsg, setShowRedirectMsg] = useState(false);
   const [redirectCourseId, setRedirectCourseId] = useState(null);
 
-  // منطق إعادة التوجيه بعد الدفع
   const handleAfterPayment = () => {
     const courseId = localStorage.getItem('redirectAfterPaymentCourseId');
     if (courseId) {
@@ -56,7 +55,7 @@ const CheckoutModal = ({ open, plan, onClose }) => {
       localStorage.removeItem('redirectAfterPaymentCourseId');
       setTimeout(() => {
         window.location.href = `/course/${courseId}`;
-      }, 2000); // انتظر ثانيتين قبل إعادة التوجيه
+      }, 2000);
     } else {
       onClose();
     }
@@ -84,21 +83,19 @@ const CheckoutModal = ({ open, plan, onClose }) => {
         <span className="modal-title-decor"></span>
         {showRedirectMsg ? (
           <div style={{textAlign: 'center', padding: '2rem'}}>
-            <h2 style={{color: '#10b981'}}>تم تفعيل اشتراكك بنجاح!</h2>
-            <p>سيتم تحويلك تلقائيًا إلى الكورس الذي كنت ترغب في الدخول إليه...</p>
             {redirectCourseId && (
               <>
                 <button
                   style={{marginTop: '1.5rem', padding: '12px 28px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer'}}
                   onClick={() => window.location.href = `/course/${redirectCourseId}`}
                 >
-                  الذهاب إلى الكورس الآن
+                  Go to Course Now
                 </button>
                 <button
                   style={{marginTop: '1.5rem', padding: '12px 28px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer'}}
                   onClick={onClose}
                 >
-                  العودة إلى الصفحة الرئيسية
+                  Back to Home
                 </button>
               </>
             )}
@@ -128,7 +125,6 @@ const SubscriptionPlans = () => {
         <h1>Choose Your Subscription Plan</h1>
         <p>Select the plan that best fits your learning goals. All plans are one-time payments and give you lifetime access to the selected courses.</p>
       </div>
-      
       <div className="plans-list">
         {plans.map((plan, idx) => (
           <div className={`plan-card${idx === 1 ? ' popular' : ''}`} key={plan.id}>
@@ -158,7 +154,6 @@ const SubscriptionPlans = () => {
           </div>
         ))}
       </div>
-      
       <CheckoutModal open={modalOpen} plan={selectedPlan} onClose={() => setModalOpen(false)} />
     </div>
   );
