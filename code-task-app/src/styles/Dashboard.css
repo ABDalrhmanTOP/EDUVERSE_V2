@@ -530,3 +530,24 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(191, 174, 158, 0.5);
 } 
+
+.user-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.user-loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #e8dcc0;
+  border-top: 4px solid #b8860b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 

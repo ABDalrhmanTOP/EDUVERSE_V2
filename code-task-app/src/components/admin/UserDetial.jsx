@@ -510,7 +510,12 @@ const UserDetail = () => {
                     <span className="info-label">{t('admin.users.hobbies')}</span>
               <span className="info-value">
                 {parseArrayField(userProfile.hobbies).length > 0 
-                  ? parseArrayField(userProfile.hobbies).join(', ')
+                  ? parseArrayField(userProfile.hobbies).map((hobby, index) => (
+                      <React.Fragment key={index}>
+                        {React.createElement(FaBook, { className: "hobby-icon" })} {hobby}
+                        {index < parseArrayField(userProfile.hobbies).length - 1 && ', '}
+                      </React.Fragment>
+                    ))
                         : t('admin.users.notSpecified')}
               </span>
             </div>
@@ -518,7 +523,12 @@ const UserDetail = () => {
                     <span className="info-label">{t('admin.users.expectations')}</span>
               <span className="info-value">
                 {parseArrayField(userProfile.expectations).length > 0
-                  ? parseArrayField(userProfile.expectations).join(', ')
+                  ? parseArrayField(userProfile.expectations).map((expectation, index) => (
+                      <React.Fragment key={index}>
+                        {React.createElement(FaLightbulb, { className: "expectation-icon" })} {expectation}
+                        {index < parseArrayField(userProfile.expectations).length - 1 && ', '}
+                      </React.Fragment>
+                    ))
                         : t('admin.users.notSpecified')}
               </span>
             </div>
@@ -636,22 +646,7 @@ const UserDetail = () => {
                 className="image-preview-img"
               />
             </motion.div>
-        </motion.div>
-      )}
-      </AnimatePresence>
-
-      {/* Crop Modal */}
-      <AnimatePresence>
-        {showCropModal && (
-          <CropModal
-            imageSrc={previewSource}
-            onCropComplete={handleCropComplete}
-            onClose={() => {
-              setShowCropModal(false);
-              setSelectedFile(null);
-              setPreviewSource(null);
-            }}
-          />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

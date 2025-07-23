@@ -68,21 +68,11 @@ body::before {
 
 /* --- Dynamic Section Title --- */
 .section-title {
-  font-size: 3.5rem;
+  color: #b8860b;
+  font-size: 2.6rem;
   font-weight: 900;
-  text-align: center;
-  margin-bottom: 50px;
-  background: linear-gradient(45deg, #f5f1eb, #e3cfa4, #b5a079, #f5f1eb);
-  background-size: 300% 300%;
-  animation: titleGlow 6s ease-in-out infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 50px #b5a079;
-  position: relative;
-  z-index: 2;
-  letter-spacing: 2px;
-  filter: drop-shadow(0 4px 8px #e3cfa4);
+  text-shadow: 0 2px 8px rgba(184, 134, 11, 0.10);
+  margin-bottom: 0.5em;
 }
 
 @keyframes titleGlow {
@@ -322,11 +312,11 @@ body::before {
 /* --- Large Professional Thumbnails --- */
 .course-thumbnail-container {
   position: relative;
-    width: 100%;
+  width: 100%;
   aspect-ratio: 16/9;
-  min-height: 300px;
-  max-height: 380px;
-    overflow: hidden;
+  min-height: 240px;
+  max-height: 340px;
+  overflow: hidden;
   border-radius: 23px 23px 0 0;
   background: linear-gradient(135deg, #f5f1eb, #e3cfa4, #b5a079);
   box-shadow: 
@@ -334,17 +324,23 @@ body::before {
     0 0 0 1px #b5a079;
   border: 2px solid #b5a079;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 .course-thumbnail {
-  width: 100%;
-  height: 100%;
-    object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 1;
   display: block;
+  min-height: unset;
+  max-height: unset;
+  position: static;
+  top: unset;
+  left: unset;
+  border-radius: 23px 23px 0 0;
 }
 
 /* --- Entire Card Hover/Focus Triggers Overlay --- */
@@ -729,8 +725,12 @@ body::before {
   }
   
   .course-thumbnail-container {
-    min-height: 180px;
-    max-height: 250px;
+    min-height: 140px;
+    max-height: 180px;
+  }
+  .course-thumbnail {
+    min-height: unset;
+    max-height: unset;
   }
   
   .refresh-btn-modern {

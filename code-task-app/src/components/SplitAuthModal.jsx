@@ -166,6 +166,12 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
         });
         setVerificationStep(2);
         setCodeSentEmail(form.emailOrUsername);
+        // After registration, redirect to placement test (academic form)
+        // You may need to get the courseId for the default course, or redirect to a course selection page
+        // For now, redirect to /placement-test/1 as a default
+        setTimeout(() => {
+          window.location.href = '/placement-test/1';
+        }, 1000);
       }
     } catch (err) {
       setApiError(err.response?.data?.message || "Login/Register failed. Please try again.");
@@ -256,7 +262,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
               {GOOGLE_G_SVG}
             </button>
             <button type="button" className="social-btn github" onClick={() => handleSocialLogin('github')} disabled={socialLoading} style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, background: '#fff', border: '2.5px solid #bfae9e', boxShadow: '0 2px 8px rgba(191, 174, 158, 0.10)', transition: 'box-shadow 0.2s, border 0.2s', cursor: 'pointer' }}>
-              <FaGithub style={{ color: '#24292f', fontSize: 36 }} />
+              {React.createElement(FaGithub, { style: { color: '#24292f', fontSize: 36 } })}
             </button>
           </div>
           {socialError && <div className="feedback">{socialError}</div>}
@@ -288,7 +294,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   style={{ paddingRight: 44, minWidth: 0, width: '100%', boxSizing: 'border-box' }}
                 />
                 <button type="button" tabIndex={-1} aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showPassword ? React.createElement(FaEyeSlash, { style: { fontSize: 20 } }) : React.createElement(FaEye, { style: { fontSize: 20 } })}
                 </button>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', margin: '8px 0 0 0' }}>
@@ -297,9 +303,9 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   id="keepLoggedIn"
                   checked={keepLoggedIn}
                   onChange={e => setKeepLoggedIn(e.target.checked)}
-                  style={{ marginRight: 8 }}
+                  className="custom-checkbox"
                 />
-                <label htmlFor="keepLoggedIn" style={{ fontSize: 15, color: '#7a6a6a', cursor: 'pointer' }}>Keep me logged in</label>
+                <label htmlFor="keepLoggedIn" className="custom-checkbox-label">Keep me logged in</label>
               </div>
               <button type="submit" disabled={apiLoading || isLoading || !form.emailOrUsername || !form.password} className="split-auth-modal-submit-btn">
                 {(apiLoading || isLoading) ? "Logging in..." : "Login"}
@@ -381,7 +387,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                       style={{ paddingRight: 44, minWidth: 0, width: '100%', boxSizing: 'border-box' }}
                     />
                     <button type="button" tabIndex={-1} aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showPassword ? React.createElement(FaEyeSlash, { style: { fontSize: 20 } }) : React.createElement(FaEye, { style: { fontSize: 20 } })}
                     </button>
                   </div>
                   {/* Show only the first missing requirement, if any */}
@@ -410,7 +416,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                       onCopy={e => e.preventDefault()}
                     />
                     <button type="button" tabIndex={-1} aria-label={showConfirmPassword ? "Hide password" : "Show password"} onClick={() => setShowConfirmPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showConfirmPassword ? React.createElement(FaEyeSlash, { style: { fontSize: 20 } }) : React.createElement(FaEye, { style: { fontSize: 20 } })}
                     </button>
                   </div>
                   {/* Confirm password feedback */}

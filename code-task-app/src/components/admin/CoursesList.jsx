@@ -9,6 +9,14 @@ import ConfirmationModal from './ConfirmationModal';
 import SuccessNotification from './SuccessNotification';
 import '../../styles/admin/CoursesList.css';
 
+function safeRender(val) {
+  if (val == null) return '';
+  if (typeof val === 'string' || typeof val === 'number') return val;
+  if (React.isValidElement(val)) return val;
+  console.error('Tried to render object as React child:', val);
+  return JSON.stringify(val);
+}
+
 const CoursesList = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -254,14 +262,14 @@ const CoursesList = () => {
                         >
                           <td className="courses-list-cell courses-list-name">
                             <div className="courses-list-name-content">
-                              <strong>{course.name}</strong>
+                              <strong>{safeRender(course.name)}</strong>
                               <span className="courses-list-meta">
                                 {t('admin.courses.year')} {course.year} • {t('admin.courses.semester')} {course.semester}
                               </span>
                             </div>
                           </td>
                           <td className="courses-list-cell courses-list-description">
-                            {course.description || t('common.noDescriptionAvailable')}
+                            {safeRender(course.description)}
                           </td>
                           <td className="courses-list-cell courses-list-video">
                             <div className="courses-list-video-content">

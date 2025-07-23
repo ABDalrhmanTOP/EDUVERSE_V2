@@ -110,21 +110,21 @@ const NotificationsPage = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'user_registration':
-        return <FaUser />;
+        return React.createElement(FaUser, { size: 20 });
       case 'course_completion':
-        return <FaBook />;
+        return React.createElement(FaBook, { size: 20 });
       case 'task_assignment':
-        return <FaTasks />;
+        return React.createElement(FaTasks, { size: 20 });
       case 'system':
-        return <FaInfoCircle />;
+        return React.createElement(FaInfoCircle, { size: 20 });
       case 'warning':
-        return <FaExclamationTriangle />;
+        return React.createElement(FaExclamationTriangle, { size: 20 });
       case 'success':
-        return <FaCheckCircle />;
+        return React.createElement(FaCheckCircle, { size: 20 });
       case 'error':
-        return <FaTimesCircle />;
+        return React.createElement(FaTimesCircle, { size: 20 });
       default:
-        return <FaBell />;
+        return React.createElement(FaBell, { size: 20 });
     }
   };
 

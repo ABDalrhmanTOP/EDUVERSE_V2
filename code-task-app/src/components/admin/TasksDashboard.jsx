@@ -234,7 +234,7 @@ const TasksDashboard = () => {
       style={{ '--card-color': color }}
     >
       <div className="tasks-stat-icon">
-        <Icon />
+        {React.createElement(Icon, { size: 32, color: '#fff' })}
       </div>
       <div className="tasks-stat-content">
         <h3 className="tasks-stat-value">
@@ -415,7 +415,7 @@ const TasksDashboard = () => {
                               className="action-btn edit-btn"
                               title={t('admin.tasks.editTaskTitle')}
                             >
-                              <FaEdit />
+                              <FaEdit color="#fff" />
                             </motion.button>
                             <motion.button
                               whileHover={{ scale: 1.1 }}
@@ -424,7 +424,7 @@ const TasksDashboard = () => {
                               className="action-btn delete-btn"
                               title={t('admin.tasks.deleteTaskTitle')}
                             >
-                              <FaTrash />
+                              <FaTrash color="#fff" />
                             </motion.button>
                           </td>
                         </motion.tr>

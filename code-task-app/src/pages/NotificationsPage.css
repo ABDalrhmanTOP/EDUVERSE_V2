@@ -98,6 +98,9 @@
   text-decoration: none;
   min-height: 44px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  min-width: 120px;
+  justify-content: center;
 }
 
 .mark-all-btn {
@@ -112,17 +115,44 @@
 }
 
 .delete-all-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+  background: #f8f5f0;
+  color: #7a6a6a;
+  border: 2px solid #e3cfa4;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(191, 174, 158, 0.10);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  min-width: 130px;
+  justify-content: center;
+  text-shadow: none;
+}
+
+.delete-all-btn span {
+  white-space: nowrap;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #7a6a6a;
+  text-shadow: none;
+}
+
+.delete-all-btn svg {
+  color: #ef4444;
 }
 
 .delete-all-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+  background: #fff0f0;
+  border-color: #ef4444;
+  color: #b91c1c;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.10);
+  transform: translateY(-2px) scale(1.03);
 }
-
-.action-btn:disabled {
+.delete-all-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;

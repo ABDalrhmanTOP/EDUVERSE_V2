@@ -67,6 +67,9 @@ export default function Community() {
     }
   };
 
+  // Helper to safely render text
+  const safeText = (value) => (typeof value === 'string' || typeof value === 'number') ? value : '[Invalid Data]';
+
   return (
     <div className="community-bg">
       <div className="community-main-card">
@@ -130,17 +133,17 @@ export default function Community() {
                       </>
                     ) : (
                       <>
-                        <div className="post-title gradient-text">{post.title}</div>
+                        <div className="post-title gradient-text">{safeText(post.title)}</div>
                         <div className="post-meta">
                           <span className="post-author">
-                            <FiUser /> {post.user?.name || "User"}
+                            <FiUser /> {safeText(post.user?.name) || "User"}
                           </span>
                           <span className="post-comments">
-                            <FiMessageCircle /> {post.comments_count === 0 ? 'No comments' : post.comments_count === 1 ? '1 comment' : `${post.comments_count} comments`}
+                            <FiMessageCircle /> {typeof post.comments_count === 'number' ? (post.comments_count === 0 ? 'No comments' : post.comments_count === 1 ? '1 comment' : `${post.comments_count} comments`) : '[Invalid Data]'}
                           </span>
                         </div>
                         <div className="post-snippet">
-                          {post.content.length > 60 ? post.content.slice(0, 60) + "..." : post.content}
+                          {safeText(post.content).length > 60 ? safeText(post.content).slice(0, 60) + "..." : safeText(post.content)}
                         </div>
                       </>
                     )}

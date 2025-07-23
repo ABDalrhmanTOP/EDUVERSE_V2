@@ -150,7 +150,7 @@ const AdminDashboard = () => {
       style={{ '--card-color': color }}
     >
       <div className="admin-stat-icon">
-        <Icon />
+        {React.createElement(Icon, { size: 32, color: '#4A3F3F' })}
       </div>
       <div className="admin-stat-content">
         <h3 className="admin-stat-value">

@@ -20,6 +20,7 @@ import {
 } from 'react-icons/fa';
 import apiClient from '../../api/axios';
 import '../../styles/admin/NotificationDropdown.css';
+import ReactDOM from 'react-dom';
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -122,6 +123,18 @@ const NotificationDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ESC key handler for modal
+  useEffect(() => {
+    if (!showDeleteAllModal) return;
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setShowDeleteAllModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showDeleteAllModal]);
+
   const fetchNotifications = async () => {
     try {
       const response = await apiClient.get('/notifications?limit=15');
@@ -221,21 +234,21 @@ const NotificationDropdown = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'user_registration':
-        return <FaUser />;
+        return React.createElement(FaUser, { size: 20 });
       case 'course_completion':
-        return <FaBook />;
+        return React.createElement(FaBook, { size: 20 });
       case 'task_assignment':
-        return <FaTasks />;
+        return React.createElement(FaTasks, { size: 20 });
       case 'system':
-        return <FaInfoCircle />;
+        return React.createElement(FaInfoCircle, { size: 20 });
       case 'warning':
-        return <FaExclamationTriangle />;
+        return React.createElement(FaExclamationTriangle, { size: 20 });
       case 'success':
-        return <FaCheckCircle />;
+        return React.createElement(FaCheckCircle, { size: 20 });
       case 'error':
-        return <FaTimesCircle />;
+        return React.createElement(FaTimesCircle, { size: 20 });
       default:
-        return <FaBell />;
+        return React.createElement(FaBell, { size: 20 });
     }
   };
 
@@ -518,17 +531,31 @@ const NotificationDropdown = () => {
       </AnimatePresence>
 
       {/* Delete All Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteAllModal && (
+      {showDeleteAllModal && ReactDOM.createPortal(
+        <AnimatePresence>
           <motion.div
-            className="modal-overlay"
+            className="notification-modal-overlay"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 3500,
+              padding: 0,
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={cancelDeleteAll}
+            onClick={() => setShowDeleteAllModal(false)}
           >
             <motion.div
-              className="confirmation-modal"
+              className="notification-confirmation-modal"
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -549,7 +576,7 @@ const NotificationDropdown = () => {
               <div className="modal-actions">
                 <button
                   className="cancel-btn"
-                  onClick={cancelDeleteAll}
+                  onClick={() => setShowDeleteAllModal(false)}
                   disabled={deleteAllLoading}
                 >
                   Cancel
@@ -574,8 +601,9 @@ const NotificationDropdown = () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
