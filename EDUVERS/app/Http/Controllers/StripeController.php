@@ -111,41 +111,54 @@ class StripeController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
 
-            $subscription = Subscription::where('user_id', $user->id)
+            // جلب جميع الاشتراكات النشطة وغير المنتهية
+            $subscriptions = Subscription::where('user_id', $user->id)
                 ->where('status', 'active')
                 ->where('end_date', '>', now())
-                ->first();
+                ->get();
 
-            if (!$subscription) {
+            if ($subscriptions->isEmpty()) {
                 return response()->json([
                     'has_active_subscription' => false,
-                    'subscription' => null,
-                    'remaining_courses' => 0,
-                    'used_courses' => 0,
-                    'total_allowed_courses' => 0
+                    'subscriptions' => [],
+                    'total_remaining_courses' => 0,
+                    'total_allowed_courses' => 0,
+                    'total_used_courses' => 0
                 ]);
             }
 
+            // حساب الدورات المستخدمة (قد تحتاج لتعديلها إذا كان لكل اشتراك عدد مستخدم منفصل)
             $usedCourses = $user->unlockedCourses()->count();
-            $remainingCourses = max(0, $subscription->allowed_courses - $usedCourses);
+            $totalAllowed = $subscriptions->sum('allowed_courses');
+            $totalRemaining = max(0, $totalAllowed - $usedCourses);
 
-            return response()->json([
-                'has_active_subscription' => true,
-                'subscription' => [
+            $subscriptionsArr = $subscriptions->map(function($subscription) use ($user, $usedCourses) {
+                // إذا كان لديك منطق منفصل لحساب usedCourses لكل اشتراك، عدله هنا
+            $remainingCourses = max(0, $subscription->allowed_courses - $usedCourses);
+                return [
                     'id' => $subscription->id,
                     'plan_id' => $subscription->plan_id,
                     'plan_name' => $subscription->plan_name,
                     'amount' => $subscription->amount,
                     'currency' => $subscription->currency,
                     'status' => $subscription->status,
-                    'start_date' => $subscription->start_date->toISOString(),
-                    'end_date' => $subscription->end_date->toISOString(),
+                    'start_date' => $subscription->start_date ? $subscription->start_date->toIso8601String() : null,
+                    'end_date' => $subscription->end_date ? $subscription->end_date->toIso8601String() : null,
                     'allowed_courses' => $subscription->allowed_courses,
-                ],
                 'remaining_courses' => $remainingCourses,
-                'used_courses' => $usedCourses,
-                'total_allowed_courses' => $subscription->allowed_courses
+                ];
+            });
+
+            return response()->json([
+                'has_active_subscription' => true,
+                'subscriptions' => $subscriptionsArr,
+                'total_remaining_courses' => $totalRemaining,
+                'total_allowed_courses' => $totalAllowed,
+                'total_used_courses' => $usedCourses
             ]);
 
         } catch (\Exception $e) {

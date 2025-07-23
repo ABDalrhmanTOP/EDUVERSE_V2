@@ -105,7 +105,7 @@ class SubscriptionController extends Controller
             }
 
             $subscription = Subscription::findOrFail($id);
-            
+
             $subscription->update([
                 'status' => $request->status,
                 'start_date' => $request->start_date,
@@ -316,4 +316,4 @@ class SubscriptionController extends Controller
 
         return $planDetails[$planId] ?? 'No details available';
     }
-} 
+}

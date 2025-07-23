@@ -170,7 +170,9 @@ const SubscriptionHistory = () => {
         if (subscription.status === 'active') {
         
           if (subscription.used_courses === 0 || subscription.used_courses === undefined) {
-            totalRemaining += 1; // كورس واحد متاح لكل اشتراك نشط
+            totalRemaining +=   Number( subscription.plan_id);
+             // كورس واحد متاح لكل اشتراك نشط
+             
           }
         }
       });
@@ -387,7 +389,7 @@ const SubscriptionHistory = () => {
       </div>
 
       {/* Show current subscription */}
-      {currentSubscription && currentSubscription.has_active_subscription && (
+      {currentSubscription && currentSubscription.has_active_subscription && currentSubscription.subscription && (
         <div style={{
           display: 'flex',
           justifyContent: 'center',
@@ -407,7 +409,7 @@ const SubscriptionHistory = () => {
               </div>
               <div 
                 className="status-badge"
-                style={{ backgroundColor: getStatusColor(currentSubscription.subscription.status) }}
+                style={{ backgroundColor: getStatusColor(currentSubscription.subscription?.status) }}
               >
                 Active
               </div>
@@ -423,7 +425,7 @@ const SubscriptionHistory = () => {
                   fontWeight: 'bold',
                   fontSize: '1.05rem'
                 }}>
-                  {formatCurrency(calculateTotalSubscriptions(), currentSubscription.subscription.currency)}
+                  {formatCurrency(calculateTotalSubscriptions(), currentSubscription.subscription?.currency)}
                 </span>
               </div>
               
@@ -434,21 +436,21 @@ const SubscriptionHistory = () => {
                   fontWeight: 'bold',
                   fontSize: '1.05rem'
                 }}>
-                  {formatCurrency(calculateActiveSubscriptionsTotal(), currentSubscription.subscription.currency)}
+                  {formatCurrency(calculateActiveSubscriptionsTotal(), currentSubscription.subscription?.currency)}
                 </span>
               </div>
               
               <div className="detail-row">
                 <span className="detail-label">Start Date:</span>
                 <span className="detail-value">
-                  {formatDate(currentSubscription.subscription.start_date)}
+                  {formatDate(currentSubscription.subscription?.start_date)}
                 </span>
               </div>
 
               <div className="detail-row">
                 <span className="detail-label">End Date:</span>
                 <span className="detail-value">
-                  {formatDate(currentSubscription.subscription.end_date)}
+                  {formatDate(currentSubscription.subscription?.end_date)}
                 </span>
               </div>
 

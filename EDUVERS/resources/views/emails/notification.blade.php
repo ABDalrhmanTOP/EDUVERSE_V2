@@ -1,174 +1,55 @@
+@php
+$brandColor = '#bfae9e';
+$accentColor = '#a68a6d';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $notification->title }}</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            background: linear-gradient(135deg, #b8860b 0%, #d4a574 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .notification-type {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 20px;
-        }
-
-        .type-info {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-
-        .type-warning {
-            background-color: #fef3c7;
-            color: #d97706;
-        }
-
-        .type-success {
-            background-color: #d1fae5;
-            color: #059669;
-        }
-
-        .type-error {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
-
-        .type-user {
-            background-color: #e9d5ff;
-            color: #7c3aed;
-        }
-
-        .type-course {
-            background-color: #e0e7ff;
-            color: #3730a3;
-        }
-
-        .type-task {
-            background-color: #ccfbf1;
-            color: #0f766e;
-        }
-
-        .message {
-            background-color: #f8f9fa;
-            border-left: 4px solid #b8860b;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .footer {
-            background-color: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .footer p {
-            margin: 5px 0;
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .button {
-            display: inline-block;
-            background: linear-gradient(135deg, #b8860b 0%, #d4a574 100%);
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            margin: 20px 0;
-        }
-
-        .button:hover {
-            background: linear-gradient(135deg, #a67c0a 0%, #c19a6b 100%);
-        }
-
-        .timestamp {
-            color: #6c757d;
-            font-size: 12px;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Welcome to EduVerse!</title>
 </head>
 
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>EduVerse Notification</h1>
-        </div>
-
-        <div class="content">
-            <div class="notification-type type-{{ $notification->type }}">
-                {{ ucfirst($notification->type) }}
-            </div>
-
-            <h2>{{ $notification->title }}</h2>
-
-            <div class="message">
-                <p>{{ $notification->message }}</p>
-            </div>
-
-            <p>Hello {{ $user->name }},</p>
-
-            <p>You have received a new notification from EduVerse. Please review the details above.</p>
-
-            <div style="text-align: center;">
-                <a href="{{ config('app.url') }}/AdminDashboard" class="button">
-                    View Dashboard
-                </a>
-            </div>
-
-            <div class="timestamp">
-                Sent on {{ $notification->created_at->format('F j, Y \a\t g:i A') }}
-            </div>
-        </div>
-
-        <div class="footer">
-            <p><strong>EduVerse</strong></p>
-            <p>Your educational platform</p>
-            <p>If you have any questions, please contact our support team.</p>
-        </div>
-    </div>
+<body style="background: #f7f3ef; font-family: 'Nunito', 'Arial', sans-serif; color: #4A3F3F; margin: 0; padding: 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: #f7f3ef; padding: 0;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; background: #fff; border-radius: 18px; box-shadow: 0 4px 32px rgba(191,174,158,0.10); margin: 32px auto; padding: 36px 28px; border: 1.5px solid {{ $brandColor }};">
+                    <tr>
+                        <td align="center" style="padding-bottom: 18px;">
+                            <h1 style="color: {{ $accentColor }}; font-size: 2.3rem; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -1px;">Welcome to EduVerse! 🎉</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom: 18px;">
+                            <p style="font-size: 1.15rem; margin: 0 0 12px 0;">Hi <span style="color: {{ $accentColor }}; font-weight: 700;">{{ $user->name ?? 'there' }}</span>,</p>
+                            <p style="font-size: 1.08rem; margin: 0 0 18px 0;">We're thrilled to have you join <b>EduVerse</b>! 🚀<br>Start exploring courses, connect with our community, and unlock your learning journey.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding-bottom: 18px;">
+                            <a href="{{ url('/') }}" style="display: inline-block; background: linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%); color: #fff; font-weight: 800; font-size: 1.15rem; border-radius: 12px; padding: 16px 38px; text-decoration: none; box-shadow: 0 2px 12px #bfae9e22; margin-bottom: 8px;">Go to EduVerse</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-bottom: 12px;">
+                            <p style="font-size: 1.01rem; color: #7a6a6a; margin: 0 0 8px 0;">If you have any questions or need help, just reply to this email or visit our Help Center.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding-top: 18px;">
+                            <p style="font-size: 1.08rem; color: {{ $accentColor }}; font-weight: 700; margin: 0;">Happy learning! 🌟</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding-top: 18px;">
+                            <span style="font-size: 0.98rem; color: #bfae9e;">&copy; {{ date('Y') }} EduVerse. All rights reserved.</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

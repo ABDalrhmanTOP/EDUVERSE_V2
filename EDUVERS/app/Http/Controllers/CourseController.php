@@ -18,27 +18,7 @@ class CourseController extends Controller
     // Fetch all courses
     public function index()
     {
-        $user = Auth::user();
         $courses = Playlist::with('tasks')->get();
-        $courses = $courses->map(function ($course) use ($user) {
-            $is_unlocked = false;
-            if ($user) {
-                $is_unlocked = $user->unlockedCourses()->where('playlists.id', $course->id)->exists();
-            }
-            $courseArray = $course->toArray();
-            $courseArray['is_unlocked'] = $is_unlocked;
-
-            // إضافة معلومات إضافية للكورسات المدفوعة
-            if ($course->paid) {
-                $courseArray['requires_subscription'] = true;
-                $courseArray['subscription_required'] = true;
-            } else {
-                $courseArray['requires_subscription'] = false;
-                $courseArray['subscription_required'] = false;
-            }
-
-            return $courseArray;
-        });
         return response()->json($courses);
     }
 
@@ -59,75 +39,7 @@ class CourseController extends Controller
             ], 404);
         }
 
-        $is_unlocked = false;
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ($user) {
-            $is_unlocked = $user->unlockedCourses()->where('playlists.id', $playlist->id)->exists();
-        }
-
-        $playlistData = $playlist->toArray();
-        $playlistData['is_unlocked'] = $is_unlocked;
-
-        // إضافة معلومات إضافية للكورسات المدفوعة
-        if ($playlist->paid) {
-            $playlistData['requires_subscription'] = true;
-            $playlistData['subscription_required'] = true;
-        } else {
-            $playlistData['requires_subscription'] = false;
-            $playlistData['subscription_required'] = false;
-        }
-
-        return response()->json($playlistData);
-    }
-
-    // Unlock a paid course for the user
-    public function unlockCourse(Request $request, $courseId)
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        $playlist = Playlist::find($courseId);
-        if (!$playlist) {
-            return response()->json(['error' => 'Course not found'], 404);
-        }
-
-        if (!$playlist->paid) {
-            return response()->json(['message' => 'This course is free.'], 200);
-        }
-
-        // تحسين فحص الاشتراك
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->where('end_date', '>', now())
-            ->first();
-
-        if (!$subscription) {
-            return response()->json(['error' => 'No active subscription found.'], 403);
-        }
-
-        if ($subscription->allowed_courses <= 0) {
-            return response()->json(['error' => 'No course credits available.'], 403);
-        }
-
-        if ($user->unlockedCourses()->where('playlists.id', $courseId)->exists()) {
-            return response()->json(['message' => 'Course already unlocked.']);
-        }
-
-        $used = $user->unlockedCourses()->count();
-        if ($used >= $subscription->allowed_courses) {
-            return response()->json(['error' => 'You have used all your course credits.'], 403);
-        }
-
-        // فتح الكورس وتقليل عدد الكورسات المسموحة
-        $user->unlockedCourses()->attach($courseId, ['unlocked_at' => now()]);
-        $subscription->decrement('allowed_courses');
-
-        return response()->json(['message' => 'Course unlocked successfully!']);
+        return response()->json($playlist);
     }
 
     // Add new course
@@ -294,6 +206,59 @@ class CourseController extends Controller
         $playlist = Playlist::findOrFail($id);
         $playlist->delete();
         return response()->json(['message' => 'Course deleted successfully']);
+    }
+
+    // Unlock a paid course for the user
+    public function unlockCourse(Request $request, $courseId)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $playlist = Playlist::find($courseId);
+        if (!$playlist) {
+            return response()->json(['error' => 'Course not found'], 404);
+        }
+
+        if (!$playlist->paid) {
+            return response()->json(['message' => 'This course is free.'], 200);
+        }
+
+        // جلب جميع الاشتراكات النشطة
+        $subscriptions = Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where('end_date', '>', now())
+            ->orderBy('start_date')
+            ->get();
+
+        if ($subscriptions->isEmpty()) {
+            return response()->json(['error' => 'No active subscription found.'], 403);
+        }
+
+        $used = $user->unlockedCourses()->count();
+        if ($user->unlockedCourses()->where('playlists.id', $courseId)->exists()) {
+            return response()->json(['message' => 'Course already unlocked.'], 200);
+        }
+
+        // ابحث عن أول اشتراك فيه رصيد متبقٍ
+        $selectedSubscription = null;
+        foreach ($subscriptions as $subscription) {
+            if ($subscription->allowed_courses > 0 && $used < $subscription->allowed_courses) {
+                $selectedSubscription = $subscription;
+                break;
+            }
+        }
+
+        if (!$selectedSubscription) {
+            return response()->json(['error' => 'No course credits available.'], 403);
+        }
+
+        // فك القفل
+        $user->unlockedCourses()->attach($courseId, ['unlocked_at' => now()]);
+        $selectedSubscription->decrement('allowed_courses');
+
+        return response()->json(['message' => 'Course unlocked successfully!']);
     }
 
     // Test method to verify video duration endpoint

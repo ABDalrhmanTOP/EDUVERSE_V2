@@ -24,8 +24,10 @@ import ChatApp from "./pages/ChatApp";
 import FinalProject from "./components/FinalProject";
 import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
-import SubscriptionHistory from "./pages/SubscriptionHistory";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
+import SubscriptionHistory from "./pages/SubscriptionHistory";
+
+// Community components
 import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import NewCommunityPost from "./pages/NewCommunityPost";
@@ -38,10 +40,13 @@ import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
 import TasksDashboard from "./components/admin/TasksDashboard";
 import TestsDashboard from './components/admin/TestsDashboard';
-import AdminSubscriptions from './pages/admin/AdminSubscriptions';
+import AdminSubscriptions from "./components/admin/AdminSubscriptions";
+// import AdminPayments from "./components/admin/AdminPayments"; // removed
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // ----------------- ProtectedRoute -----------------
 const ProtectedRoute = ({ children }) => {
@@ -93,6 +98,7 @@ const App = () => {
 
   return (
     <>
+      <ToastContainer />
       <Navbar setFormType={setFormType} />
       <Routes>
         {/* Public/Homepage */}
@@ -155,6 +161,22 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/subscription-plans"
+          element={
+            <ProtectedRoute>
+              <SubscriptionPlans />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscription-history"
+          element={
+            <ProtectedRoute>
+              <SubscriptionHistory />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Remove all FinalTest routes and references */}
 
@@ -172,24 +194,6 @@ const App = () => {
           element={
             <ProtectedRoute>
               <NotificationsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/subscription-history"
-          element={
-            <ProtectedRoute>
-              <SubscriptionHistory />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/subscription-plans"
-          element={
-            <ProtectedRoute>
-              <SubscriptionPlans />
             </ProtectedRoute>
           }
         />
@@ -241,6 +245,7 @@ const App = () => {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="tests" element={<TestsDashboard />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
+          {/* <Route path="payments" element={<AdminPayments />} /> removed */}
         </Route>
 
         {/* Catch-all */}

@@ -116,7 +116,15 @@
     "updateCourse": "Update Course",
     "optional": "optional",
     "saving": "Saving...",
-    "timestampFormat": "(mm:ss)"
+    "timestampFormat": "(mm:ss)",
+    "generateTasksAuto": "Generate Tasks Auto",
+    "generatingContent": "Generating Content...",
+    "generateContentInfo": "This will automatically generate placement test, course tasks, and final project questions using AI based on the course content.",
+    "videoValid": "Video is valid and ready",
+    "videoNotDuplicate": "This video is not a duplicate",
+    "videoAlreadyExists": "This video already exists in another course",
+    "existingCourse": "Existing course",
+    "durationAutoFetched": "Duration auto-fetched from YouTube"
   },
   "admin": {
     "dashboard": {

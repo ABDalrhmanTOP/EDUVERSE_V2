@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import CheckoutForm from "../components/CheckoutForm";
 import "../styles/SubscriptionPlans.css";
+import { useLocation } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 
 const plans = [
   {
@@ -42,6 +44,23 @@ const plans = [
 ];
 
 const CheckoutModal = ({ open, plan, onClose }) => {
+  const [showRedirectMsg, setShowRedirectMsg] = useState(false);
+  const [redirectCourseId, setRedirectCourseId] = useState(null);
+
+  const handleAfterPayment = () => {
+    const courseId = localStorage.getItem('redirectAfterPaymentCourseId');
+    if (courseId) {
+      setShowRedirectMsg(true);
+      setRedirectCourseId(courseId);
+      localStorage.removeItem('redirectAfterPaymentCourseId');
+      setTimeout(() => {
+        window.location.href = `/course/${courseId}`;
+      }, 2000);
+    } else {
+      onClose();
+    }
+  };
+
   if (!open || !plan) return null;
   return (
     <div className="confirmation-modal-overlay">
@@ -62,18 +81,41 @@ const CheckoutModal = ({ open, plan, onClose }) => {
           </button>
         </div>
         <span className="modal-title-decor"></span>
-        <CheckoutForm plan={plan} onSuccess={onClose} />
+        {showRedirectMsg ? (
+          <div style={{textAlign: 'center', padding: '2rem'}}>
+            {redirectCourseId && (
+              <>
+                <button
+                  style={{marginTop: '1.5rem', padding: '12px 28px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer'}}
+                  onClick={() => window.location.href = `/course/${redirectCourseId}`}
+                >
+                  Go to Course Now
+                </button>
+                <button
+                  style={{marginTop: '1.5rem', padding: '12px 28px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer'}}
+                  onClick={onClose}
+                >
+                  Back to Home
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <CheckoutForm plan={plan} onSuccess={handleAfterPayment} />
+        )}
       </div>
     </div>
   );
 };
 
 const SubscriptionPlans = () => {
+  const location = useLocation();
+  const courseId = location.state?.courseId;
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   const handleSubscribe = (plan) => {
-    setSelectedPlan(plan);
+    setSelectedPlan(courseId ? { ...plan, courseId } : plan);
     setModalOpen(true);
   };
 
@@ -83,7 +125,6 @@ const SubscriptionPlans = () => {
         <h1>Choose Your Subscription Plan</h1>
         <p>Select the plan that best fits your learning goals. All plans are one-time payments and give you lifetime access to the selected courses.</p>
       </div>
-      
       <div className="plans-list">
         {plans.map((plan, idx) => (
           <div className={`plan-card${idx === 1 ? ' popular' : ''}`} key={plan.id}>
@@ -113,7 +154,6 @@ const SubscriptionPlans = () => {
           </div>
         ))}
       </div>
-      
       <CheckoutModal open={modalOpen} plan={selectedPlan} onClose={() => setModalOpen(false)} />
     </div>
   );

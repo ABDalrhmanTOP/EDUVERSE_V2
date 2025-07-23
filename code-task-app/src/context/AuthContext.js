@@ -35,6 +35,8 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.withCredentials = true;
       setIsAuthenticated(true);
       setUser(userData);
+      // Redirect to dashboard after successful login
+      // Note: SplitAuthModal handles the redirect, so we don't need to do it here
       return true;
     } catch (error) {
       console.error("Login failed:", error);
@@ -52,6 +54,8 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.withCredentials = true;
       setIsAuthenticated(true);
       setUser(userData);
+      // Redirect to dashboard after successful registration
+      // Note: SplitAuthModal handles the redirect, so we don't need to do it here
       return true;
     } catch (error) {
       console.error("Registration failed:", error);
@@ -85,4 +89,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext); 

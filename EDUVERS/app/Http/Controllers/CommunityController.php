@@ -28,11 +28,17 @@ class CommunityController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'image' => 'nullable|image|max:4048',
         ]);
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('community_posts', 'public');
+        }
         $post = CommunityPost::create([
             'user_id' => Auth::id(),
             'title' => $request->title,
             'content' => $request->content,
+            'image' => $imagePath,
         ]);
         return response()->json($post, 201);
     }

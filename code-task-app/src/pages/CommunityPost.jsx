@@ -122,6 +122,24 @@ export default function CommunityPost() {
           </div>
         </div>
         <div className="post-title-adv">{post.title}</div>
+        {/* عرض صورة البوست إذا وجدت */}
+        {post.image && (
+          <div style={{ textAlign: 'center', margin: '18px 0' }}>
+            <img
+              src={post.image.startsWith('http') ? post.image : `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/storage/${post.image}`}
+              alt="Post"
+              style={{
+                maxWidth: 420,
+                maxHeight: 320,
+                borderRadius: 16,
+                boxShadow: '0 2px 12px #e3cfa455',
+                border: '2.5px solid #e3cfa4',
+                objectFit: 'cover',
+                background: '#f5f1eb',
+              }}
+            />
+          </div>
+        )}
         <div className="post-content-adv">{post.content}</div>
         <div className="comments-section-adv">
           <h4><FiMessageCircle /> Comments ({comments.length})</h4>
@@ -147,8 +165,50 @@ export default function CommunityPost() {
                       {c.user?.name === post.user?.name && <span className="author-badge"><FiEdit3 /> Author</span>}
                       {(isOwner || isAdmin) && (
                         <span className="comment-actions">
-                          {editCommentId === c.id ? null : <button className="icon-btn edit-btn" title="Edit" onClick={() => handleEditComment(c)}><FiEdit3 /></button>}
-                          {editCommentId === c.id ? null : <button className="icon-btn delete-btn" title="Delete" onClick={() => handleDeleteComment(c)}><FiTrash2 /></button>}
+                          {editCommentId === c.id ? null : <button
+                            className="icon-btn edit-btn"
+                            title="Edit"
+                            onClick={() => handleEditComment(c)}
+                            style={{
+                              background: '#f5f1eb',
+                              border: 'none',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px #e3cfa455',
+                              color: '#b5a079',
+                              width: 36, height: 36,
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 20,
+                              marginRight: 4,
+                              cursor: 'pointer',
+                              transition: 'background 0.18s, color 0.18s, transform 0.18s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#e3cfa4'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.12)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#f5f1eb'; e.currentTarget.style.color = '#b5a079'; e.currentTarget.style.transform = 'scale(1)'; }}
+                          >
+                            <FiEdit3 />
+                          </button>}
+                          {editCommentId === c.id ? null : <button
+                            className="icon-btn delete-btn"
+                            title="Delete"
+                            onClick={() => handleDeleteComment(c)}
+                            style={{
+                              background: '#fff0f0',
+                              border: 'none',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px #ef444422',
+                              color: '#ef4444',
+                              width: 36, height: 36,
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 20,
+                              marginRight: 2,
+                              cursor: 'pointer',
+                              transition: 'background 0.18s, color 0.18s, transform 0.18s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.12)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#fff0f0'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.transform = 'scale(1)'; }}
+                          >
+                            <FiTrash2 />
+                          </button>}
                         </span>
                       )}
                     </div>

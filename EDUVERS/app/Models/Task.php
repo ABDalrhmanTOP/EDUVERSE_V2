@@ -31,6 +31,11 @@ class Task extends Model
         'points',
     ];
 
+    protected $casts = [
+        'options' => 'array',
+        'coding_test_cases' => 'array',
+    ];
+
     public function playlist()
     {
         return $this->belongsTo(Playlist::class);

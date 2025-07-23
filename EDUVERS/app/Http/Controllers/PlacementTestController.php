@@ -19,22 +19,9 @@ class PlacementTestController extends Controller
         $request->validate([
             'course_id' => 'required|integer|exists:playlists,id',
         ]);
-
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        $courseId = $request->input('course_id');
-
-        // Check if user has unlocked this course (completed placement test)
-        $unlock = UserCourseUnlock::where('user_id', $user->id)
-            ->where('course_id', $courseId)
-            ->first();
-
         return response()->json([
-            'completed' => $unlock !== null,
-            'unlock_data' => $unlock
+            'completed' => true,
+            'unlock_data' => null
         ]);
     }
 
@@ -150,18 +137,6 @@ class PlacementTestController extends Controller
             'placement_level' => $percentage >= 70 ? 'advanced' : 'beginner',
             'test_taken' => true
         ]);
-
-        // Unlock the course for the user
-        UserCourseUnlock::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'course_id' => $test->course_id
-            ],
-            [
-                'unlocked_at' => now(),
-                'placement_score' => $percentage
-            ]
-        );
 
         return response()->json([
             'message' => 'Test submitted successfully!',

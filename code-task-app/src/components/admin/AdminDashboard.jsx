@@ -109,10 +109,10 @@ const AdminDashboard = () => {
     else if (path.includes('/users')) setActiveTab('users');
     else if (path.includes('/edubot')) setActiveTab('edubot');
     else if (path.includes('/tasks')) setActiveTab('tasks');
-    else if (path.includes('/subscriptions')) setActiveTab('subscriptions');
     else if (path.includes('/analytics')) setActiveTab('analytics');
     else if (path.includes('/settings')) setActiveTab('settings');
     else if (path.includes('/profile')) setActiveTab('profile');
+    else if (path.includes('/payments')) setActiveTab('payments');
     else setActiveTab('dashboard');
   }, [location.pathname]);
 

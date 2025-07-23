@@ -1,28 +1,52 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiEdit3, FiCheckCircle, FiArrowLeft } from "react-icons/fi";
+import { FiPlus, FiEdit3, FiCheckCircle, FiArrowLeft, FiImage } from "react-icons/fi";
 import axios from "../api/axios";
 import "./NewCommunityPost.css";
 
 export default function NewCommunityPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const contentRef = useRef();
+
+  const handleImageChange = e => {
+    const file = e.target.files[0];
+    setImage(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
     setSubmitting(true);
     try {
-      await axios.post("/community/posts", { title, content });
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      if (image) formData.append('image', image);
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      await axios.post("/community/posts", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      });
       setSubmitting(false);
       setSuccess(true);
     } catch (error) {
       setSubmitting(false);
-      alert("Failed to publish post. Please try again.");
+      alert(error.response?.data?.message || error.response?.data?.error || "Failed to publish post. Please try again.");
     }
   };
 
@@ -48,7 +72,7 @@ export default function NewCommunityPost() {
             </button>
           </div>
         ) : (
-          <form className="new-community-form" onSubmit={handleSubmit}>
+          <form className="new-community-form" onSubmit={handleSubmit} encType="multipart/form-data">
             <div className="form-group">
               <label htmlFor="title" className="form-label">Title</label>
               <input
@@ -78,6 +102,41 @@ export default function NewCommunityPost() {
                 required
                 style={{resize: 'vertical'}}
               />
+            </div>
+            <div className="form-group">
+              <label htmlFor="image" className="form-label">Image (optional)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <label htmlFor="image" style={{
+                  background: 'linear-gradient(90deg, #b5a079 0%, #e3cfa4 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 18px',
+                  fontWeight: 600,
+                  fontSize: '1.01rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px #e3cfa455',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  transition: 'background 0.2s',
+                }}>
+                  <FiImage style={{ fontSize: 20 }} />
+                  {image ? 'Change Image' : 'Upload Image'}
+                </label>
+                <input
+                  id="image"
+                  className="form-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+                {image && <span style={{ color: '#7d6a4d', fontSize: '0.98rem' }}>{image.name}</span>}
+              </div>
+              {imagePreview && (
+                <div style={{ marginTop: 16, textAlign: 'center' }}>
+                  <img src={imagePreview} alt="Preview" style={{ maxWidth: 160, maxHeight: 160, borderRadius: 16, boxShadow: '0 2px 8px #e3cfa455', border: '2.5px solid #e3cfa4', objectFit: 'cover' }} />
+                </div>
+              )}
             </div>
             <div className="form-actions-horizontal">
               <button type="submit" className="gradient-btn submit-btn" style={{marginRight: 4}}  disabled={submitting || !title.trim() || !content.trim()}>

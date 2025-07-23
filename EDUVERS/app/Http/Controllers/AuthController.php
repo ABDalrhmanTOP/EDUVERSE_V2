@@ -46,11 +46,22 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $loginField = null;
+        $loginValue = null;
+        if ($request->has('email')) {
+            $loginField = 'email';
+            $loginValue = $request->input('email');
+        } elseif ($request->has('username')) {
+            $loginField = 'username';
+            $loginValue = $request->input('username');
+        } else {
+            return response()->json(['message' => 'Email or username is required'], 422);
+        }
+
+        if (!Auth::attempt([$loginField => $loginValue, 'password' => $request->password])) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -70,7 +81,6 @@ class AuthController extends Controller
             'message' => 'Login successful',
             'user' => $user,
             'token' => $token,
-
         ]);
     }
     public function logout(Request $request)
@@ -86,5 +96,27 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    // Add async username availability check
+    public function checkUsername(Request $request)
+    {
+        $username = $request->query('username');
+        if (!$username) {
+            return response()->json(['available' => false, 'message' => 'Username is required'], 400);
+        }
+        $exists = \App\Models\User::where('username', $username)->exists();
+        return response()->json(['available' => !$exists]);
+    }
+
+    // Add async email availability check
+    public function checkEmail(Request $request)
+    {
+        $email = $request->query('email');
+        if (!$email) {
+            return response()->json(['available' => false, 'message' => 'Email is required'], 400);
+        }
+        $exists = \App\Models\User::where('email', $email)->exists();
+        return response()->json(['available' => !$exists]);
     }
 }
