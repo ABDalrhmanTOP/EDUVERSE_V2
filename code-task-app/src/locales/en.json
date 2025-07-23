@@ -490,5 +490,18 @@
       "language": "Language",
       "changeLanguage": "Change Language"
     }
+  },
+  "navbar": {
+    "courses": "Courses",
+    "edubot": "EduBot",
+    "community": "Community",
+    "subscribe": "Subscribe",
+    "adminPanel": "Admin Panel",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "paymentHistory": "Payment History",
+    "logout": "Logout"
   }
 } 

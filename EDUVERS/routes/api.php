@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\FinalProjectQuestionController as AdminFinalProje
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Controllers\CourseGenerationController;
 
 
 
@@ -68,6 +69,9 @@ Route::get('/test-admin', function () {
 
 Route::get('/check-username', [AuthController::class, 'checkUsername']);
 Route::get('/check-email', [AuthController::class, 'checkEmail']);
+
+// Add this route to enable POST for course generation
+Route::post('/course/generate', [CourseGenerationController::class, 'generateCourse']);
 
 /*
 |--------------------------------------------------------------------------
@@ -177,6 +181,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/community/posts/{id}', [CommunityController::class, 'deletePost']);
     Route::put('/community/comments/{id}', [CommunityController::class, 'updateComment']);
     Route::delete('/community/comments/{id}', [CommunityController::class, 'deleteComment']);
+
+    // Comment routes for courses
+    Route::get('/courses/{courseId}/comments', [\App\Http\Controllers\CommentController::class, 'index']);
+    Route::post('/courses/{courseId}/comments', [\App\Http\Controllers\CommentController::class, 'store']);
+    Route::post('/comments/{commentId}/reply', [\App\Http\Controllers\CommentController::class, 'reply']);
+    Route::put('/comments/{id}', [\App\Http\Controllers\CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [\App\Http\Controllers\CommentController::class, 'destroy']);
+    Route::post('/comments/{id}/like', [\App\Http\Controllers\CommentController::class, 'like']);
 });
 
 Route::middleware('auth:sanctum')->post('/update-user-profile-for-test', [UserController::class, 'updateProfileForTest']);

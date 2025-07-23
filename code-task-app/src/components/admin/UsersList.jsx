@@ -9,6 +9,14 @@ import ConfirmationModal from './ConfirmationModal';
 import SuccessNotification from './SuccessNotification';
 import '../../styles/admin/UsersList.css';
 
+function safeRender(val) {
+  if (val == null) return '';
+  if (typeof val === 'string' || typeof val === 'number') return val;
+  if (React.isValidElement(val)) return val;
+  console.error('Tried to render object as React child:', val);
+  return JSON.stringify(val);
+}
+
 const UsersList = () => {
   const { t, i18n } = useTranslation();
   const [users, setUsers] = useState([]);
@@ -193,23 +201,23 @@ const UsersList = () => {
                     <td className="users-list-cell users-list-info">
                       <div className="users-list-info-content">
                         <div className="users-list-avatar">
-                          {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                          {safeRender(user.name ? user.name.charAt(0).toUpperCase() : 'U')}
                         </div>
                         <div className="users-list-details">
-                          <strong>{user.name || t('admin.users.unnamedUser')}</strong>
-                          <span className="users-list-id">ID: {user.id}</span>
+                          <strong>{safeRender(user.name || t('admin.users.unnamedUser'))}</strong>
+                          <span className="users-list-id">ID: {safeRender(user.id)}</span>
                         </div>
                       </div>
                     </td>
                     <td className="users-list-cell users-list-email">
                       <div className="users-list-email-content">
                         <FaEnvelope className="users-list-email-icon" />
-                        <span>{user.email}</span>
+                        <span>{safeRender(user.email)}</span>
                       </div>
                     </td>
                     <td className="users-list-cell users-list-role">
                       <span className={`users-list-role-badge ${user.role || 'user'}`}>
-                        {user.role || 'user'}
+                        {safeRender(user.role || 'user')}
                       </span>
                     </td>
                     <td className="users-list-cell users-list-status">

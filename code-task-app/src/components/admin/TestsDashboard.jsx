@@ -20,6 +20,14 @@ import '../../styles/admin/TestsDashboard.css';
 import apiClient from '../../api/axios';
 import ConfirmationModal from './ConfirmationModal';
 
+function safeRender(val) {
+  if (val == null) return '';
+  if (typeof val === 'string' || typeof val === 'number') return val;
+  if (React.isValidElement(val)) return val;
+  console.error('Tried to render object as React child:', val);
+  return JSON.stringify(val);
+}
+
 const TestsDashboard = () => {
   const { t, i18n } = useTranslation();
   
@@ -438,8 +446,8 @@ const TestsDashboard = () => {
               ) : placementTest ? (
                 <>
                   <div className="test-info">
-                    <div className="test-info-title">{placementTest.title}</div>
-                    <div className="test-info-description">{placementTest.description}</div>
+                    <div className="test-info-title">{safeRender(placementTest?.title)}</div>
+                    <div className="test-info-description">{safeRender(placementTest?.description)}</div>
                   </div>
                   
                   <div className="test-actions">
@@ -515,7 +523,7 @@ const TestsDashboard = () => {
                                   <span className={`question-type-badge ${q.type.toLowerCase()}`}>
                                     {getQuestionTypeIcon(q.type)}
                                   </span>
-                                  <span className="question-text">{q.question}</span>
+                                  <span className="question-text">{safeRender(q.question)}</span>
                                 </div>
                                 <div className="question-actions">
                                   <motion.button
@@ -585,8 +593,8 @@ const TestsDashboard = () => {
               ) : finalProject ? (
                 <>
                   <div className="test-info">
-                    <div className="test-info-title">{finalProject.title}</div>
-                    <div className="test-info-description">{finalProject.description}</div>
+                    <div className="test-info-title">{safeRender(finalProject?.title)}</div>
+                    <div className="test-info-description">{safeRender(finalProject?.description)}</div>
                   </div>
                   
                   <div className="test-actions">
@@ -662,7 +670,7 @@ const TestsDashboard = () => {
                                   <span className={`question-type-badge ${q.type.toLowerCase()}`}>
                                     {getQuestionTypeIcon(q.type)}
                                   </span>
-                                  <span className="question-text">{q.question}</span>
+                                  <span className="question-text">{safeRender(q.question)}</span>
                                   <span>Mark: {q.mark}</span>
                                 </div>
                                 <div className="question-actions">

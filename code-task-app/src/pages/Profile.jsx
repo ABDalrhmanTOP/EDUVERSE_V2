@@ -356,6 +356,9 @@ const Profile = () => {
     await axios.delete(`/subscriptions/remove/${playlistId}`);
   }
 
+  // Helper to safely render text
+  const safeText = (value) => (typeof value === 'string' || typeof value === 'number') ? value : '[Invalid Data]';
+
   if (profileLoading) {
     return (
       <div className="profile-page loading-state">
@@ -413,14 +416,14 @@ const Profile = () => {
             )}
           </div>
           <div className="profile-header-details">
-            <h1 className="profile-name">{name}</h1>
-            <p className="profile-username">@{username}</p>
+            <h1 className="profile-name">{safeText(name)}</h1>
+            <p className="profile-username">@{safeText(username)}</p>
             <div className="profile-meta">
               <span>
-                <FaEnvelope /> {email}
+                <FaEnvelope /> {safeText(email)}
               </span>
               <span>
-                <FaCalendarAlt /> Joined: {joinDate}
+                <FaCalendarAlt /> Joined: {safeText(joinDate)}
               </span>
             </div>
           </div>
@@ -506,23 +509,23 @@ const Profile = () => {
                         <h3>Basic Information</h3>
                         <div className="info-item">
                           <label>Job/Role:</label>
-                          <span>{job}</span>
+                          <span>{safeText(job)}</span>
                         </div>
                         <div className="info-item">
                           <label>Country:</label>
-                          <span>{country}</span>
+                          <span>{safeText(country)}</span>
                         </div>
                         <div className="info-item">
                           <label>Experience Level:</label>
-                          <span>{experience}</span>
+                          <span>{safeText(experience)}</span>
                         </div>
                         <div className="info-item">
                           <label>University:</label>
-                          <span>{university}</span>
+                          <span>{safeText(university)}</span>
                         </div>
                         <div className="info-item">
                           <label>Semester:</label>
-                          <span>{semester}</span>
+                          <span>{safeText(semester)}</span>
                         </div>
                       </div>
                       
@@ -530,23 +533,23 @@ const Profile = () => {
                         <h3>Career & Interests</h3>
                         <div className="info-item">
                           <label>Career Goals:</label>
-                          <span>{careerGoals}</span>
+                          <span>{safeText(careerGoals)}</span>
                         </div>
                         <div className="info-item">
                           <label>Hobbies:</label>
-                          <span>{hobbies}</span>
+                          <span>{safeText(hobbies)}</span>
                         </div>
                         <div className="info-item">
                           <label>Expectations:</label>
-                          <span>{expectations}</span>
+                          <span>{safeText(expectations)}</span>
                         </div>
                         <div className="info-item">
                           <label>Education Level:</label>
-                          <span>{educationLevel}</span>
+                          <span>{safeText(educationLevel)}</span>
                         </div>
                         <div className="info-item">
                           <label>Field of Study:</label>
-                          <span>{fieldOfStudy}</span>
+                          <span>{safeText(fieldOfStudy)}</span>
                         </div>
                       </div>
                       
@@ -555,7 +558,7 @@ const Profile = () => {
                           <h3>Student Information</h3>
                           <div className="info-item">
                             <label>Student Year:</label>
-                            <span>{studentYear}</span>
+                            <span>{safeText(studentYear)}</span>
                           </div>
                         </div>
                       )}
@@ -565,19 +568,19 @@ const Profile = () => {
                           <h3>Professional Information</h3>
                           <div className="info-item">
                             <label>Years of Experience:</label>
-                            <span>{yearsOfExperience}</span>
+                            <span>{safeText(yearsOfExperience)}</span>
                           </div>
                           <div className="info-item">
                             <label>Specialization:</label>
-                            <span>{specialization}</span>
+                            <span>{safeText(specialization)}</span>
                           </div>
                           <div className="info-item">
                             <label>Industry:</label>
-                            <span>{industry}</span>
+                            <span>{safeText(industry)}</span>
                           </div>
                           <div className="info-item">
                             <label>Company Size:</label>
-                            <span>{companySize}</span>
+                            <span>{safeText(companySize)}</span>
                           </div>
                         </div>
                       )}
@@ -587,7 +590,7 @@ const Profile = () => {
                           <h3>Teaching Information</h3>
                           <div className="info-item">
                             <label>Teaching Subject:</label>
-                            <span>{teachingSubject}</span>
+                            <span>{safeText(teachingSubject)}</span>
                           </div>
                         </div>
                       )}
@@ -597,7 +600,7 @@ const Profile = () => {
                           <h3>Research Information</h3>
                           <div className="info-item">
                             <label>Research Field:</label>
-                            <span>{researchField}</span>
+                            <span>{safeText(researchField)}</span>
                           </div>
                         </div>
                       )}

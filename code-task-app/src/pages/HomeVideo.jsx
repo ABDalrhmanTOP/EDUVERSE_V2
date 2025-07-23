@@ -353,7 +353,7 @@ const HomeVideo = () => {
               <div className="category-header">
                 <div className="category-title">
                   <div className="category-icon">
-                    <categoryData.icon />
+                    {categoryData.icon && React.createElement(categoryData.icon, { size: 28, color: '#a68a6d' })}
                   </div>
                   <span>{categoryName}</span>
                 </div>

@@ -139,7 +139,7 @@ const AdminSubscriptions = () => {
   const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
     <div className="admin-stat-card" style={{ '--card-color': color }}>
       <div className="admin-stat-icon">
-        <Icon />
+        {React.createElement(Icon, { size: 32, color })}
       </div>
       <div className="admin-stat-content">
         <h3 className="admin-stat-value">{value}</h3>

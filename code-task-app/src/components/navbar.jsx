@@ -9,6 +9,8 @@ import eduverseLogo from "../assets/2.png";
 import defaultProfile from "../assets/user.png";
 import NotificationDropdown from "./admin/NotificationDropdown";
 import apiClient from "../api/axios";
+import LanguageSwitcher from './admin/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 const navItemVariants = {
   hidden: { opacity: 0, y: -16 },
@@ -16,6 +18,7 @@ const navItemVariants = {
 };
 
 const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
+  const { t, i18n } = useTranslation();
   const { isAuthenticated, user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -45,7 +48,11 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
   const handleLogoClick = () => {
     setFormType(null);
     setIsMobileMenuOpen(false); // Close mobile menu
-    navigate("/");
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    } else {
+      navigate("/");
+    }
   };
 
   const toggleProfileMenu = () => setShowProfileMenu((prev) => !prev);
@@ -124,17 +131,35 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
       }}
     >
       <div className="navbar-container" style={{ maxWidth: 1300, margin: '0 auto', padding: '0 32px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
-        <div className="navbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="navbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
           <img src={eduverseLogo} alt="Eduverse Logo" className="navbar-logo" style={{ height: 32, width: 'auto', cursor: 'pointer', borderRadius: 0, boxShadow: 'none', display: 'block', margin: '0 auto' }} onClick={handleLogoClick} />
         </div>
-        {/* Desktop Nav */}
-        <motion.div className="navbar-center" style={{ display: 'flex', gap: 34, alignItems: 'center' }}>
+        {/* Desktop Nav + Bell */}
+        <motion.div
+          className="navbar-center"
+          style={{
+            display: 'flex',
+            gap: 32,
+            alignItems: 'center',
+            flexWrap: 'nowrap',
+            minWidth: 0,
+            flex: 1,
+            justifyContent: 'flex-start',
+            marginLeft: i18n.language === 'en' ? '-24px' : '0',
+            transition: 'margin 0.2s',
+          }}
+        >
+          {isAuthenticated && (
+            <div style={{ fontSize: 28, display: 'flex', alignItems: 'center', marginRight: 12, flexShrink: 0 }}>
+              <NotificationDropdown />
+            </div>
+          )}
           {isAuthenticated && [
-            { to: '/homevideo', label: 'Courses' },
-            { to: '/chat', label: 'EduBot' },
-            { to: '/community', label: 'Community' },
-            { to: '/subscription-plans', label: 'Subscribe' },
-            ...(user?.role === 'admin' ? [{ to: '/AdminDashboard', label: 'Admin Panel' }] : [])
+            { to: '/homevideo', label: t('navbar.courses') },
+            { to: '/chat', label: t('navbar.edubot') },
+            { to: '/community', label: t('navbar.community') },
+            { to: '/subscription-plans', label: t('navbar.subscribe') },
+            ...(user?.role === 'admin' ? [{ to: '/AdminDashboard', label: t('navbar.adminPanel') }] : [])
           ].map((item, i) => (
             <motion.div
               key={item.to}
@@ -142,19 +167,20 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
               initial="hidden"
               animate="visible"
               variants={navItemVariants}
-              style={{ display: 'inline-block' }}
+              style={{ display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}
             >
               <NavLink
                 to={item.to}
                 className={navLinkClass}
-                style={{ fontSize: '1.08rem', fontWeight: 600, color: '#7a6a6a', padding: '8px 0', borderRadius: 8, transition: 'background 0.2s, color 0.2s' }}
+                style={{ fontSize: '1.08rem', fontWeight: 600, color: '#7a6a6a', padding: '8px 0', borderRadius: 8, transition: 'background 0.2s, color 0.2s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}
               >
                 {item.label}
               </NavLink>
             </motion.div>
           ))}
         </motion.div>
-        <div className="navbar-right" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="navbar-right" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
+          {/* Auth/Profile */}
           {!isAuthenticated && !hideAuthButtons && (
             <div className="auth-buttons-desktop" style={{ display: 'flex', gap: 10 }}>
               <motion.button
@@ -175,7 +201,7 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
                   transition: 'all 0.2s',
                 }}
               >
-                Login
+                {t('navbar.login')}
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.08, background: 'linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%)', color: '#fff' }}
@@ -195,15 +221,12 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
                   transition: 'all 0.2s',
                 }}
               >
-                Register
+                {t('navbar.register')}
               </motion.button>
             </div>
           )}
           {isAuthenticated && (
             <>
-              <div style={{ fontSize: 28, display: 'flex', alignItems: 'center' }}>
-                <NotificationDropdown />
-        </div>
               <div className="profile-container" ref={profileMenuRef} style={{ position: 'relative' }}>
                 <button className="profile-button" onClick={toggleProfileMenu} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   <img src={profileImageUrl} alt="Profile" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(191,174,158,0.10)' }} />
@@ -212,17 +235,21 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
               </button>
                 {showProfileMenu && (
                   <div className="profile-dropdown glassmorphism" style={{ position: 'absolute', top: 48, right: 0, minWidth: 180, background: 'rgba(255,255,255,0.98)', borderRadius: 16, boxShadow: '0 4px 24px rgba(191,174,158,0.14)', zIndex: 100, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <NavLink to="/dashboard" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>Dashboard</NavLink>
-                    <NavLink to="/profile" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>Profile</NavLink>
-                    <NavLink to="/subscription-history" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>Payment History</NavLink>
+                    <NavLink to="/dashboard" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>{t('navbar.dashboard')}</NavLink>
+                    <NavLink to="/profile" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>{t('navbar.profile')}</NavLink>
+                    <NavLink to="/subscription-history" className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#7a6a6a', textDecoration: 'none', fontWeight: 600 }}>{t('navbar.paymentHistory')}</NavLink>
                     <button onClick={handleLogout} className="profile-dropdown-link" style={{ padding: 8, borderRadius: 8, color: '#e53935', background: 'none', border: 'none', fontWeight: 800, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <FiLogOut style={{ color: '#e53935', fontSize: 20 }} /> Logout
+                      <FiLogOut style={{ color: '#e53935', fontSize: 20 }} /> {t('navbar.logout')}
                     </button>
                   </div>
                 )}
             </div>
             </>
           )}
+          {/* LanguageSwitcher at far right with margin */}
+          <div style={{ marginLeft: 16, display: 'flex', alignItems: 'center' }}>
+            <LanguageSwitcher />
+          </div>
           {/* Mobile Menu Button */}
           <button
             className="mobile-menu-toggle burger-only-mobile"
@@ -237,7 +264,7 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
             }}
           >
             {mobileMenuOpen ? <FiX /> : <FiMenu />}
-            </button>
+          </button>
         </div>
       </div>
       {/* Mobile Menu */}
@@ -268,16 +295,16 @@ const Navbar = ({ setFormType, hideAuthButtons, formType }) => {
           >
             {!isAuthenticated && !hideAuthButtons && (
               <>
-                <button onClick={() => handleAuthButtonClick('login')} className="mobile-nav-link" style={{ background: '#fff', color: '#a68a6d', border: '1.5px solid #bfae9e', borderRadius: 12, fontWeight: 700, fontSize: '1.08rem', padding: '12px 0', marginBottom: 10 }}>Login</button>
-                <button onClick={() => handleAuthButtonClick('register')} className="mobile-nav-link register" style={{ background: 'linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: '1.08rem', padding: '12px 0', marginBottom: 18 }}>Register</button>
+                <button onClick={() => handleAuthButtonClick('login')} className="mobile-nav-link" style={{ background: '#fff', color: '#a68a6d', border: '1.5px solid #bfae9e', borderRadius: 12, fontWeight: 700, fontSize: '1.08rem', padding: '12px 0', marginBottom: 10 }}>{t('navbar.login')}</button>
+                <button onClick={() => handleAuthButtonClick('register')} className="mobile-nav-link register" style={{ background: 'linear-gradient(90deg, #bfae9e 0%, #a68a6d 100%)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: '1.08rem', padding: '12px 0', marginBottom: 18 }}>{t('navbar.register')}</button>
                         </>
                     )}
             {isAuthenticated && [
-              { to: '/homevideo', label: 'Courses' },
-              { to: '/chat', label: 'EduBot' },
-              { to: '/community', label: 'Community' },
-              { to: '/subscription-plans', label: 'Subscribe' },
-              ...(user?.role === 'admin' ? [{ to: '/AdminDashboard', label: 'Admin Panel' }] : [])
+              { to: '/homevideo', label: t('navbar.courses') },
+              { to: '/chat', label: t('navbar.edubot') },
+              { to: '/community', label: t('navbar.community') },
+              { to: '/subscription-plans', label: t('navbar.subscribe') },
+              ...(user?.role === 'admin' ? [{ to: '/AdminDashboard', label: t('navbar.adminPanel') }] : [])
             ].map((item, i) => (
               <NavLink
                 key={item.to}

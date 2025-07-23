@@ -17,7 +17,7 @@ const ConfirmationModal = ({
   if (!isOpen) return null;
 
   const getIcon = () => {
-    if (icon) return icon;
+    if (icon) return typeof icon === 'function' ? React.createElement(icon, { size: 32 }) : icon;
     switch (type) {
       case 'danger':
         return <FaTrash />;

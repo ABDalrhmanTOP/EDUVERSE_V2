@@ -180,6 +180,44 @@
   background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg');
   filter: grayscale(1);
 }
+.custom-checkbox {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #fff !important;
+  border: 1.5px solid #bfae9e !important;
+  border-radius: 4px !important;
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  margin-right: 6px;
+  vertical-align: middle;
+  box-shadow: 0 1px 4px rgba(191, 174, 158, 0.06);
+  padding: 0 !important;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+.custom-checkbox:hover {
+  background: #f7f3ef !important;
+  border-color: #a68a6d !important;
+}
+.custom-checkbox:checked {
+  background: #bfae9e !important;
+  border-color: #a68a6d !important;
+}
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1.5px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  border-radius: 1px;
+  transform: rotate(45deg);
+  display: block;
+}
 @media (max-width: 900px) {
   .split-auth-modal-inner {
     flex-direction: column;

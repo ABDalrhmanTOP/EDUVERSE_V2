@@ -194,10 +194,10 @@ const UserForm = ({ editingUser, onSuccess, onClose }) => {
   };
 
   const tabs = [
-    { id: 'basic', label: t('admin.users.basicInformation'), icon: <FaUser /> },
-    { id: 'professional', label: t('admin.users.professionalInformation'), icon: <FaBriefcase /> },
-    { id: 'education', label: t('admin.users.educationInformation'), icon: <FaGraduationCap /> },
-    { id: 'personal', label: t('admin.users.personalInformation'), icon: <FaHeart /> }
+    { id: 'basic', label: t('admin.users.basicInformation'), icon: FaUser },
+    { id: 'professional', label: t('admin.users.professionalInformation'), icon: FaBriefcase },
+    { id: 'education', label: t('admin.users.educationInformation'), icon: FaGraduationCap },
+    { id: 'personal', label: t('admin.users.personalInformation'), icon: FaHeart }
   ];
 
   return (
@@ -226,7 +226,7 @@ const UserForm = ({ editingUser, onSuccess, onClose }) => {
                 className={`user-form-tab ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                {tab.icon}
+                {React.createElement(tab.icon)}
                 <span>{tab.label}</span>
               </button>
             ))}
