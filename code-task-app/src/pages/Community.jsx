@@ -87,8 +87,7 @@ export default function Community() {
             </div>
           ) : posts.length === 0 ? (
             <div className="empty-msg">
-              <img src="/empty-community.svg" alt="No posts" style={{width: 120, opacity: 0.5}} />
-              <div>No posts yet.</div>
+              {/* No posts placeholder removed as per new design */}
             </div>
           ) : (
             posts.map(post => {

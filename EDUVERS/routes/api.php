@@ -23,6 +23,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Admin\FinalProjectController as AdminFinalProjectController;
 use App\Http\Controllers\Admin\FinalProjectQuestionController as AdminFinalProjectQuestionController;
 use App\Http\Controllers\Admin\SubscriptionController;
@@ -72,6 +73,12 @@ Route::get('/check-email', [AuthController::class, 'checkEmail']);
 
 // Add this route to enable POST for course generation
 Route::post('/course/generate', [CourseGenerationController::class, 'generateCourse']);
+
+// DEBUG LOG ROUTE
+Route::post('/debug-log', function (Request $request) {
+    Log::info('DEBUG LOG ENDPOINT HIT', $request->all());
+    return response()->json(['success' => true]);
+});
 
 /*
 |--------------------------------------------------------------------------

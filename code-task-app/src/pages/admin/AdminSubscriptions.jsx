@@ -14,6 +14,8 @@ function safeRender(val) {
 
 const AdminSubscriptions = () => {
   const { t, i18n } = useTranslation();
+  console.log('DEBUG: i18n.language =', i18n.language);
+  console.log('DEBUG: t("admin.subscriptions.title") =', t('admin.subscriptions.title'));
   const [subscriptions, setSubscriptions] = useState([]);
   const [stats, setStats] = useState({
     total_subscriptions: 0,
@@ -34,7 +36,7 @@ const AdminSubscriptions = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [i18n.language]);
 
   const fetchData = async () => {
     try {
@@ -411,6 +413,7 @@ const AdminSubscriptions = () => {
 
 // Edit Subscription Modal Component
 const EditSubscriptionModal = ({ subscription, onClose, onUpdate }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     status: subscription.status,
     start_date: subscription.start_date?.split('T')[0],
@@ -502,6 +505,7 @@ const EditSubscriptionModal = ({ subscription, onClose, onUpdate }) => {
 
 // Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ subscription, onClose, onConfirm }) => {
+  const { t } = useTranslation();
   return (
     <div className="modal-overlay">
       <div className="modal-content delete-modal">
@@ -535,6 +539,7 @@ const DeleteConfirmationModal = ({ subscription, onClose, onConfirm }) => {
 
 // Subscription Details Modal Component
 const SubscriptionDetailsModal = ({ subscription, onClose }) => {
+  const { t } = useTranslation();
   return (
     <div className="modal-overlay">
       <div className="modal-content details-modal">

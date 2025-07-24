@@ -120,15 +120,48 @@ const SubscriptionPlans = () => {
   };
 
   return (
-    <div className="subscription-plans-container">
-      <div className="subscription-header">
-        <h1>Choose Your Subscription Plan</h1>
-        <p>Select the plan that best fits your learning goals. All plans are one-time payments and give you lifetime access to the selected courses.</p>
+    <div className="subscription-plans-container" style={{ marginTop: '90px' }}>
+      <div className="subscription-header" style={{ marginBottom: '2.5rem' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#b5a079', marginBottom: '0.7rem', letterSpacing: '1px', textShadow: '0 2px 12px #e3cfa4' }}>
+          Choose Your <span style={{ color: '#7d6a4d', textShadow: 'none' }}>Subscription Plan</span>
+        </h1>
+        <p style={{ fontSize: '1.18rem', color: '#7d6a4d', maxWidth: 650, margin: '0 auto', fontWeight: 500, lineHeight: 1.7, background: 'linear-gradient(90deg, #fffbe9 0%, #e3cfa4 100%)', borderRadius: 12, padding: '1.1rem 1.5rem', boxShadow: '0 2px 12px #e3cfa422' }}>
+          Select the plan that best fits your learning goals.<br />
+          <span style={{ color: '#b5a079', fontWeight: 700 }}>All plans are one-time payments</span> and give you <span style={{ color: '#10b981', fontWeight: 700 }}>lifetime access</span> to the selected courses.
+        </p>
       </div>
       <div className="plans-list">
         {plans.map((plan, idx) => (
-          <div className={`plan-card${idx === 1 ? ' popular' : ''}`} key={plan.id}>
-            {idx === 1 && <div className="popular-badge">Most Popular</div>}
+          <div
+            className={`plan-card${idx === 1 ? ' popular' : ''}`}
+            key={plan.id}
+            style={idx === 1 ? { position: 'relative', paddingTop: '4.2rem' } : {}}
+          >
+            {idx === 1 && (
+              <div
+                className="popular-badge"
+                style={{
+                  position: 'absolute',
+                  top: '18px',
+                  right: '18px',
+                  left: 'unset',
+                  margin: 0,
+                  background: 'linear-gradient(135deg, #b5a079, #7d6a4d)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.5px',
+                  zIndex: 3,
+                  padding: '0.4rem 1.1rem',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px 0 rgba(181,160,121,0.13)',
+                  border: '2px solid #f5f1eb',
+                  width: 'fit-content',
+                }}
+              >
+                Most Popular
+              </div>
+            )}
             <div className="plan-header">
               <h2>{plan.title}</h2>
               <p>{plan.description}</p>

@@ -127,12 +127,10 @@ const AdminDashboard = () => {
     { id: 'courses', label: t('admin.navigation.courses'), icon: FaBook, path: '/AdminDashboard/courses' },
     { id: 'tasks', label: t('admin.navigation.tasks'), icon: FaTasks, path: '/AdminDashboard/tasks' },
     { id: 'tests', label: t('admin.navigation.tests') || 'Tests', icon: FaClipboardCheck, path: '/AdminDashboard/tests' },
-    { id: 'subscriptions', label: 'Subscriptions', icon: FaCreditCard, path: '/AdminDashboard/subscriptions' },
-    { id: 'edubot', label: getEduBotText(), icon: FaRobot, path: '/AdminDashboard/edubot' },
+    { id: 'subscriptions', label: t('admin.navigation.subscriptions') || 'Subscriptions', icon: FaCreditCard, path: '/AdminDashboard/subscriptions' },
     { id: 'users', label: t('admin.navigation.users'), icon: FaUsers, path: '/AdminDashboard/users' },
     { id: 'analytics', label: t('admin.navigation.reports'), icon: FaChartBar, path: '/AdminDashboard/analytics' },
-    { id: 'settings', label: t('admin.navigation.settings'), icon: FaCog, path: '/AdminDashboard/settings' },
-    { id: 'profile', label: t('admin.navigation.profile'), icon: FaUserPlus, path: '/AdminDashboard/profile' }
+    // settings, profile remain removed
   ];
 
   const StatCard = ({ title, value, icon: Icon, color, delay }) => (
@@ -178,7 +176,6 @@ const AdminDashboard = () => {
               <p className="admin-welcome-subtitle">{t('admin.dashboard.subtitle')}</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <LanguageSwitcher />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -301,12 +298,10 @@ const AdminDashboard = () => {
             );
           })}
         </nav>
-        <div className="admin-sidebar-footer">
-          <button onClick={handleLogout} className="admin-logout-btn">
-            <FaSignOutAlt />
-            <span>{t('admin.navigation.logout')}</span>
-          </button>
-        </div>
+        <button onClick={handleLogout} className="admin-logout-btn" style={{width: '90%', minWidth: 220, maxWidth: 320, margin: '16px auto 0 auto', display: 'flex', justifyContent: 'center'}}>
+          <FaSignOutAlt />
+          <span>{t('admin.navigation.logout')}</span>
+        </button>
       </motion.div>
       {/* Main Content */}
       <div className="admin-main-content">

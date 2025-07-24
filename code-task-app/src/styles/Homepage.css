@@ -1185,3 +1185,6 @@ body, .animated-intro-section {
   margin-bottom: 0;
   margin-left: 0;
 }
+.feature-block-content.reverse {
+  flex-direction: row-reverse;
+}

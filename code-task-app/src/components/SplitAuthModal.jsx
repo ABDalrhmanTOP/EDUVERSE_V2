@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/Auth.css";
 import axios from "../api/axios";
 import { FaGoogle, FaGithub, FaCheckCircle, FaExclamationCircle, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useTranslation } from 'react-i18next';
 
 const validateEmail = (email) => {
   // Simple email regex
@@ -23,6 +24,7 @@ const GOOGLE_G_SVG = (
 );
 
 const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, errorMessage, hideCloseButton }) => {
+  const { t, i18n } = useTranslation();
   // --- Validation variables FIRST ---
   const [form, setForm] = useState({
     name: "",
@@ -64,6 +66,18 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
+
+  useEffect(() => {
+    if (i18n.language === 'ar') {
+      document.documentElement.dir = 'rtl';
+      document.body.classList.add('rtl');
+      document.body.classList.remove('ltr');
+    } else {
+      document.documentElement.dir = 'ltr';
+      document.body.classList.add('ltr');
+      document.body.classList.remove('rtl');
+    }
+  }, [i18n.language]);
 
   const handleResendCode = async () => {
     setApiError("");
@@ -169,9 +183,9 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
         // After registration, redirect to placement test (academic form)
         // You may need to get the courseId for the default course, or redirect to a course selection page
         // For now, redirect to /placement-test/1 as a default
-        setTimeout(() => {
-          window.location.href = '/placement-test/1';
-        }, 1000);
+        // setTimeout(() => {
+        //   window.location.href = '/placement-test/1';
+        // }, 1000);
       }
     } catch (err) {
       setApiError(err.response?.data?.message || "Login/Register failed. Please try again.");
@@ -252,11 +266,11 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
   const slideClass = isLogin ? "split-modal-slide-left" : "split-modal-slide-right";
 
   return (
-    <div className={`split-auth-modal-inner ${slideClass}`} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'stretch', justifyContent: 'stretch', position: 'relative', fontFamily: 'Inter, Lato, Nunito, Arial, sans-serif' }}>
+    <div className={`split-auth-modal-inner ${slideClass} ${i18n.language === 'ar' ? 'rtl' : ''}`} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'stretch', justifyContent: 'stretch', position: 'relative', fontFamily: 'Inter, Lato, Nunito, Arial, sans-serif' }}>
       {/* Form side */}
       <div className={`split-auth-modal-form-side ${isLogin ? "left" : "right"}`}>
         <div className="split-auth-modal-form-content glassmorphism" style={{ fontFamily: 'Inter, Lato, Nunito, Arial, sans-serif', padding: 56, borderRadius: 36, boxShadow: '0 12px 48px 0 rgba(191, 174, 158, 0.22)', maxWidth: 580, minWidth: 420, width: '100%', minHeight: 600, marginTop: 32 }}>
-          <h1 className="split-auth-modal-title" style={{ fontFamily: 'Nunito, Inter, Lato, Arial, sans-serif', fontWeight: 900, fontSize: '2.7rem', marginBottom: 18, textAlign: 'center', letterSpacing: '-1px', textShadow: '0 2px 12px rgba(191, 174, 158, 0.08)' }}>{isLogin ? "Login" : "Register"}</h1>
+          <h1 className="split-auth-modal-title" style={{ fontFamily: 'Nunito, Inter, Lato, Arial, sans-serif', fontWeight: 900, fontSize: '2.7rem', marginBottom: 18, textAlign: 'center', letterSpacing: '-1px', textShadow: '0 2px 12px rgba(191, 174, 158, 0.08)' }}>{isLogin ? t('navbar.login') : t('navbar.register')}</h1>
           <div style={{ display: 'flex', gap: 32, marginBottom: 28, width: '100%', justifyContent: 'center' }}>
             <button type="button" className="social-btn google" onClick={() => handleSocialLogin('google')} disabled={socialLoading} style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, background: '#fff', border: '2.5px solid #e6d3b3', boxShadow: '0 2px 8px rgba(191, 174, 158, 0.10)', transition: 'box-shadow 0.2s, border 0.2s', cursor: 'pointer' }}>
               {GOOGLE_G_SVG}
@@ -272,7 +286,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
               <input
                 type="text"
                 name="emailOrUsername"
-                placeholder="Email or Username"
+                placeholder={t('common.email') + ' / ' + t('common.username')}
                 value={form.emailOrUsername}
                 onChange={handleChange}
                 onBlur={() => setEmailTouched(true)}
@@ -280,20 +294,20 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                 style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}
               />
               {emailTouched && form.emailOrUsername && !validateEmail(form.emailOrUsername) && form.emailOrUsername.includes('@') && (
-                <div className="feedback error-pill"><FaExclamationCircle style={{ color: '#e53935', marginRight: 6 }} /> Invalid email format</div>
+                <div className="feedback error-pill"><FaExclamationCircle style={{ color: '#e53935', marginRight: 6 }} /> {t('admin.forms.validation.email')}</div>
               )}
               <div style={{ position: 'relative', width: '100%' }}>
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  placeholder="Password"
+                  placeholder={t('common.password')}
                   value={form.password}
                   onChange={handleChange}
                   onBlur={() => setPasswordTouched(true)}
                   required
                   style={{ paddingRight: 44, minWidth: 0, width: '100%', boxSizing: 'border-box' }}
                 />
-                <button type="button" tabIndex={-1} aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <button type="button" tabIndex={-1} aria-label={showPassword ? t('common.hidePassword', 'Hide password') : t('common.showPassword', 'Show password')} onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {showPassword ? React.createElement(FaEyeSlash, { style: { fontSize: 20 } }) : React.createElement(FaEye, { style: { fontSize: 20 } })}
                 </button>
               </div>
@@ -305,10 +319,10 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   onChange={e => setKeepLoggedIn(e.target.checked)}
                   className="custom-checkbox"
                 />
-                <label htmlFor="keepLoggedIn" className="custom-checkbox-label">Keep me logged in</label>
+                <label htmlFor="keepLoggedIn" className="custom-checkbox-label">{t('common.keepMeLoggedIn', 'Keep me logged in')}</label>
               </div>
               <button type="submit" disabled={apiLoading || isLoading || !form.emailOrUsername || !form.password} className="split-auth-modal-submit-btn">
-                {(apiLoading || isLoading) ? "Logging in..." : "Login"}
+                {(apiLoading || isLoading) ? t('common.loading') : t('navbar.login')}
               </button>
               {errorMessage && <div className="feedback error-pill"><FaExclamationCircle style={{ color: '#e53935', marginRight: 6 }} /> {errorMessage}</div>}
             </form>
@@ -319,7 +333,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   <input
                     type="text"
                     name="name"
-                    placeholder="Full Name"
+                    placeholder={t('admin.forms.fields.fullName')}
                     value={form.name}
                     onChange={handleChange}
                     required
@@ -330,7 +344,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   <input
                     type="text"
                     name="username"
-                    placeholder="Username"
+                    placeholder={t('common.username')}
                     value={form.username}
                     onChange={handleChange}
                     onBlur={() => { setUsernameTouched(true); checkUsernameAvailability(); }}
@@ -341,12 +355,12 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   {usernameTouched && form.username && (
                     checkingUsername ? (
                       <div className="feedback-pill" style={{ background: '#fff8e1', color: '#bfae9e', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, marginTop: 8 }}>
-                        Checking username...
+                        {t('common.checkingUsername', 'Checking username...')}
                       </div>
                     ) : usernameAvailable === true ? (
-                      <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>Username is available</span></div>
+                      <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>{t('common.usernameAvailable', 'Username is available')}</span></div>
                     ) : usernameAvailable === false ? (
-                      <div className="feedback-pill error-pill" style={{ background: '#ffebee', color: '#e53935', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #e5393522', marginTop: 8 }}><FaExclamationCircle style={{ color: '#e53935', fontSize: 18 }} /> <span style={{ fontWeight: 700 }}>Username is taken</span></div>
+                      <div className="feedback-pill error-pill" style={{ background: '#ffebee', color: '#e53935', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #e5393522', marginTop: 8 }}><FaExclamationCircle style={{ color: '#e53935', fontSize: 18 }} /> <span style={{ fontWeight: 700 }}>{t('common.usernameTaken', 'Username is taken')}</span></div>
                     ) : null
                   )}
                 </div>
@@ -354,7 +368,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   <input
                     type="text"
                     name="emailOrUsername"
-                    placeholder="Email"
+                    placeholder={t('common.email')}
                     value={form.emailOrUsername}
                     onChange={handleChange}
                     onBlur={() => { setEmailTouched(true); checkEmailAvailability(); }}
@@ -365,12 +379,12 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   {emailTouched && form.emailOrUsername && (
                     checkingEmail ? (
                       <div className="feedback-pill" style={{ background: '#fff8e1', color: '#bfae9e', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, marginTop: 8 }}>
-                        Checking email...
+                        {t('common.checkingEmail', 'Checking email...')}
                       </div>
                     ) : emailAvailable === true ? (
-                      <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>Email is available</span></div>
+                      <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>{t('common.emailAvailable', 'Email is available')}</span></div>
                     ) : emailAvailable === false ? (
-                      <div className="feedback-pill error-pill" style={{ background: '#ffebee', color: '#e53935', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #e5393522', marginTop: 8 }}><FaExclamationCircle style={{ color: '#e53935', fontSize: 18 }} /> <span style={{ fontWeight: 700 }}>Email is taken</span></div>
+                      <div className="feedback-pill error-pill" style={{ background: '#ffebee', color: '#e53935', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #e5393522', marginTop: 8 }}><FaExclamationCircle style={{ color: '#e53935', fontSize: 18 }} /> <span style={{ fontWeight: 700 }}>{t('common.emailTaken', 'Email is taken')}</span></div>
                     ) : null
                   )}
                 </div>
@@ -379,14 +393,14 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      placeholder="Password"
+                      placeholder={t('common.password')}
                       value={form.password}
                       onChange={handleChange}
                       onBlur={() => setPasswordTouched(true)}
                       required
                       style={{ paddingRight: 44, minWidth: 0, width: '100%', boxSizing: 'border-box' }}
                     />
-                    <button type="button" tabIndex={-1} aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button type="button" tabIndex={-1} aria-label={showPassword ? t('common.hidePassword', 'Hide password') : t('common.showPassword', 'Show password')} onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {showPassword ? React.createElement(FaEyeSlash, { style: { fontSize: 20 } }) : React.createElement(FaEye, { style: { fontSize: 20 } })}
                     </button>
                   </div>
@@ -398,7 +412,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   )}
                   {/* Show success if all requirements met */}
                   {passwordTouched && emailValid && missingRequirements.length === 0 && (
-                    <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>Password is strong</span></div>
+                    <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>{t('common.passwordStrong', 'Password is strong')}</span></div>
                   )}
                 </div>
                 <div className="form-field" style={{ width: '100%' }}>
@@ -406,7 +420,7 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       name="confirmPassword"
-                      placeholder="Confirm Password"
+                      placeholder={t('common.confirmPassword')}
                       value={form.confirmPassword}
                       onChange={handleChange}
                       onBlur={() => setConfirmTouched(true)}
@@ -415,28 +429,28 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                       onPaste={e => e.preventDefault()}
                       onCopy={e => e.preventDefault()}
                     />
-                    <button type="button" tabIndex={-1} aria-label={showConfirmPassword ? "Hide password" : "Show password"} onClick={() => setShowConfirmPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button type="button" tabIndex={-1} aria-label={showConfirmPassword ? t('common.hidePassword', 'Hide password') : t('common.showPassword', 'Show password')} onClick={() => setShowConfirmPassword(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bfae9e', fontSize: 20, padding: 0, margin: 0, lineHeight: 1, height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {showConfirmPassword ? React.createElement(FaEyeSlash, { style: { fontSize: 20 } }) : React.createElement(FaEye, { style: { fontSize: 20 } })}
                     </button>
                   </div>
                   {/* Confirm password feedback */}
                   {confirmTouched && emailValid && passwordValid && (
                     passwordsMatch ? (
-                      <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>Passwords match</span></div>
+                      <div className="feedback-pill success-pill" style={{ background: '#e8f5e9', color: '#43a047', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '10px 18px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #43a04722', marginTop: 8 }}><FaCheckCircle style={{ color: '#43a047', fontSize: 18 }} /> <span style={{ fontWeight: 700, fontSize: 16 }}>{t('common.passwordsMatch', 'Passwords match')}</span></div>
                     ) : (
-                      <div className="feedback-pill error-pill" style={{ background: '#ffebee', color: '#e53935', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #e5393522', marginTop: 8 }}><FaExclamationCircle style={{ color: '#e53935', fontSize: 18 }} /> <span style={{ fontWeight: 700 }}>Passwords do not match</span></div>
+                      <div className="feedback-pill error-pill" style={{ background: '#ffebee', color: '#e53935', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 18, padding: '8px 16px', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 8px #e5393522', marginTop: 8 }}><FaExclamationCircle style={{ color: '#e53935', fontSize: 18 }} /> <span style={{ fontWeight: 700 }}>{t('admin.forms.validation.passwordMatch')}</span></div>
                     )
                   )}
                 </div>
                 <button type="submit" disabled={apiLoading || isLoading || !validateEmail(form.emailOrUsername) || !passwordValid || !confirmValid || usernameAvailable === false || emailAvailable === false} className="split-auth-modal-submit-btn">
-                  {(apiLoading || isLoading) ? "Registering..." : "Register"}
+                  {(apiLoading || isLoading) ? t('common.loading') : t('navbar.register')}
                 </button>
                 {errorMessage && <div className="feedback error-pill"><FaExclamationCircle style={{ color: '#e53935', marginRight: 6 }} /> <span style={{ fontWeight: 700 }}>{errorMessage}</span></div>}
               </form>
             ) : (
               <form className="split-auth-modal-form" onSubmit={handleVerifyCode}>
                 <div className="form-field">
-                  <label htmlFor="verificationCode" style={{ fontWeight: 700, color: '#a68a6d', marginBottom: 8 }}>Enter the 6-digit code sent to <span style={{ color: '#bfae9e' }}>{codeSentEmail}</span>:</label>
+                  <label htmlFor="verificationCode" style={{ fontWeight: 700, color: '#a68a6d', marginBottom: 8 }}>{t('common.enterCode', 'Enter the 6-digit code sent to')} <span style={{ color: '#bfae9e' }}>{codeSentEmail}</span>:</label>
                   <input
                     id="verificationCode"
                     type="text"
@@ -452,12 +466,12 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
                   {codeError && <div className="feedback error-pill" style={{ marginTop: 8 }}>{codeError}</div>}
                 </div>
                 <button type="submit" className="split-auth-modal-submit-btn" disabled={codeLoading || verificationCode.length !== 6}>
-                  {codeLoading ? "Verifying..." : "Verify & Complete Registration"}
+                  {codeLoading ? t('common.verifying', 'Verifying...') : t('common.verifyAndComplete', 'Verify & Complete Registration')}
                 </button>
                 <div style={{ marginTop: 18, textAlign: 'center', color: '#7a6a6a', fontSize: 15 }}>
-                  Didn't get the code?{' '}
+                  {t('common.didntGetCode', "Didn't get the code?")} {' '}
                   <button type="button" onClick={handleResendCode} disabled={resendCooldown > 0 || apiLoading} style={{ color: '#a68a6d', background: 'none', border: 'none', fontWeight: 700, cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer', textDecoration: 'underline', marginLeft: 4 }}>
-                    Resend {resendCooldown > 0 ? `(${resendCooldown}s)` : ''}
+                    {t('common.resend', 'Resend')} {resendCooldown > 0 ? `(${resendCooldown}s)` : ''}
                   </button>
                 </div>
                 {resendMessage && <div style={{ color: resendMessage.startsWith('Failed') ? '#e53935' : '#43a047', marginTop: 8, textAlign: 'center', fontWeight: 600 }}>{resendMessage}</div>}
@@ -467,13 +481,13 @@ const SplitAuthModal = ({ mode, onClose, onSwitchMode, onSubmit, isLoading, erro
           <div className="split-auth-modal-switch">
             {isLogin ? (
               <>
-                No account yet?{' '}
-                <span onClick={onSwitchMode}>Register here</span>
+                {t('common.noAccount', 'No account yet?')} {' '}
+                <span onClick={onSwitchMode}>{t('navbar.register')}</span>
               </>
             ) : (
               <>
-                Have an account?{' '}
-                <span onClick={onSwitchMode}>Login here</span>
+                {t('common.alreadyRegistered', 'Have an account?')} {' '}
+                <span onClick={onSwitchMode}>{t('navbar.login')}</span>
               </>
             )}
           </div>

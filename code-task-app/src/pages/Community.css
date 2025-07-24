@@ -10,7 +10,7 @@ body, .community-page, .community-post-details {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 48px 0 32px 0;
+  padding: 108px 0 32px 0; /* Increased top padding to clear navbar */
 }
 
 .community-main-card {
@@ -85,16 +85,26 @@ body, .community-page, .community-post-details {
 
 /* Button Enhancements */
 .add-post-btn.gradient-btn {
-  background: linear-gradient(90deg, #e3cfa4 60%, #b5a079 100%);
-  color: #fff;
-  font-weight: bold;
-  padding: 10px 24px;
-  border-radius: 12px;
-  font-size: 1.08rem;
-  box-shadow: 0 2px 8px #e3cfa4;
-  border: none;
-  letter-spacing: 0.5px;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  background: linear-gradient(90deg, #e3cfa4 60%, #b5a079 100%) !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  padding: 3px 8px !important; /* Even smaller button */
+  border-radius: 8px !important;
+  font-size: 0.82rem !important; /* Smaller font */
+  box-shadow: 0 2px 8px #e3cfa4 !important;
+  border: none !important;
+  letter-spacing: 0.5px !important;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-height: unset !important;
+  min-width: unset !important;
+  height: auto !important;
+  width: auto !important;
+}
+.add-post-btn.gradient-btn svg {
+  font-size: 1em !important; /* Make icon smaller */
 }
 .add-post-btn.gradient-btn:hover {
   background: linear-gradient(90deg, #b5a079 60%, #e3cfa4 100%);
@@ -242,18 +252,13 @@ body, .community-page, .community-post-details {
   padding-right: 2px;
 }
 
-.empty-msg {
-  color: #b5a079;
-  text-align: center;
-  margin: 40px 0;
-  font-size: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  opacity: 0.8;
-  min-height: 120px;
-  justify-content: center;
+/* Remove placeholder image and text for empty state */
+/* Remove or override the .empty-msg img and .empty-msg div for no posts */
+.empty-msg img {
+  display: none !important;
+}
+.empty-msg div {
+  display: none !important;
 }
 
 .loader {
@@ -277,33 +282,64 @@ body, .community-page, .community-post-details {
   align-items: center;
   margin-left: 12px;
 }
-.icon-btn {
-  background: rgba(245, 241, 235, 0.85);
-  border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  display: flex;
+/* --- Admin-style Action Buttons for Community --- */
+.action-btn {
+  background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+  border: 2px solid #e3cfa4;
+  border-radius: 10px;
+  color: #8b7355;
+  font-size: 1.3rem;
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
+  margin: 0 2px;
+  outline: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  color: #b5a079;
-  box-shadow: 0 2px 8px #e3cfa422;
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.13s;
-  outline: none;
 }
-.icon-btn.edit-btn:hover {
-  background: linear-gradient(90deg, #e3cfa4 60%, #b5a079 100%);
-  color: #fff;
-  transform: scale(1.08);
-  box-shadow: 0 4px 16px #b5a07944;
+.action-btn:focus {
+  border-color: #b8860b;
+  box-shadow: 0 0 0 2px #b8860b33;
 }
-.icon-btn.delete-btn:hover {
-  background: linear-gradient(90deg, #b94a48 60%, #e3cfa4 100%);
+.action-btn.edit-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: 2px solid #f59e0b;
+}
+.action-btn.edit-btn:hover, .action-btn.edit-btn:focus {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  border-color: #b45309;
   color: #fff;
-  transform: scale(1.08);
-  box-shadow: 0 4px 16px #b94a4844;
+}
+.action-btn.delete-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: 2px solid #ef4444;
+}
+.action-btn.delete-btn:hover, .action-btn.delete-btn:focus {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #b91c1c;
+  color: #fff;
+}
+.action-btn.edit-btn svg, .action-btn.delete-btn svg {
+  color: #fff !important;
+  fill: #fff !important;
+  width: 1.3em !important;
+  height: 1.3em !important;
+  vertical-align: middle;
+  display: inline-block;
+  visibility: visible !important;
+}
+.action-btn.edit-btn svg path, .action-btn.delete-btn svg path {
+  fill: #fff !important;
+  stroke: #fff !important;
+}
+/* Remove old .icon-btn styles for these buttons */
+.icon-btn.edit-btn, .icon-btn.delete-btn {
+  all: unset;
+  display: inline-flex;
 }
 .edit-post-title-input, .edit-post-content-input {
   width: 100%;

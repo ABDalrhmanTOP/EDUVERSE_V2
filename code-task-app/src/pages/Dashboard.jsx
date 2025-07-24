@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaBook, FaMedal, FaFire, FaChartLine, FaPlayCircle, FaUserCircle, FaRegImage } from 'react-icons/fa';
 import axios from '../api/axios';
 import '../styles/Dashboard.css';
+import { useNavigate } from 'react-router-dom';
 
 const THEME = {
   primary: '#bfae9e',
@@ -215,6 +216,7 @@ const Dashboard = () => {
   const [progress, setProgress] = useState([]); // user progress per course
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Live clock
   useEffect(() => {
@@ -238,6 +240,11 @@ const Dashboard = () => {
           return;
         }
         setUser(userRes.data);
+        // --- REDIRECT if user has not completed general form ---
+        if (userRes.data && userRes.data.has_completed_general_form === false) {
+          navigate('/placement-test/1');
+          return;
+        }
         Promise.all([
           axios.get('/courses'),
           axios.get('/user-progress/all'),
@@ -258,7 +265,7 @@ const Dashboard = () => {
         setLoading(false);
       });
     return () => { isMounted = false; };
-  }, []);
+  }, [navigate]);
 
   // Aggregate daily activity: count of completed tasks per day (last 7 days)
   const dailyActivity = (() => {
