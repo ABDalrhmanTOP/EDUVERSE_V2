@@ -26,6 +26,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => $request->role ?? 'user',
+            'has_completed_general_form' => false, // Ensure new users always start with this as false
         ]);
 
         // Create welcome notification for new user

@@ -90,7 +90,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        $user->has_completed_general_form = (bool) ($user->has_completed_general_form ?? false);
+        return $user;
     });
 
     // User progress

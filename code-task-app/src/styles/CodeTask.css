@@ -97,9 +97,66 @@
 .editor-wrapper {
   width: 100%;
   height: 450px; /* Matches YouTube video height */
-  border-radius: 0 0 12px 12px;
+  border-radius: 8px;
   overflow: hidden;
   position: relative;
+  border: 2px solid #dee2e6;
+  background-color: #1e1e1e;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Ensure Monaco Editor fills the container */
+.editor-wrapper .monaco-editor {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Fix for Monaco Editor container */
+.editor-wrapper > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Fallback textarea styling */
+.fallback-textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  padding: 15px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: #1e1e1e;
+  color: #abb2bf;
+  border: none;
+  outline: none;
+  resize: vertical;
+  border-radius: 8px;
+}
+
+.fallback-textarea::placeholder {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.fallback-textarea:focus {
+  background-color: #1e1e1e;
+  color: #abb2bf;
+}
+
+/* Loading message styling */
+.loading-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: #1e1e1e;
+  color: #abb2bf;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
 }
 
 /* ========= Submit Button ========= */
@@ -353,45 +410,329 @@
   background-color: #e0e0e0;
 }
 
+.mcq-option-button {
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px 20px;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #495057;
+}
+
+.mcq-option-button:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.no-options-message {
+  text-align: center;
+  padding: 20px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.no-options-message p {
+  margin: 5px 0;
+  color: #856404;
+  font-size: 0.95rem;
+}
+
+.no-options-message p:first-child {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* ========= Task Header ========= */
+.task-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.task-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.task-type-badge svg {
+  font-size: 1rem;
+}
+
+/* ========= True/False Question Container ========= */
+.tf-question-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.tf-instructions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 1px solid #ffc107;
+  color: #856404;
+  font-weight: 500;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+}
+
+.instruction-icon {
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+/* ========= Enhanced True/False Buttons ========= */
 .tf-buttons {
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 20px;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  justify-content: center;
 }
 
-.tf-buttons button {
+.tf-button {
   flex: 1;
-  margin: 0 10px;
-  padding: 15px;
-  font-size: 1rem;
+  max-width: 180px;
+  height: 120px;
   border: none;
-  border-radius: 4px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #dee2e6;
 }
 
-.tf-buttons button.true {
-  background-color: #28a745;
-  color: #fff;
+.tf-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
 }
 
-.tf-buttons button.false {
-  background-color: #dc3545;
-  color: #fff;
+.tf-button:hover::before {
+  left: 100%;
 }
 
-.tf-buttons button:hover {
-  opacity: 0.9;
-}
-.task-hint {
-  font-size: 0.95rem;
-  color: #d9534f;
-  margin-top: 10px;
-  display: none;
+.tf-button.true {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-color: #28a745;
+  color: white;
 }
 
-.task-hint.visible {
-  display: block;
+.tf-button.false {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+  border-color: #dc3545;
+  color: white;
+}
+
+.tf-button.selected {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.tf-button.true.selected {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  border-color: #20c997;
+}
+
+.tf-button.false.selected {
+  background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+  border-color: #fd7e14;
+}
+
+.tf-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.tf-button.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tf-button.disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tf-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  padding: 20px;
+}
+
+.tf-icon {
+  font-size: 2.5rem;
+  transition: transform 0.3s ease;
+}
+
+.tf-button:hover .tf-icon {
+  transform: scale(1.1);
+}
+
+.tf-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ========= Attempts Counter ========= */
+.attempts-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ========= Enhanced Feedback Modal ========= */
+.feedback-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  z-index: 1000;
+  animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 400px;
+  width: 90%;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.feedback-message {
+  margin: 20px 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.try-again-button {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  margin-top: 15px;
+}
+
+.try-again-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+}
+
+/* ========= Responsive Design ========= */
+@media (max-width: 768px) {
+  .tf-buttons {
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+  }
+  
+  .tf-button {
+    max-width: none;
+    height: 100px;
+  }
+  
+  .tf-icon {
+    font-size: 2rem;
+  }
+  
+  .tf-text {
+    font-size: 1.1rem;
+  }
+  
+  .task-header {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .tf-instructions {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tf-button {
+    height: 80px;
+  }
+  
+  .tf-icon {
+    font-size: 1.8rem;
+  }
+  
+  .tf-text {
+    font-size: 1rem;
+  }
+  
+  .feedback-modal {
+    padding: 20px;
+    margin: 20px;
+  }
 }
 
 /* ========= Animations ========= */
@@ -438,5 +779,194 @@
   }
   75% {
     transform: translateX(-5px);
+  }
+}
+
+/* ========= MCQ Question Container ========= */
+.mcq-question-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.mcq-instructions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 1px solid #ffc107;
+  color: #856404;
+  font-weight: 500;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+}
+
+/* ========= Enhanced MCQ Options ========= */
+.mcq-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.mcq-option-button {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  padding: 0;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  color: #495057;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mcq-option-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.mcq-option-button:hover::before {
+  left: 100%;
+}
+
+.mcq-option-button:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  border-color: #adb5bd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.mcq-option-button.selected {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-color: #007bff;
+  color: white;
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+}
+
+.mcq-option-button.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mcq-option-button.disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mcq-option-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 20px;
+  width: 100%;
+}
+
+.mcq-option-key {
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 40px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.mcq-option-button.selected .mcq-option-key {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mcq-option-text {
+  flex: 1;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ========= No Options Message ========= */
+.no-options-message {
+  text-align: center;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.no-options-message p {
+  margin: 8px 0;
+  color: #856404;
+  font-size: 1rem;
+}
+
+.no-options-message p:first-child {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* ========= Responsive Design for MCQ ========= */
+@media (max-width: 768px) {
+  .mcq-options {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+  
+  .mcq-option-content {
+    padding: 15px 16px;
+    gap: 12px;
+  }
+  
+  .mcq-option-key {
+    min-width: 35px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+  
+  .mcq-option-text {
+    font-size: 0.95rem;
+  }
+  
+  .mcq-instructions {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mcq-option-content {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  
+  .mcq-option-key {
+    min-width: 30px;
+    padding: 5px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .mcq-option-text {
+    font-size: 0.9rem;
+  }
+  
+  .no-options-message {
+    padding: 20px 15px;
   }
 }

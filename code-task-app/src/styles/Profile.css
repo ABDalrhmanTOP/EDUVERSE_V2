@@ -52,6 +52,7 @@ body::-webkit-scrollbar-thumb {
 /* --- Profile Page --- */
 .profile-page {
     padding: calc(var(--spacing-unit) * 2) var(--spacing-unit);
+    margin-top: 72px; /* Add space for fixed navbar */
 }
 
 /* Renamed from .profile-container to .profile-page-container to avoid conflict */
@@ -59,7 +60,7 @@ body::-webkit-scrollbar-thumb {
     max-width: 1000px;
     margin: 0 auto;
     background-color: var(--bg-card);
-    border-radius: var(--border-radius);
+    border-radius: 50px; /* Make edges circular/pill-shaped */
     box-shadow: var(--box-shadow);
     overflow: hidden; /* Contain children */
 }

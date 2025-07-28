@@ -23,12 +23,44 @@ const TaskForm = ({
     timestamp: task.timestamp || '',
     points: task.points || 1,
     question: task.question || task.prompt || '', // Use prompt for question text
-    options: Array.isArray(task.options) ? task.options : (task.options ? JSON.parse(task.options) : ['', '', '', '']),
+    options: (() => {
+      // Handle different possible formats of task.options
+      if (Array.isArray(task.options)) {
+        return task.options;
+      } else if (typeof task.options === 'string') {
+        try {
+          return JSON.parse(task.options);
+        } catch (e) {
+          console.warn("Unable to parse task options as JSON:", e);
+          return ['', '', '', ''];
+        }
+      } else if (typeof task.options === 'object' && task.options !== null) {
+        return task.options;
+      } else {
+        return ['', '', '', ''];
+      }
+    })(),
     correct_answer: task.expected_output || 0, // Use expected_output for MCQ
     tf_question: task.tf_question || task.prompt || '', // Use prompt for True/False question
     tf_answer: task.expected_output === 'true' ? true : (task.expected_output === 'false' ? false : true), // Use expected_output for True/False
     coding_question: task.coding_question || task.prompt || '', // Use prompt for coding question
-    coding_test_cases: Array.isArray(task.coding_test_cases) ? task.coding_test_cases : (task.coding_test_cases ? JSON.parse(task.coding_test_cases) : [{ input: '', output: '', description: '' }]),
+    coding_test_cases: (() => {
+      // Handle different possible formats of task.coding_test_cases
+      if (Array.isArray(task.coding_test_cases)) {
+        return task.coding_test_cases;
+      } else if (typeof task.coding_test_cases === 'string') {
+        try {
+          return JSON.parse(task.coding_test_cases);
+        } catch (e) {
+          console.warn("Unable to parse coding test cases as JSON:", e);
+          return [{ input: '', output: '', description: '' }];
+        }
+      } else if (typeof task.coding_test_cases === 'object' && task.coding_test_cases !== null) {
+        return task.coding_test_cases;
+      } else {
+        return [{ input: '', output: '', description: '' }];
+      }
+    })(),
     coding_solution: task.expected_output || '', // Use expected_output for coding
     coding_language: task.coding_language || 'javascript',
     syntax_hint: task.syntax_hint || '', // Add syntax_hint field
@@ -68,12 +100,44 @@ const TaskForm = ({
         timestamp: task.timestamp || '',
         points: task.points || 1,
         question: task.question || task.prompt || '',
-        options: Array.isArray(task.options) ? task.options : (task.options ? JSON.parse(task.options) : ['', '', '', '']),
+        options: (() => {
+          // Handle different possible formats of task.options
+          if (Array.isArray(task.options)) {
+            return task.options;
+          } else if (typeof task.options === 'string') {
+            try {
+              return JSON.parse(task.options);
+            } catch (e) {
+              console.warn("Unable to parse task options as JSON:", e);
+              return ['', '', '', ''];
+            }
+          } else if (typeof task.options === 'object' && task.options !== null) {
+            return task.options;
+          } else {
+            return ['', '', '', ''];
+          }
+        })(),
         correct_answer: task.expected_output || 0, // For MCQ, this should be the option key (like "A")
         tf_question: task.tf_question || task.prompt || '',
         tf_answer: task.expected_output === 'true' ? true : (task.expected_output === 'false' ? false : true),
         coding_question: task.coding_question || task.prompt || '',
-        coding_test_cases: Array.isArray(task.coding_test_cases) ? task.coding_test_cases : (task.coding_test_cases ? JSON.parse(task.coding_test_cases) : [{ input: '', output: '', description: '' }]),
+        coding_test_cases: (() => {
+          // Handle different possible formats of task.coding_test_cases
+          if (Array.isArray(task.coding_test_cases)) {
+            return task.coding_test_cases;
+          } else if (typeof task.coding_test_cases === 'string') {
+            try {
+              return JSON.parse(task.coding_test_cases);
+            } catch (e) {
+              console.warn("Unable to parse coding test cases as JSON:", e);
+              return [{ input: '', output: '', description: '' }];
+            }
+          } else if (typeof task.coding_test_cases === 'object' && task.coding_test_cases !== null) {
+            return task.coding_test_cases;
+          } else {
+            return [{ input: '', output: '', description: '' }];
+          }
+        })(),
         coding_solution: task.expected_output || '',
         coding_language: task.coding_language || 'javascript',
         syntax_hint: task.syntax_hint || '',
@@ -134,7 +198,23 @@ const TaskForm = ({
   const handleOptionChange = (taskIdx, optionKey, value) => {
     setTasks(prev => prev.map((t, i) => {
       if (i === taskIdx) {
-        const options = Array.isArray(t.options) ? t.options : (t.options ? JSON.parse(t.options) : {});
+        // Handle different possible formats of t.options
+        let options;
+        if (Array.isArray(t.options)) {
+          options = t.options;
+        } else if (typeof t.options === 'string') {
+          try {
+            options = JSON.parse(t.options);
+          } catch (e) {
+            console.warn("Unable to parse options as JSON:", e);
+            options = {};
+          }
+        } else if (typeof t.options === 'object' && t.options !== null) {
+          options = t.options;
+        } else {
+          options = {};
+        }
+        
         options[optionKey] = value;
         return { ...t, options };
       }
@@ -145,7 +225,23 @@ const TaskForm = ({
   const addOption = (taskIdx) => {
     setTasks(prev => prev.map((t, i) => {
       if (i === taskIdx) {
-        const options = Array.isArray(t.options) ? t.options : (t.options ? JSON.parse(t.options) : {});
+        // Handle different possible formats of t.options
+        let options;
+        if (Array.isArray(t.options)) {
+          options = t.options;
+        } else if (typeof t.options === 'string') {
+          try {
+            options = JSON.parse(t.options);
+          } catch (e) {
+            console.warn("Unable to parse options as JSON:", e);
+            options = {};
+          }
+        } else if (typeof t.options === 'object' && t.options !== null) {
+          options = t.options;
+        } else {
+          options = {};
+        }
+        
         const optionKeys = Object.keys(options);
         const nextKey = String.fromCharCode(65 + optionKeys.length); // A, B, C, D, etc.
         options[nextKey] = '';
@@ -158,7 +254,23 @@ const TaskForm = ({
   const removeOption = (taskIdx, optionKey) => {
     setTasks(prev => prev.map((t, i) => {
       if (i === taskIdx) {
-        const options = Array.isArray(t.options) ? t.options : (t.options ? JSON.parse(t.options) : {});
+        // Handle different possible formats of t.options
+        let options;
+        if (Array.isArray(t.options)) {
+          options = t.options;
+        } else if (typeof t.options === 'string') {
+          try {
+            options = JSON.parse(t.options);
+          } catch (e) {
+            console.warn("Unable to parse options as JSON:", e);
+            options = {};
+          }
+        } else if (typeof t.options === 'object' && t.options !== null) {
+          options = t.options;
+        } else {
+          options = {};
+        }
+        
         const optionKeys = Object.keys(options);
         
         if (optionKeys.length <= 2) {
@@ -516,7 +628,23 @@ const TaskForm = ({
       </div>
       <div className="mcq-options-list">
         {(() => {
-          const options = Array.isArray(task.options) ? task.options : (task.options ? JSON.parse(task.options) : {});
+          // Handle different possible formats of task.options
+          let options;
+          if (Array.isArray(task.options)) {
+            options = task.options;
+          } else if (typeof task.options === 'string') {
+            try {
+              options = JSON.parse(task.options);
+            } catch (e) {
+              console.warn("Unable to parse options as JSON:", e);
+              options = {};
+            }
+          } else if (typeof task.options === 'object' && task.options !== null) {
+            options = task.options;
+          } else {
+            options = {};
+          }
+          
           const optionKeys = Object.keys(options);
           return optionKeys.map((key, idx) => (
             <div className="mcq-option-card" key={key}>

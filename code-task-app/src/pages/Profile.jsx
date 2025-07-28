@@ -163,7 +163,7 @@ const Profile = () => {
     setMessage("");
     try {
       const response = await axios.get("/profile", { withCredentials: true });
-      const userData = response.data.user;
+      const userData = response.data;
       setUser_id(userData?.id);
       setName(userData?.name || "N/A");
       setUsername(userData?.username || "N/A");
