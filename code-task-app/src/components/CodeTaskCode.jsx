@@ -1,4 +1,3 @@
-// src/components/CodeTaskCode.jsx
 import React, { useState, useEffect } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import axios from "axios";
@@ -8,7 +7,6 @@ import successAnimation from "../animations/success.json";
 import errorAnimation from "../animations/error.json";
 import "../styles/CodeTask.css";
 
-// Adjust if necessary for your dev environment:
 axios.defaults.baseURL = "http://127.0.0.1:8000/api";
 
 const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
@@ -20,7 +18,6 @@ const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
   const [editorError, setEditorError] = useState(false);
   const [editorLoading, setEditorLoading] = useState(true);
 
-  // Cleanup function to prevent memory leaks
   useEffect(() => {
     return () => {
       if (window.monacoEditor) {
@@ -34,7 +31,6 @@ const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
     console.log("Monaco Editor mounted successfully");
     setEditorLoading(false);
     
-    // Suppress ResizeObserver errors
     const originalError = console.error;
     console.error = (...args) => {
       if (args[0] && typeof args[0] === 'string' && args[0].includes('ResizeObserver')) {
@@ -66,7 +62,6 @@ const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
       });
       monaco.editor.setTheme(editorTheme);
       
-      // Store editor reference for cleanup
       window.monacoEditor = editor;
       setEditorError(false);
     } catch (error) {
@@ -96,11 +91,9 @@ const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
     try {
       const token = localStorage.getItem("authToken");
       
-      // Get test cases from the task
       let testCases = [];
       if (task.coding_test_cases) {
         try {
-          // Handle different possible formats of test cases
           if (typeof task.coding_test_cases === 'string') {
             testCases = JSON.parse(task.coding_test_cases);
           } else if (Array.isArray(task.coding_test_cases)) {
@@ -114,7 +107,6 @@ const CodeTaskCode = ({ task, onTaskComplete, onReturn = () => {} }) => {
         }
       }
 
-      // If no test cases are defined, create a simple one based on expected output
       if (testCases.length === 0 && task.expected_output) {
         testCases = [{
           input: "",
