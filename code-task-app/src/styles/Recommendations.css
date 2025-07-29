@@ -1,0 +1,86 @@
+.recommendations-container {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.recommendations-container h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.loading {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+}
+
+.error {
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.no-recommendations {
+  text-align: center;
+  color: #6c757d;
+  padding: 20px;
+  background: #e9ecef;
+  border-radius: 4px;
+}
+
+.recommendations-list {
+  display: grid;
+  gap: 15px;
+}
+
+.recommendation-item {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.recommendation-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  border-color: #007bff;
+}
+
+.recommendation-item h4 {
+  color: #007bff;
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.course-description {
+  color: #6c757d;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .recommendations-container {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .recommendation-item {
+    padding: 12px;
+  }
+  
+  .recommendations-container h3 {
+    font-size: 1.3rem;
+  }
+} 
