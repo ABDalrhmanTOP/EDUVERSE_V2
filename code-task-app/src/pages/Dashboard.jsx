@@ -457,31 +457,33 @@ const Dashboard = () => {
       <motion.section className="dashboard-hero" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.7, type: 'spring', stiffness: 60 }} style={{ background: THEME.glass, boxShadow: THEME.shadow, borderRadius: 32, margin: '80px auto 48px auto', maxWidth: 1200, padding: '56px 40px 40px 40px', backdropFilter: 'blur(32px)', position: 'relative', zIndex: 2, overflow: 'visible', minHeight: 260 }}>
         {/* Floating sparkles */}
         <motion.div initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 0.18, scale: 1 }} transition={{ duration: 1.2 }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none', background: 'radial-gradient(circle at 20% 30%, #e3cfa4aa 0%, transparent 60%), radial-gradient(circle at 80% 70%, #bfae9e66 0%, transparent 60%)' }} />
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 32, position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 32, position: 'relative', zIndex: 1 }}>
           {/* Animated avatar and greeting */}
-          <motion.div initial={{ x: -60, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 80 }} style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-            <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, type: 'spring', stiffness: 120 }} style={{ width: 100, height: 100, borderRadius: '50%', background: THEME.cardBg, boxShadow: THEME.shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: `3.5px solid ${THEME.primary}` }}>
-              {user.avatar ? (
-                <img src={user.avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <FaUserCircle size={80} color={THEME.primaryDark} />
-              )}
-            </motion.div>
-            <div>
-              <div style={{ fontSize: 44, fontWeight: 900, color: THEME.text, letterSpacing: -1, marginBottom: 8, lineHeight: 1.1 }}>Good {currentTime.getHours() < 12 ? 'morning' : currentTime.getHours() < 18 ? 'afternoon' : 'evening'}, <span style={{ background: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.primaryDark} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{user.username}</span>!</div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: quoteVisible ? 1 : 0, y: quoteVisible ? 0 : 10 }}
-                transition={{ duration: 0.6 }}
-                style={{ fontSize: 22, color: THEME.subtext, marginBottom: 8, fontWeight: 600 }}
-              >
-                {quote}
+          <motion.div initial={{ x: -60, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 80 }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+              <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, type: 'spring', stiffness: 120 }} style={{ width: 100, height: 100, borderRadius: '50%', background: THEME.cardBg, boxShadow: THEME.shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: `3.5px solid ${THEME.primary}` }}>
+                {user.avatar ? (
+                  <img src={user.avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <FaUserCircle size={80} color={THEME.primaryDark} />
+                )}
               </motion.div>
-              <div style={{ fontSize: 18, color: THEME.primaryDark, fontWeight: 700, marginTop: 6 }}>Level <span style={{ fontSize: 22, fontWeight: 900 }}>{levelCount}</span> • <span style={{ color: THEME.accentGold }}>{pointsCount} Points</span></div>
+              <div>
+                <div style={{ fontSize: 44, fontWeight: 900, color: THEME.text, letterSpacing: -1, marginBottom: 8, lineHeight: 1.1 }}>Good {currentTime.getHours() < 12 ? 'morning' : currentTime.getHours() < 18 ? 'afternoon' : 'evening'}, <span style={{ background: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.primaryDark} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{user.username}</span>!</div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: quoteVisible ? 1 : 0, y: quoteVisible ? 0 : 10 }}
+                  transition={{ duration: 0.6 }}
+                  style={{ fontSize: 22, color: THEME.subtext, marginBottom: 8, fontWeight: 600 }}
+                >
+                  {quote}
+                </motion.div>
+                <div style={{ fontSize: 18, color: THEME.primaryDark, fontWeight: 700, marginTop: 6 }}>Level <span style={{ fontSize: 22, fontWeight: 900 }}>{levelCount}</span> • <span style={{ color: THEME.accentGold }}>{pointsCount} Points</span></div>
+              </div>
             </div>
+            {/* Live clock - positioned below the level and points */}
+            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, type: 'spring', stiffness: 120 }} style={{ fontSize: 32, fontWeight: 700, color: THEME.primaryDark, background: '#fff', borderRadius: 16, padding: '22px 44px', boxShadow: '0 2px 16px #eee', alignSelf: 'flex-start' }}>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</motion.div>
           </motion.div>
-          {/* Live clock */}
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, type: 'spring', stiffness: 120 }} style={{ fontSize: 32, fontWeight: 700, color: THEME.primaryDark, background: '#fff', borderRadius: 16, padding: '22px 44px', boxShadow: '0 2px 16px #eee', alignSelf: 'flex-start' }}>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</motion.div>
           {/* Today's Goal / Quick Tip */}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, type: 'spring', stiffness: 80 }} style={{ background: THEME.accentGold, color: THEME.text, borderRadius: 18, boxShadow: THEME.shadow, padding: '24px 32px', minWidth: 260, maxWidth: 340, fontWeight: 700, fontSize: 20, marginLeft: 'auto', marginTop: 12, alignSelf: 'flex-start', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 16 }}>
             <FaChartLine size={28} color={THEME.primaryDark} style={{ marginRight: 8 }} />

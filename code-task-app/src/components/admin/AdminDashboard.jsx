@@ -109,9 +109,6 @@ const AdminDashboard = () => {
     else if (path.includes('/users')) setActiveTab('users');
     else if (path.includes('/edubot')) setActiveTab('edubot');
     else if (path.includes('/tasks')) setActiveTab('tasks');
-    else if (path.includes('/analytics')) setActiveTab('analytics');
-    else if (path.includes('/settings')) setActiveTab('settings');
-    else if (path.includes('/profile')) setActiveTab('profile');
     else if (path.includes('/payments')) setActiveTab('payments');
     else setActiveTab('dashboard');
   }, [location.pathname]);
@@ -129,10 +126,7 @@ const AdminDashboard = () => {
     { id: 'tests', label: t('admin.navigation.tests') || 'Tests', icon: FaClipboardCheck, path: '/AdminDashboard/tests' },
     { id: 'subscriptions', label: t('admin.navigation.subscriptions') || 'Subscriptions', icon: FaCreditCard, path: '/AdminDashboard/subscriptions' },
     // Removed EduBot settings page
-    { id: 'users', label: t('admin.navigation.users'), icon: FaUsers, path: '/AdminDashboard/users' },
-    { id: 'analytics', label: t('admin.navigation.reports'), icon: FaChartBar, path: '/AdminDashboard/analytics' },
-    { id: 'settings', label: t('admin.navigation.settings'), icon: FaCog, path: '/AdminDashboard/settings' },
-    { id: 'profile', label: t('admin.navigation.profile'), icon: FaUserPlus, path: '/AdminDashboard/profile' }
+    { id: 'users', label: t('admin.navigation.users'), icon: FaUsers, path: '/AdminDashboard/users' }
   ];
 
   const StatCard = ({ title, value, icon: Icon, color, delay }) => (

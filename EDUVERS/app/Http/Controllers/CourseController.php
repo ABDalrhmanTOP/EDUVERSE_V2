@@ -79,38 +79,50 @@ class CourseController extends Controller
         // Handle tasks if provided
         if (isset($validated['tasks']) && is_array($validated['tasks'])) {
             foreach ($validated['tasks'] as $taskData) {
-                $task = new \App\Models\Task([
+                // Ensure required fields are present
+                $taskAttributes = [
                     'playlist_id' => $playlist->id,
-                    'title' => $taskData['title'],
+                    'video_id' => $validated['video_id'], // Use the actual video_id from the course
+                    'title' => $taskData['title'] ?? '',
                     'description' => $taskData['description'] ?? '',
-                    'type' => $taskData['type'],
-                    'timestamp' => $taskData['timestamp'] ?? '',
+                    'type' => $taskData['type'] ?? 'mcq',
+                    'timestamp' => $taskData['timestamp'] ?? '00:00:00',
                     'points' => $taskData['points'] ?? 1,
-                    'prompt' => $taskData['title'] ?? '', // Use title as prompt if no specific prompt
-                    'expected_output' => null, // Set to null for now
-                    'syntax_hint' => null, // Set to null for now
-                ]);
+                    'prompt' => $taskData['title'] ?? 'Task', // Ensure prompt is never null
+                    'expected_output' => null,
+                    'syntax_hint' => null,
+                ];
 
                 // Handle task type specific data
                 switch ($taskData['type']) {
                     case 'mcq':
-                        $task->question = $taskData['question'];
-                        $task->options = json_encode($taskData['options']);
-                        $task->correct_answer = $taskData['correct_answer'];
+                        $taskAttributes['question'] = $taskData['question'] ?? '';
+                        $taskAttributes['options'] = json_encode($taskData['options'] ?? []);
+                        $taskAttributes['correct_answer'] = $taskData['correct_answer'] ?? 0;
                         break;
                     case 'true_false':
-                        $task->tf_question = $taskData['tf_question'];
-                        $task->tf_answer = $taskData['tf_answer'];
+                    case 'truefalse':
+                        $taskAttributes['tf_question'] = $taskData['tf_question'] ?? '';
+                        $taskAttributes['tf_answer'] = $taskData['tf_answer'] ?? false;
                         break;
                     case 'CODE':
-                        $task->coding_question = $taskData['coding_question'];
-                        $task->coding_test_cases = json_encode($taskData['coding_test_cases']);
-                        $task->coding_solution = $taskData['coding_solution'] ?? '';
-                        $task->coding_language = $taskData['coding_language'] ?? 'javascript';
+                    case 'code':
+                        $taskAttributes['coding_question'] = $taskData['coding_question'] ?? '';
+                        $taskAttributes['coding_test_cases'] = json_encode($taskData['coding_test_cases'] ?? []);
+                        $taskAttributes['coding_solution'] = $taskData['coding_solution'] ?? '';
+                        $taskAttributes['coding_language'] = $taskData['coding_language'] ?? 'javascript';
                         break;
                 }
 
-                $task->save();
+                try {
+                    $task = \App\Models\Task::create($taskAttributes);
+                } catch (\Exception $e) {
+                    \Log::error('Task creation failed: ' . $e->getMessage(), [
+                        'taskData' => $taskData,
+                        'taskAttributes' => $taskAttributes
+                    ]);
+                    throw $e;
+                }
             }
         }
 
@@ -163,38 +175,50 @@ class CourseController extends Controller
 
             // Create new tasks
             foreach ($validated['tasks'] as $taskData) {
-                $task = new \App\Models\Task([
+                // Ensure required fields are present
+                $taskAttributes = [
                     'playlist_id' => $playlist->id,
-                    'title' => $taskData['title'],
+                    'video_id' => $validated['video_id'], // Use the actual video_id from the course
+                    'title' => $taskData['title'] ?? '',
                     'description' => $taskData['description'] ?? '',
-                    'type' => $taskData['type'],
-                    'timestamp' => $taskData['timestamp'] ?? '',
+                    'type' => $taskData['type'] ?? 'mcq',
+                    'timestamp' => $taskData['timestamp'] ?? '00:00:00',
                     'points' => $taskData['points'] ?? 1,
-                    'prompt' => $taskData['title'] ?? '', // Use title as prompt if no specific prompt
-                    'expected_output' => null, // Set to null for now
-                    'syntax_hint' => null, // Set to null for now
-                ]);
+                    'prompt' => $taskData['title'] ?? 'Task', // Ensure prompt is never null
+                    'expected_output' => null,
+                    'syntax_hint' => null,
+                ];
 
                 // Handle task type specific data
                 switch ($taskData['type']) {
                     case 'mcq':
-                        $task->question = $taskData['question'];
-                        $task->options = json_encode($taskData['options']);
-                        $task->correct_answer = $taskData['correct_answer'];
+                        $taskAttributes['question'] = $taskData['question'] ?? '';
+                        $taskAttributes['options'] = json_encode($taskData['options'] ?? []);
+                        $taskAttributes['correct_answer'] = $taskData['correct_answer'] ?? 0;
                         break;
                     case 'true_false':
-                        $task->tf_question = $taskData['tf_question'];
-                        $task->tf_answer = $taskData['tf_answer'];
+                    case 'truefalse':
+                        $taskAttributes['tf_question'] = $taskData['tf_question'] ?? '';
+                        $taskAttributes['tf_answer'] = $taskData['tf_answer'] ?? false;
                         break;
                     case 'CODE':
-                        $task->coding_question = $taskData['coding_question'];
-                        $task->coding_test_cases = json_encode($taskData['coding_test_cases']);
-                        $task->coding_solution = $taskData['coding_solution'] ?? '';
-                        $task->coding_language = $taskData['coding_language'] ?? 'javascript';
+                    case 'code':
+                        $taskAttributes['coding_question'] = $taskData['coding_question'] ?? '';
+                        $taskAttributes['coding_test_cases'] = json_encode($taskData['coding_test_cases'] ?? []);
+                        $taskAttributes['coding_solution'] = $taskData['coding_solution'] ?? '';
+                        $taskAttributes['coding_language'] = $taskData['coding_language'] ?? 'javascript';
                         break;
                 }
 
-                $task->save();
+                try {
+                    $task = \App\Models\Task::create($taskAttributes);
+                } catch (\Exception $e) {
+                    Log::error('Task creation failed: ' . $e->getMessage(), [
+                        'taskData' => $taskData,
+                        'taskAttributes' => $taskAttributes
+                    ]);
+                    throw $e;
+                }
             }
         }
 

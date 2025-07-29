@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('playlist_id')->constrained()->onDelete('cascade');
-            $table->unsignedBigInteger('video_id')->nullable();
+            $table->string('video_id')->nullable();
             $table->string('title');
             $table->text('description')->nullable();
             $table->text('prompt');
