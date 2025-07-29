@@ -8,6 +8,7 @@ import SplitAuthModal from "./SplitAuthModal";
 import { FaEnvelope, FaPhone, FaFacebook, FaInstagram, FaLinkedin, FaWhatsapp } from "react-icons/fa";
 import { SiX } from "react-icons/si";
 import eduverseLogo from "../assets/2.png";
+import { useTranslation } from 'react-i18next';
 
 // Animation Variants
 const containerVariants = {
@@ -26,7 +27,8 @@ const itemVariants = {
 // --- Animated Intro Section ---
 const HERO_BG_URL = "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80";
 
-const AnimatedIntro = ({ isLoggedIn, onCtaClick }) => (
+// Refactor AnimatedIntro to accept t as a prop
+const AnimatedIntro = ({ isLoggedIn, onCtaClick, welcome, brand, desc, goToDashboard, startLearning, scrollDown }) => (
   <section className="animated-intro-section">
     <div className="intro-bg-image" style={{ backgroundImage: `url(${HERO_BG_URL})` }} />
     <div className="intro-bg-overlay" />
@@ -37,10 +39,10 @@ const AnimatedIntro = ({ isLoggedIn, onCtaClick }) => (
     </div>
     <div className="intro-content">
       <h1 className="intro-title">
-        <span>Welcome to</span> <span className="brand">EduVerse</span>
+        <span>{welcome}</span> <span className="brand">{brand}</span>
       </h1>
       <motion.p className="intro-desc" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 1 }}>
-        The next generation platform for modern, interactive, and community-driven learning.
+        {desc}
       </motion.p>
       <motion.button 
         className="hero-cta-button" 
@@ -50,10 +52,10 @@ const AnimatedIntro = ({ isLoggedIn, onCtaClick }) => (
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 1 }}
       >
-        {isLoggedIn ? 'Go to Dashboard' : 'Start Learning Now'}
+        {isLoggedIn ? goToDashboard : startLearning}
       </motion.button>
       <motion.div className="scroll-down-indicator" initial={{ opacity: 0 }} animate={{ opacity: 1, y: [0, 10, 0] }} transition={{ delay: 1, duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-        <span>Scroll Down</span>
+        <span>{scrollDown}</span>
         <svg width="24" height="24" fill="none"><path d="M12 5v14m0 0l-6-6m6 6l6-6" stroke="#bfae9e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </motion.div>
     </div>
@@ -116,60 +118,6 @@ const featureIcons = {
   support: () => <FaHeadset size={38} color="#a68a6d" />,
 };
 
-// --- Expanded Features Data ---
-const features = [
-  {
-    key: "courses",
-    title: "Interactive Courses",
-    desc: "Engage with hands-on content, quizzes, and real-world projects. Personalized learning paths and real-time feedback.",
-    more: "Our courses are immersive, practical, and designed for real-world skills. Unlock a rich library of topics, track your progress, and learn at your own pace. Enjoy interactive video lessons, coding sandboxes, and real project assignments. Get instant feedback and see your growth with every lesson.",
-    cta: "Go to Courses",
-    route: "/homevideo",
-    img: "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80",
-    icon: "courses"
-  },
-  {
-    key: "community",
-    title: "Vibrant Community",
-    desc: "Connect, collaborate, and grow with learners and mentors worldwide. Participate in events, challenges, and group projects. Join discussions, ask questions, and share your progress with a supportive community. Our forums and chat rooms are always buzzing with activity. Take part in live events, group projects, and mentorship programs to accelerate your learning.",
-    more: "Our community is the heart of EduVerse. Engage in group projects, live events, and mentorship programs. Share your progress, ask questions, and get support from peers and mentors. Experience a truly collaborative learning environment.",
-    cta: "Join the Community",
-    route: "/community",
-    img: require('../assets/communtiy.png'),
-    icon: "community"
-  },
-  {
-    key: "progress",
-    title: "Progress Tracking",
-    desc: "Visualize your journey, earn badges, and celebrate your achievements. Personalized recommendations keep you motivated.",
-    more: "Track your learning milestones, unlock achievements, and get personalized recommendations to keep you on track and inspired. Earn badges, certificates, and see your stats grow in real time.",
-    cta: "Go to Profile",
-    route: "/profile",
-    img: require('../assets/Progress.png'),
-    icon: "progress"
-  },
-  {
-    key: "ai",
-    title: "AI-Powered Help",
-    desc: "Get instant answers, explanations, and guidance from our AI tutor. Available 24/7 to support your learning journey.",
-    more: "Our AI assistant is always ready to help you with questions, explanations, and personalized study tips. Learning has never been this smart. Try our AI-powered code review, instant Q&A, and smart recommendations.",
-    cta: "Chat with EduBot",
-    route: "/chat",
-    img: require('../assets/Ai.png'),
-    icon: "ai"
-  },
-  {
-    key: "support",
-    title: "Dedicated Support",
-    desc: "Our team is here to help you succeed. Reach out anytime for technical or academic support.",
-    more: "We offer live chat, email, and phone support. Your success is our mission, and we’re always here to help. Access our knowledge base, get help from real people, and never feel stuck again.",
-    cta: "Contact Support",
-    route: "/support",
-    img: require('../assets/contact.png'),
-    icon: "support"
-  }
-];
-
 // --- Hero Section ---
 const HeroSection = ({ onCtaClick, isLoggedIn }) => (
   <section className="hero-section" style={{ minHeight: '110vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: '0 0 0 0', backgroundImage: "url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -200,39 +148,37 @@ const HeroSection = ({ onCtaClick, isLoggedIn }) => (
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2.5, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
       >
-        <span>Welcome to</span> <span className="brand">EduVerse</span>
+        <span>{/* t('intro.welcome', 'مرحباً بك في') */}</span> <span className="brand">{/* t('intro.brand', 'EduVerse') */}</span>
       </motion.h1>
       <motion.p className="hero-subtitle" variants={itemVariants} style={{ fontSize: '2.1rem', color: '#fff8f0', maxWidth: 900, margin: '0 auto 48px auto', textShadow: '0 2px 8px rgba(44,34,24,0.18)' }}>
-        The next generation platform for modern, interactive, and community-driven learning.
+        {/* t('intro.desc', 'المنصة التالية للتكنولوجيا التعليمية الحديثة، تفاعلية، وتركز على المجتمع.') */}
       </motion.p>
       <motion.div variants={itemVariants}>
         <button className="hero-cta-button" onClick={onCtaClick} style={{ fontSize: '1.5rem', padding: '1.5rem 4rem', borderRadius: 50, fontWeight: 800 }}>
-          {isLoggedIn ? 'Go to Dashboard' : 'Start Learning Now'}
+          {/* isLoggedIn ? t('intro.go_to_dashboard', 'اذهب إلى لوحة التحكم') : t('intro.start_learning', 'ابدأ التعلم الآن') */}
         </button>
       </motion.div>
     </motion.div>
     <motion.div className="scroll-indicator" initial={{opacity: 0}} animate={{opacity: 1}} transition={{delay: 1.5, duration: 1}} style={{ position: 'absolute', bottom: 48, left: '50%', transform: 'translateX(-50%)' }}>
-        <span>Scroll Down</span>
+        <span>{/* t('intro.scroll_down', 'تمرير لأسفل') */}</span>
         <FaFeatherAlt />
     </motion.div>
   </section>
 );
 
 // --- FeatureCard with matching border radius ---
-const FeatureCard = ({ feature, expanded, onExpand, onClose, onGo, isLoggedIn, index }) => {
+const FeatureCard = ({ feature, index, onGoFeature }) => {
   const borderRadius = 40;
   const isEven = index % 2 === 0;
-  
   return (
     <motion.section
-      className={`feature-block${expanded ? " expanded" : ""}`}
+      className={`feature-block${isEven ? ' feature-block-even' : ' feature-block-odd'}`}
       initial={{ opacity: 0, x: isEven ? -120 : 120, scale: 0.92 }}
       whileInView={{ opacity: 1, x: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.35, type: 'spring', stiffness: 60 }}
       whileHover={{ scale: 1.03, boxShadow: '0 28px 80px rgba(191, 174, 158, 0.25)', transition: { duration: 0.15 } }}
     >
-      {/* Animated background gradient */}
       <motion.div
         style={{
           position: 'absolute',
@@ -249,8 +195,7 @@ const FeatureCard = ({ feature, expanded, onExpand, onClose, onGo, isLoggedIn, i
         whileHover={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       />
-      
-      <div className="feature-block-content">
+      <div className={`feature-block-content${isEven ? '' : ' reverse'}`}>
         <div className="feature-block-img-wrap">
           <motion.div
             style={{
@@ -281,71 +226,29 @@ const FeatureCard = ({ feature, expanded, onExpand, onClose, onGo, isLoggedIn, i
             backgroundClip: 'text'
           }}>{feature.title}</h2>
           <p>{feature.desc}</p>
-          <AnimatePresence>
-            {expanded && (
-              <motion.div 
-                className="feature-block-more" 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: 20 }} 
-                transition={{ duration: 0.3 }}
-              >
-                <button className="feature-block-close" onClick={onClose} aria-label="Close">&times;</button>
-                <p>{feature.more}</p>
-                <motion.button 
-                  className="feature-cta-btn" 
-                  whileHover={{ scale: 1.08, boxShadow: '0 8px 25px rgba(191, 174, 158, 0.3)' }} 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onGo(feature)}
-                  style={{
-                    background: 'linear-gradient(135deg, #bfae9e 0%, #a68a6d 100%)',
-                    border: 'none',
-                    borderRadius: 12,
-                    padding: '12px 28px',
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 4px 15px rgba(191, 174, 158, 0.2)'
-                  }}
-                >
-                  {feature.cta}
-                </motion.button>
-                <motion.button 
-                  className="read-more-btn" 
-                  whileHover={{ scale: 1.05, transition: { duration: 0.12 } }}
-                  whileTap={{ scale: 0.95, transition: { duration: 0.10 } }}
-                  onClick={onClose} 
-                  style={{ marginTop: 8, color: '#a68a6d', background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  Read Less
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {!expanded && (
+          <div className="feature-block-more">
+            <p>{feature.more}</p>
             <motion.button 
-              className="read-more-btn" 
-              whileHover={{ scale: 1.05, boxShadow: '0 6px 20px rgba(191, 174, 158, 0.25)', transition: { duration: 0.12 } }}
-              whileTap={{ scale: 0.95, transition: { duration: 0.10 } }}
-              onClick={() => onExpand(feature.key)}
+              className="feature-cta-btn" 
+              whileHover={{ scale: 1.08, boxShadow: '0 8px 25px rgba(191, 174, 158, 0.3)' }} 
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onGoFeature(feature)}
               style={{
                 background: 'linear-gradient(135deg, #bfae9e 0%, #a68a6d 100%)',
-                color: '#fff',
                 border: 'none',
-                borderRadius: 10,
-                padding: '10px 24px',
+                borderRadius: 12,
+                padding: '12px 28px',
+                color: '#fff',
+                fontWeight: 700,
                 fontSize: '1rem',
-                fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 boxShadow: '0 4px 15px rgba(191, 174, 158, 0.2)'
               }}
             >
-              Read More
+              {feature.cta}
             </motion.button>
-          )}
+          </div>
         </div>
       </div>
     </motion.section>
@@ -353,7 +256,7 @@ const FeatureCard = ({ feature, expanded, onExpand, onClose, onGo, isLoggedIn, i
 };
 
 // --- Section size increase for features/why choose ---
-const FeaturesBlocksSection = ({ expandedKey, setExpandedKey, onGoFeature, isLoggedIn }) => (
+const FeaturesBlocksSection = ({ features, expandedKey, setExpandedKey, onGoFeature, isLoggedIn }) => (
   <div className="features-blocks-section" style={{
     width: '100vw',
     maxWidth: '100vw',
@@ -402,17 +305,14 @@ const FeaturesBlocksSection = ({ expandedKey, setExpandedKey, onGoFeature, isLog
         key={f.key}
         feature={f}
         index={index}
-        expanded={expandedKey === f.key}
-        onExpand={setExpandedKey}
-        onClose={() => setExpandedKey(null)}
-        onGo={onGoFeature}
-        isLoggedIn={isLoggedIn}
+        onGoFeature={onGoFeature}
       />
     ))}
   </div>
 );
 
-const WhyEduVerseBlock = () => (
+// Refactor WhyEduVerseBlock, CTASection, Footer, etc. to accept t as a prop and use t() only inside their function bodies
+const WhyEduVerseBlock = ({ t }) => (
   <section className="why-eduverse-block" style={{ 
     padding: '120px 0 60px 0',
     background: 'linear-gradient(180deg, #f7f3ef 0%, #e6d3b3 100%)',
@@ -451,14 +351,14 @@ const WhyEduVerseBlock = () => (
         textShadow: '0 4px 20px rgba(107,79,75,0.1)'
       }}
     >
-      Why Choose EduVerse?
+      {t('why_choose.title')}
     </motion.h2>
     <div className="why-eduverse-stats" style={{ display: 'flex', justifyContent: 'center', gap: 48, flexWrap: 'wrap' }}>
       {[
-        { value: '100%', label: "Trusted Content", suffix: "" },
-        { value: "A+", label: "Quality Standards", suffix: "" },
-        { value: "24/7", label: "AI Support", suffix: "" },
-        { value: 99, label: "Satisfaction", suffix: "%" }
+        { value: '100%', label: t('why_choose.trusted_content'), suffix: "" },
+        { value: "A+", label: t('why_choose.quality_standards'), suffix: "" },
+        { value: "24/7", label: t('why_choose.ai_support'), suffix: "" },
+        { value: 99, label: t('why_choose.satisfaction'), suffix: "%" }
       ].map((stat, i) => (
         <motion.div
           className="stat"
@@ -514,9 +414,9 @@ const WhyEduVerseBlock = () => (
               marginBottom: 8
             }}>
               {(() => {
-                if (stat.label === 'Trusted Content') {
+                if (stat.label === t('why_choose.trusted_content')) {
                   return <><AnimatedNumber value={100} duration={1.2} />%</>;
-                } else if (stat.label === 'Quality Standards') {
+                } else if (stat.label === t('why_choose.quality_standards')) {
                   return <AnimatedGrade grades={['D', 'C', 'B', 'A', 'A+']} duration={1.2} />;
                 } else if (typeof stat.value === 'number') {
                   return <AnimatedNumber value={stat.value} duration={1.2} />;
@@ -542,60 +442,62 @@ const WhyEduVerseBlock = () => (
 );
 
 // --- How It Works Stepper ---
-const steps = [
-  { icon: () => <FaCheckCircle color="#a68a6d" size={28} />, title: "Sign Up", desc: "Create your free EduVerse account in seconds." },
-  { icon: () => <FaChalkboardTeacher color="#a68a6d" size={28} />, title: "Choose a Course", desc: "Browse our library and pick your learning path." },
-  { icon: () => <FaUsers color="#a68a6d" size={28} />, title: "Join the Community", desc: "Connect with peers, mentors, and join discussions." },
-  { icon: () => <FaChartLine color="#a68a6d" size={28} />, title: "Track Progress", desc: "Earn badges, certificates, and celebrate your growth." }
-];
-const HowItWorksSection = () => (
-  <section className="how-it-works-section">
-    <motion.h2 initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>How EduVerse Works</motion.h2>
-    <div className="how-it-works-stepper">
-      {steps.map((s, i) => (
-        <motion.div 
-          className="how-step" 
-          key={i} 
-          initial={{ opacity: 0, y: 40 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          whileHover={{ scale: 1.1, boxShadow: '0 15px 40px rgba(191, 174, 158, 0.25)', y: -10 }}
-          transition={{ duration: 0.7, delay: 0.1 * i, type: 'spring', stiffness: 60 }}
-          style={{ cursor: 'pointer', borderRadius: 24, background: '#fff8f0', transition: 'box-shadow 0.3s, transform 0.3s' }}
-        >
-          <div className="how-step-icon">{s.icon()}</div>
-          <div className="how-step-title">{s.title}</div>
-          <div className="how-step-desc">{s.desc}</div>
-        </motion.div>
-      ))}
-    </div>
-  </section>
-);
+const HowItWorksSection = ({ t }) => {
+  const steps = [
+    { icon: () => <FaCheckCircle color="#a68a6d" size={28} />, title: t('how_it_works.sign_up'), desc: t('how_it_works.sign_up_desc') },
+    { icon: () => <FaChalkboardTeacher color="#a68a6d" size={28} />, title: t('how_it_works.choose_course'), desc: t('how_it_works.choose_course_desc') },
+    { icon: () => <FaUsers color="#a68a6d" size={28} />, title: t('how_it_works.join_community'), desc: t('how_it_works.join_community_desc') },
+    { icon: () => <FaChartLine color="#a68a6d" size={28} />, title: t('how_it_works.track_progress'), desc: t('how_it_works.track_progress_desc') }
+  ];
+  return (
+    <section className="how-it-works-section">
+      <motion.h2 initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>{t('how_it_works.title')}</motion.h2>
+      <div className="how-it-works-stepper">
+        {steps.map((s, i) => (
+          <motion.div 
+            className="how-step" 
+            key={i} 
+            initial={{ opacity: 0, y: 40 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            whileHover={{ scale: 1.1, boxShadow: '0 15px 40px rgba(191, 174, 158, 0.25)', y: -10 }}
+            transition={{ duration: 0.7, delay: 0.1 * i, type: 'spring', stiffness: 60 }}
+            style={{ cursor: 'pointer', borderRadius: 24, background: '#fff8f0', transition: 'box-shadow 0.3s, transform 0.3s' }}
+          >
+            <div className="how-step-icon">{s.icon()}</div>
+            <div className="how-step-title">{s.title}</div>
+            <div className="how-step-desc">{s.desc}</div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
 
 // --- Developers Team Section ---
-const TeamSection = () => (
+const TeamSection = ({ t }) => (
   <section className="team-section">
-    <motion.h2 initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>Meet the Developers</motion.h2>
+    <motion.h2 initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>{t('team.title')}</motion.h2>
     <div className="team-grid">
       <motion.div className="team-card" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}>
         <div className="avatar-placeholder" style={{ width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', margin: '0 auto 16px auto', background: '#eee' }}>
-          <img src={require('../assets/B97A1367.JPG')} alt="Baraa Al-Shammaa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }} />
+          <img src={require('../assets/B97A1367.JPG')} alt={t('team.bara_name')} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }} />
         </div>
-        <h4>Baraa Al-Shammaa</h4>
-        <p>Full Stack Developer</p>
+        <h4>{t('team.bara_name')}</h4>
+        <p>{t('team.bara_role')}</p>
       </motion.div>
       <motion.div className="team-card" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
         <div className="avatar-placeholder" style={{ width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', margin: '0 auto 16px auto', background: '#eee' }}>
-          <img src={require('../assets/abd.jpg')} alt="Abd Al-rhman Al-Tubaji" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={require('../assets/abd.jpg')} alt={t('team.abd_name')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
-        <h4>Abd Al-rhman Al-Tubaji</h4>
-        <p>Full Stack Developer</p>
+        <h4>{t('team.abd_name')}</h4>
+        <p>{t('team.abd_role')}</p>
       </motion.div>
     </div>
   </section>
 );
 
 // --- CTA Section ---
-const CTASection = ({ onRegister }) => (
+const CTASection = ({ onRegister, t }) => (
   <section className="cta-modern-glass">
     <div className="cta-bg-shapes">
       <motion.div className="cta-shape cta-shape1" animate={{ y: [0, 30, 0] }} transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }} />
@@ -603,10 +505,10 @@ const CTASection = ({ onRegister }) => (
       <motion.div className="cta-shape cta-shape3" animate={{ y: [0, -20, 0] }} transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }} />
     </div>
     <motion.h2 initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-      Ready to start your journey?
+      {t('cta.ready_to_start')}
     </motion.h2>
     <motion.p className="cta-subheading" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }}>
-      Join EduVerse and unlock your full learning potential with modern, interactive courses and a vibrant community.
+      {t('cta.join_eduverse')}
     </motion.p>
     <motion.button 
       className="hero-cta-button" 
@@ -617,35 +519,35 @@ const CTASection = ({ onRegister }) => (
       transition={{ duration: 0.18 }}
       onClick={onRegister}
     >
-      Join EduVerse Now
+      {t('cta.join_eduverse_now')}
     </motion.button>
   </section>
 );
 
 // --- Modern Footer Section ---
-const Footer = () => (
+const Footer = ({ t }) => (
   <footer className="homepage-footer-modern-glass">
     <div className="footer-content-glass" style={{ padding: '28px 16px 8px 16px', gap: 18 }}>
       <div className="footer-brand-col" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img src={eduverseLogo} alt="EduVerse Logo" style={{ height: 72, width: 'auto', marginBottom: 10, display: 'block' }} />
         <div className="footer-mission" style={{ fontSize: '0.98rem', textAlign: 'center', maxWidth: 320 }}>
-          Empowering learners worldwide with trusted, interactive education.
+          {t('footer.mission')}
         </div>
       </div>
       <div className="footer-links-col" style={{ minWidth: 120 }}>
-        <div className="footer-links-title">Links</div>
+        <div className="footer-links-title">{t('footer.links')}</div>
         <ul className="footer-links-list">
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Courses</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
+          <li><a href="#">{t('footer.home')}</a></li>
+          <li><a href="#">{t('footer.courses')}</a></li>
+          <li><a href="#">{t('footer.about')}</a></li>
+          <li><a href="#">{t('footer.contact')}</a></li>
         </ul>
       </div>
       <div className="footer-contact-col">
-        <div className="footer-links-title">Contact</div>
-        <div className="footer-contact-item"><FaEnvelope /> ba.eduverse@gmail.com</div>
-        <div className="footer-contact-item"><FaPhone /> +963 982 068 157</div>
-        <div className="footer-contact-item"><FaWhatsapp /> +963 932 912 082</div>
+        <div className="footer-links-title">{t('footer.contact')}</div>
+        <div className="footer-contact-item"><FaEnvelope /> {t('footer.email')}</div>
+        <div className="footer-contact-item"><FaPhone /> {t('footer.phone')}</div>
+        <div className="footer-contact-item"><FaWhatsapp /> {t('footer.whatsapp')}</div>
         <div className="footer-socials">
           <a href="https://www.facebook.com/share/1GJ34zK4pW/" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
           <a href="https://www.instagram.com/baraa_shammaa?igsh=Mm84MWt1NmJ4bGEz" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
@@ -654,12 +556,12 @@ const Footer = () => (
         </div>
       </div>
       <div className="footer-policy-col">
-        <a href="#" title="Privacy Policy (coming soon)">Privacy Policy</a>
-        <a href="#" title="Terms of Service (coming soon)">Terms of Service</a>
+        <a href="#" title="Privacy Policy (coming soon)">{t('footer.privacy_policy')}</a>
+        <a href="#" title="Terms of Service (coming soon)">{t('footer.terms_of_service')}</a>
       </div>
     </div>
     <div className="footer-copy-glass">
-      © {new Date().getFullYear()} EduVerse. All rights reserved.
+      © {new Date().getFullYear()} {t('footer.copyright')}
     </div>
   </footer>
 );
@@ -673,6 +575,61 @@ const Homepage = ({ formType, setFormType, isLoggedIn }) => {
   const scrollRef = useRef(0);
   const rootRef = useRef(null);
   const overlayCloseRef = useRef(false);
+  const { t, i18n } = useTranslation();
+
+  // --- Expanded Features Data (move here so t is in scope) ---
+  const features = [
+    {
+      key: "courses",
+      title: t('features.courses.title'),
+      desc: t('features.courses.desc'),
+      more: t('features.courses.more'),
+      cta: t('features.courses.cta'),
+      route: "/homevideo",
+      img: "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80",
+      icon: "courses"
+    },
+    {
+      key: "community",
+      title: t('features.community.title'),
+      desc: t('features.community.desc'),
+      more: t('features.community.more'),
+      cta: t('features.community.cta'),
+      route: "/community",
+      img: require('../assets/communtiy.png'),
+      icon: "community"
+    },
+    {
+      key: "progress",
+      title: t('features.progress.title'),
+      desc: t('features.progress.desc'),
+      more: t('features.progress.more'),
+      cta: t('features.progress.cta'),
+      route: "/profile",
+      img: require('../assets/Progress.png'),
+      icon: "progress"
+    },
+    {
+      key: "ai",
+      title: t('features.ai.title'),
+      desc: t('features.ai.desc'),
+      more: t('features.ai.more'),
+      cta: t('features.ai.cta'),
+      route: "/chat",
+      img: require('../assets/Ai.png'),
+      icon: "ai"
+    },
+    {
+      key: "support",
+      title: t('features.support.title'),
+      desc: t('features.support.desc'),
+      more: t('features.support.more'),
+      cta: t('features.support.cta'),
+      route: "/support",
+      img: require('../assets/contact.png'),
+      icon: "support"
+    }
+  ];
 
   // Toggle logic for login/register buttons
   const handleSetFormType = (type) => {
@@ -726,12 +683,18 @@ const Homepage = ({ formType, setFormType, isLoggedIn }) => {
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
   };
 
-  // Redirect to dashboard if user is already logged in
+  // Close auth modal if authentication status changes.
   useEffect(() => {
     if (isLoggedIn && !formType) {
       window.location.href = '/dashboard';
     }
-  }, [isLoggedIn, formType]);
+  }, [isLoggedIn]); // Remove formType from deps to avoid closing modal on language change
+
+  // Ensure modal stays open on language change
+  useEffect(() => {
+    // If modal is open and language changes, force a re-render but keep formType
+    // This is a no-op but ensures React doesn't unmount the modal
+  }, [i18n.language]);
 
   // ESC key closes modal
   useEffect(() => {
@@ -854,18 +817,27 @@ const Homepage = ({ formType, setFormType, isLoggedIn }) => {
           {showSplit && (
             <div
               className="homepage-split-overlay"
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, cursor: 'pointer', background: 'rgba(0,0,0,0.01)' }}
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, cursor: 'pointer', background: 'rgba(0,0,0,0.01)', pointerEvents: 'auto' }}
               onClick={handleOverlayClick}
             />
           )}
-          <div style={{ width: '100%', height: '100%' }}>
-            <AnimatedIntro isLoggedIn={isLoggedIn} onCtaClick={() => handleGoFeature({ route: "/dashboard" })} />
-            <FeaturesBlocksSection expandedKey={expandedKey} setExpandedKey={setExpandedKey} onGoFeature={handleGoFeature} isLoggedIn={isLoggedIn} />
-            <WhyEduVerseBlock />
-            <HowItWorksSection />
-            <TeamSection />
-            <CTASection onRegister={() => handleSetFormType('register')} />
-            <Footer />
+          <div style={{ width: '100%', height: '100%', position: 'relative', zIndex: 11 }}>
+            <AnimatedIntro
+              isLoggedIn={isLoggedIn}
+              onCtaClick={() => handleGoFeature({ route: "/dashboard" })}
+              welcome={t('intro.welcome')}
+              brand={t('intro.brand')}
+              desc={t('intro.desc')}
+              goToDashboard={t('intro.go_to_dashboard')}
+              startLearning={t('intro.start_learning')}
+              scrollDown={t('intro.scroll_down')}
+            />
+            <FeaturesBlocksSection features={features} expandedKey={expandedKey} setExpandedKey={setExpandedKey} onGoFeature={handleGoFeature} isLoggedIn={isLoggedIn} />
+            <WhyEduVerseBlock t={t} />
+            <HowItWorksSection t={t} />
+            <TeamSection t={t} />
+            <CTASection onRegister={() => handleSetFormType('register')} t={t} />
+            <Footer t={t} />
           </div>
         </motion.div>
         {/* Form half (only ever renders SplitAuthModal) */}
@@ -879,7 +851,7 @@ const Homepage = ({ formType, setFormType, isLoggedIn }) => {
             '&::-webkit-scrollbar': { display: 'none' },
             background: 'transparent',
             position: 'relative',
-            zIndex: 2,
+            zIndex: 100,
             display: showSplit ? 'flex' : 'none',
             alignItems: 'stretch',
             justifyContent: 'stretch',

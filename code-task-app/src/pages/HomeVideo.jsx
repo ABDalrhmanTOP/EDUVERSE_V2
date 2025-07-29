@@ -275,20 +275,22 @@ const HomeVideo = () => {
       } else {
         if (course.id) {
           try {
-            // Check if user has already completed placement test for this course
+            // 1. Check if user has completed the general form
+            const userRes = await axios.get('/user');
+            if (!userRes.data.has_completed_general_form) {
+              navigate(`/placement-test/${course.id}`);
+              return;
+            }
+            // 2. Check if user has already completed placement test for this course
             const response = await axios.post('/placement-test/check-completion', {
               course_id: course.id
             });
-            
             if (response.data.completed) {
-              // User has already completed placement test, go directly to course
               navigate(`/course/${course.id}`);
             } else {
-              // User hasn't completed placement test, go to placement test
               navigate(`/placement-test/${course.id}`);
             }
           } catch (error) {
-            console.error('Error checking placement test completion:', error);
             // Fallback: go to placement test
             navigate(`/placement-test/${course.id}`);
           }

@@ -26,6 +26,7 @@ import PlacementTest from "./pages/PlacementTest";
 import NotificationsPage from "./pages/NotificationsPage";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
 import SubscriptionHistory from "./pages/SubscriptionHistory";
+import Dashboard from "./pages/Dashboard";
 
 // Community components
 import Community from "./pages/Community";
@@ -40,7 +41,7 @@ import UserDetail from "./components/admin/UserDetial";
 import TaskList from "./components/admin/TaskList";
 import TasksDashboard from "./components/admin/TasksDashboard";
 import TestsDashboard from './components/admin/TestsDashboard';
-import AdminSubscriptions from "./components/admin/AdminSubscriptions";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 // import AdminPayments from "./components/admin/AdminPayments"; // removed
 
 import "./App.css";
@@ -106,6 +107,16 @@ const App = () => {
           path="/"
           element={
             <Homepage formType={formType} setFormType={setFormType} />
+          }
+        />
+
+        {/* User Dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
           }
         />
 

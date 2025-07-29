@@ -439,11 +439,21 @@ const CoursePage = () => {
         completedTasks={completedTasks}
         onTaskComplete={handleTaskComplete}
         initialTimestamp={lastTimestamp}
+        renderComments={
+          <CommentSection
+            comments={comments}
+            setComments={setComments}
+            user={user}
+            onAddComment={handleAddComment}
+            onEdit={handleEditComment}
+            onDelete={handleDeleteComment}
+            onLike={handleLikeComment}
+            onDislike={handleDislikeComment}
+            onReply={handleReplyComment}
+          />
+        }
       />
-
-      <div style={{ marginTop: "20px" }}>
-        <Playlists currentTaskIndex={currentTaskIndex} tasks={tasks} />
-      </div>
+      {/* Removed Course Tasks/Playlists section here */}
         </>
       ) : (
         <div style={{ textAlign: "center", marginTop: "40px" }}>

@@ -13,6 +13,13 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
+     * The accessors to append to the model's array form.
+     */
+    protected $appends = [
+        'avatar',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
@@ -67,6 +74,14 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function getAvatarAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return url('/storage/' . $this->profile_photo_path);
+        }
+        return null;
     }
 
     /**

@@ -22,6 +22,18 @@ class PlaylistsSeeder extends Seeder
                 'description' => 'Learn Python from scratch',
                 'video_id' => 'hEgO047GxaQ', // Another video_id example
             ],
+            [
+                'id' => 3,
+                'name' => 'JavaScript Essentials',
+                'description' => 'Core JavaScript concepts',
+                'video_id' => 'dQw4w9WgXcQ',
+            ],
+            [
+                'id' => 4,
+                'name' => 'Data Structures',
+                'description' => 'Learn about data structures',
+                'video_id' => 'DsVxgOjTL7A',
+            ],
         ]);
     }
 }

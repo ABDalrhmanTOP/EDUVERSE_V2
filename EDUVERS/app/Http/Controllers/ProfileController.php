@@ -15,9 +15,7 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        return response()->json([
-            'user' => Auth::user()
-        ]);
+        return response()->json(Auth::user());
     }
 
     /**

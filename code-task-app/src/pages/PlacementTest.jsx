@@ -4,6 +4,7 @@ import "../styles/PlacementTest.css";
 import { useParams, useNavigate } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
 import ConfirmationModal from '../components/admin/ConfirmationModal';
+import { useAuth } from '../context/AuthContext';
 
 const personalInitial = {
   job: "",
@@ -185,28 +186,19 @@ const PLACEMENT_FORM_KEY = 'placement_personal_form'; // NEW
 const PlacementTest = ({ onComplete }) => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [formKey, setFormKey] = useState(null);
+
+  useEffect(() => {
+    if (user && user.id && courseId) {
+      setFormKey(`placement_personal_form_${user.id}_${courseId}`);
+    }
+  }, [user, courseId]);
+
   const [step, setStep] = useState(1);
   const [personal, setPersonal] = useState(() => {
-    // Load from localStorage if available
-    const saved = localStorage.getItem(PLACEMENT_FORM_KEY);
-    return saved ? JSON.parse(saved) : {
-    job: "",
-    university: "",
-    country: "",
-    experience: "",
-    careerGoals: "",
-    hobbies: [],
-    expectations: [],
-    educationLevel: "",
-    fieldOfStudy: "",
-    studentYear: "",
-    yearsOfExperience: "",
-    specialization: "",
-    teachingSubject: "",
-    researchField: "",
-    companySize: "",
-    industry: "",
-    };
+    // We'll re-initialize this below once formKey is set
+    return personalInitial;
   });
   const [personalError, setPersonalError] = useState("");
   const [year, setYear] = useState(1);
@@ -227,6 +219,14 @@ const PlacementTest = ({ onComplete }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingPlacementChoice, setPendingPlacementChoice] = useState(null);
   
+  // When formKey changes, re-initialize personal state from localStorage
+  useEffect(() => {
+    if (formKey) {
+      const saved = localStorage.getItem(formKey);
+      setPersonal(saved ? JSON.parse(saved) : personalInitial);
+    }
+  }, [formKey]);
+
   // Individual field error states
   const [fieldErrors, setFieldErrors] = useState({
     job: "",
@@ -376,34 +376,35 @@ const PlacementTest = ({ onComplete }) => {
 
   // Persist form changes to localStorage
   useEffect(() => {
-    if (!placementComplete) {
-      localStorage.setItem(PLACEMENT_FORM_KEY, JSON.stringify(personal));
+    if (formKey && !placementComplete) {
+      localStorage.setItem(formKey, JSON.stringify(personal));
     }
-  }, [personal, placementComplete]);
+  }, [personal, placementComplete, formKey]);
 
   // Clear localStorage on placement complete
   useEffect(() => {
-    if (placementComplete) {
-      localStorage.removeItem(PLACEMENT_FORM_KEY);
+    if (formKey && placementComplete) {
+      localStorage.removeItem(formKey);
     }
-  }, [placementComplete]);
+  }, [placementComplete, formKey]);
 
   // On mount, check user and course paid status
   useEffect(() => {
     const checkUserProfile = async () => {
       try {
         const response = await apiClient.get("/user");
-        if (response.data && response.data.has_completed_general_form) {
-          setHasCompletedGeneralForm(true);
+        console.log("USER API RESPONSE:", response.data); // DEBUG
+        const completed = response.data && response.data.has_completed_general_form === true;
+        setHasCompletedGeneralForm(completed);
+        if (!completed) {
+          setStep(1);
+        } else {
           if (response.data.placement_test_completed || response.data.start_from_scratch) {
             setPlacementComplete(true);
             setStep(3);
           } else {
             setShowPlacementChoice(true);
           }
-        } else {
-          setHasCompletedGeneralForm(false);
-          setStep(1);
         }
       } catch (err) {
         setHasCompletedGeneralForm(false);
@@ -1338,36 +1339,38 @@ const PlacementTest = ({ onComplete }) => {
           <span>Academic Information</span>
         </div>
         
-        <div className="placement-form-group">
-          <label>Semester</label>
-          <div className="placement-custom-dropdown">
-            <button 
-              type="button"
-              className="placement-custom-select"
-              onClick={() => {
-                closeAllDropdowns();
-                setShowSemesterDropdown((prev) => !prev);
-              }}
-            >
-              {semester}
-              <span className="placement-arrow">▼</span>
-            </button>
-            {showSemesterDropdown && (
-              <div className="placement-dropdown-options">
-                {[1, 2].map(semesterOption => (
-                  <div 
-                    key={semesterOption} 
-                    className="placement-dropdown-option"
-                    onClick={() => handleSemesterSelect(semesterOption)}
-                  >
-                    {semesterOption}
-                  </div>
-                ))}
-              </div>
-            )}
+        {(personal.job === 'Student' && (personal.educationLevel === 'University' || personal.educationLevel === "Master's")) && (
+          <div className="placement-form-group">
+            <label>Semester</label>
+            <div className="placement-custom-dropdown">
+              <button 
+                type="button"
+                className="placement-custom-select"
+                onClick={() => {
+                  closeAllDropdowns();
+                  setShowSemesterDropdown((prev) => !prev);
+                }}
+              >
+                {semester}
+                <span className="placement-arrow">▼</span>
+              </button>
+              {showSemesterDropdown && (
+                <div className="placement-dropdown-options">
+                  {[1, 2].map(semesterOption => (
+                    <div 
+                      key={semesterOption} 
+                      className="placement-dropdown-option"
+                      onClick={() => handleSemesterSelect(semesterOption)}
+                    >
+                      {semesterOption}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {fieldErrors.semester && <div className="placement-field-error">{fieldErrors.semester}</div>}
           </div>
-          {fieldErrors.semester && <div className="placement-field-error">{fieldErrors.semester}</div>}
-        </div>
+        )}
         
         <div className="placement-form-group">
           <label>What are your career goals?</label>
@@ -1516,54 +1519,89 @@ const PlacementTest = ({ onComplete }) => {
                   {idx + 1}. {q.text}
                 </div>
                 {q.type === "mcq" && (
-                  <div className="placement-options">
+                  <div className="placement-options" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
                     {q.options.map(opt => (
-                      <label key={opt} className="placement-option">
+                      <label key={opt} className="placement-option" style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        padding: '12px 16px', 
+                        border: '1.5px solid #e3cfa4', 
+                        borderRadius: '8px', 
+                        cursor: 'pointer', 
+                        transition: 'all 0.2s', 
+                        backgroundColor: answers[q.id] === opt ? '#e3cfa4' : '#f9f6f1' 
+                      }}>
                         <input
                           type="radio"
                           name={`q_${q.id}`}
                           value={opt}
                           checked={answers[q.id] === opt}
                           onChange={() => setAnswers(a => ({ ...a, [q.id]: opt }))}
-                        /> {opt}
+                          style={{ marginRight: '12px', accentColor: '#b5a079' }}
+                        /> 
+                        <span style={{ fontWeight: '500', color: answers[q.id] === opt ? '#5a3a22' : '#7d6a4d' }}>{opt}</span>
                       </label>
                     ))}
                   </div>
                 )}
-                {q.type === "truefalse" && (
-                  <div className="placement-options">
-                    <label className="placement-option">
+                {(q.type === "truefalse" || q.type === "true_false") && (
+                  <div className="placement-options" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                    <label className="placement-option" style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', border: '1.5px solid #e3cfa4', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: answers[q.id] === "True" ? '#e3cfa4' : '#f9f6f1' }}>
                       <input
                         type="radio"
                         name={`q_${q.id}`}
                         value="True"
                         checked={answers[q.id] === "True"}
                         onChange={() => setAnswers(a => ({ ...a, [q.id]: "True" }))}
-                      /> True
+                        style={{ marginRight: '12px', accentColor: '#b5a079' }}
+                      /> 
+                      <span style={{ fontWeight: '500', color: answers[q.id] === "True" ? '#5a3a22' : '#7d6a4d' }}>True</span>
                     </label>
-                    <label className="placement-option">
+                    <label className="placement-option" style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', border: '1.5px solid #e3cfa4', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: answers[q.id] === "False" ? '#e3cfa4' : '#f9f6f1' }}>
                       <input
                         type="radio"
                         name={`q_${q.id}`}
                         value="False"
                         checked={answers[q.id] === "False"}
                         onChange={() => setAnswers(a => ({ ...a, [q.id]: "False" }))}
-                      /> False
+                        style={{ marginRight: '12px', accentColor: '#b5a079' }}
+                      /> 
+                      <span style={{ fontWeight: '500', color: answers[q.id] === "False" ? '#5a3a22' : '#7d6a4d' }}>False</span>
                     </label>
                   </div>
                 )}
                 {q.type === "coding" && (
                   <>
-                    <div className="placement-theme-toggle-container">
+                    <div className="placement-theme-toggle-container" style={{ marginBottom: '12px', textAlign: 'right' }}>
                       <button 
                         type="button"
                         className="placement-theme-toggle-button" 
                         onClick={toggleTheme}
+                        style={{
+                          backgroundColor: '#4d4d4d',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.3s ease, transform 0.3s ease',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                        }}
                       >
                         {editorTheme === "custom-dark" ? "☀️ Light Theme" : "🌙 Dark Theme"}
                       </button>
                     </div>
-                    <div className="placement-code-editor">
+                    <div className="placement-code-editor" style={{ 
+                      width: '100%', 
+                      height: '450px', 
+                      border: '1.5px solid #e3cfa4', 
+                      borderRadius: '10px', 
+                      overflow: 'hidden', 
+                      position: 'relative', 
+                      marginTop: '8px',
+                      backgroundColor: '#f9f6f1'
+                    }}>
                       <MonacoEditor
                         width="100%"
                         height="450px"
@@ -1692,6 +1730,19 @@ const PlacementTest = ({ onComplete }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Save previous background
+    const prevBg = document.body.style.background;
+    document.body.style.background = "none";
+    // Optionally, also clear #root background if needed
+    const root = document.getElementById("root");
+    if (root) root.style.background = "none";
+    return () => {
+      document.body.style.background = prevBg;
+      if (root) root.style.background = "";
     };
   }, []);
 

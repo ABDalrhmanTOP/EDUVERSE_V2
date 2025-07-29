@@ -127,8 +127,8 @@ const AdminDashboard = () => {
     { id: 'courses', label: t('admin.navigation.courses'), icon: FaBook, path: '/AdminDashboard/courses' },
     { id: 'tasks', label: t('admin.navigation.tasks'), icon: FaTasks, path: '/AdminDashboard/tasks' },
     { id: 'tests', label: t('admin.navigation.tests') || 'Tests', icon: FaClipboardCheck, path: '/AdminDashboard/tests' },
-    { id: 'subscriptions', label: 'Subscriptions', icon: FaCreditCard, path: '/AdminDashboard/subscriptions' },
-    { id: 'edubot', label: getEduBotText(), icon: FaRobot, path: '/AdminDashboard/edubot' },
+    { id: 'subscriptions', label: t('admin.navigation.subscriptions') || 'Subscriptions', icon: FaCreditCard, path: '/AdminDashboard/subscriptions' },
+    // Removed EduBot settings page
     { id: 'users', label: t('admin.navigation.users'), icon: FaUsers, path: '/AdminDashboard/users' },
     { id: 'analytics', label: t('admin.navigation.reports'), icon: FaChartBar, path: '/AdminDashboard/analytics' },
     { id: 'settings', label: t('admin.navigation.settings'), icon: FaCog, path: '/AdminDashboard/settings' },

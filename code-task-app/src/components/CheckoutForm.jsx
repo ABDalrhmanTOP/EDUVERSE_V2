@@ -65,9 +65,15 @@ const CheckoutFormInner = ({ plan, onSuccess }) => {
     }
 
     try {
+      console.log('DEBUG: Submitting payment with:', {
+        payment_method_id: paymentMethod.id,
+        amount: plan.amount / 100,
+        plan_name: plan.title,
+        planId: plan.id,
+      });
       const response = await axios.post('/checkout', {
         payment_method_id: paymentMethod.id,
-        amount: plan.amount,
+        amount: plan.amount / 100, // Convert cents to dollars
         plan_name: plan.title,
         planId: plan.id,
       });
@@ -79,6 +85,7 @@ const CheckoutFormInner = ({ plan, onSuccess }) => {
         setError(response.data.message || "Payment failed. Please try again.");
       }
     } catch (err) {
+      console.error('DEBUG: /checkout error', err.response);
       setError(err.response?.data?.message || "Payment failed. Please try again.");
     }
     setIsProcessing(false);

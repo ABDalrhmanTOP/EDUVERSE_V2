@@ -151,7 +151,8 @@
       "reports": "Reports",
       "settings": "Settings",
       "profile": "Profile",
-      "logout": "Logout"
+      "logout": "Logout",
+      "subscriptions": "Subscriptions"
     },
     "users": {
       "title": "Users Management",
@@ -489,6 +490,49 @@
       "arabic": "العربية",
       "language": "Language",
       "changeLanguage": "Change Language"
+    },
+    "subscriptions": {
+      "title": "Subscription Management",
+      "subtitle": "Manage user subscriptions and analytics",
+      "error": "An error occurred while loading data",
+      "total": "Total Subscriptions",
+      "active": "Active",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "ofTotal": "of total",
+      "totalRevenue": "Total Revenue",
+      "monthlyRevenue": "Current Month Revenue",
+      "statusBreakdown": "Status Breakdown",
+      "searchPlaceholder": "Search by user name, email, or plan...",
+      "allStatus": "All Status",
+      "exportData": "Export Data",
+      "addSubscription": "Add Subscription",
+      "user": "User",
+      "plan": "Plan",
+      "amount": "Amount",
+      "status": "Status",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "actions": "Actions",
+      "viewDetails": "View Details",
+      "editSubscription": "Edit Subscription",
+      "deleteSubscription": "Delete Subscription",
+      "noResults": "No subscription results found",
+      "deleteConfirmation": "Are you sure you want to delete this subscription?",
+      "deleteWarning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "notes": "Notes",
+      "details": "Plan Details",
+      "subscriptionDetails": "Subscription Details",
+      "userInfo": "User Information",
+      "planInfo": "Plan Information",
+      "name": "Name",
+      "email": "Email",
+      "userId": "User ID",
+      "created": "Created Date",
+      "close": "Close"
     }
   },
   "navbar": {
@@ -503,5 +547,89 @@
     "profile": "Profile",
     "paymentHistory": "Payment History",
     "logout": "Logout"
+  },
+  "intro": {
+    "welcome": "Welcome to",
+    "brand": "EduVerse",
+    "desc": "The next generation platform for modern, interactive, and community-driven learning.",
+    "go_to_dashboard": "Go to Dashboard",
+    "start_learning": "Start Learning Now",
+    "scroll_down": "Scroll Down"
+  },
+  "features": {
+    "courses": {
+      "title": "Interactive Courses",
+      "desc": "Engage with hands-on content, quizzes, and real-world projects. Personalized learning paths and real-time feedback.",
+      "more": "Our courses are immersive, practical, and designed for real-world skills. Unlock a rich library of topics, track your progress, and learn at your own pace. Enjoy interactive video lessons, coding sandboxes, and real project assignments. Get instant feedback and see your growth with every lesson.",
+      "cta": "Go to Courses"
+    },
+    "community": {
+      "title": "Vibrant Community",
+      "desc": "Connect, collaborate, and grow with learners and mentors worldwide. Participate in events, challenges, and group projects.",
+      "more": "Our community is the heart of EduVerse. Engage in group projects, live events, and mentorship programs. Share your progress, ask questions, and get support from peers and mentors. Experience a truly collaborative learning environment.",
+      "cta": "Join the Community"
+    },
+    "progress": {
+      "title": "Progress Tracking",
+      "desc": "Visualize your journey, earn badges, and celebrate your achievements. Personalized recommendations keep you motivated.",
+      "more": "Track your learning milestones, unlock achievements, and get personalized recommendations to keep you on track and inspired. Earn badges, certificates, and see your stats grow in real time.",
+      "cta": "Go to Profile"
+    },
+    "ai": {
+      "title": "AI-Powered Help",
+      "desc": "Get instant answers, explanations, and guidance from our AI tutor. Available 24/7 to support your learning journey.",
+      "more": "Our AI assistant is always ready to help you with questions, explanations, and personalized study tips. Learning has never been this smart. Try our AI-powered code review, instant Q&A, and smart recommendations.",
+      "cta": "Chat with EduBot"
+    },
+    "support": {
+      "title": "Dedicated Support",
+      "desc": "Our team is here to help you succeed. Reach out anytime for technical or academic support.",
+      "more": "We offer live chat, email, and phone support. Your success is our mission, and we’re always here to help. Access our knowledge base, get help from real people, and never feel stuck again.",
+      "cta": "Contact Support"
+    }
+  },
+  "why_choose": {
+    "title": "Why Choose EduVerse?",
+    "trusted_content": "Trusted Content",
+    "quality_standards": "Quality Standards",
+    "ai_support": "AI Support",
+    "satisfaction": "Satisfaction"
+  },
+  "how_it_works": {
+    "title": "How EduVerse Works",
+    "sign_up": "Sign Up",
+    "sign_up_desc": "Create your free EduVerse account in seconds.",
+    "choose_course": "Choose a Course",
+    "choose_course_desc": "Browse our library and pick your learning path.",
+    "join_community": "Join the Community",
+    "join_community_desc": "Connect with peers, mentors, and join discussions.",
+    "track_progress": "Track Progress",
+    "track_progress_desc": "Earn badges, certificates, and celebrate your growth."
+  },
+  "team": {
+    "title": "Developers",
+    "bara_name": "Baraa Al-Shammaa",
+    "bara_role": "Full Stack Developer",
+    "abd_name": "Abd Alrhman Al-Tubaji",
+    "abd_role": "Full Stack Developer"
+  },
+  "cta": {
+    "ready_to_start": "Ready to start your journey?",
+    "join_eduverse": "Join EduVerse and unlock your full learning potential with modern, interactive courses and a vibrant community.",
+    "join_eduverse_now": "Join EduVerse Now"
+  },
+  "footer": {
+    "mission": "Empowering learners worldwide with trusted, interactive education.",
+    "links": "Links",
+    "home": "Home",
+    "courses": "Courses",
+    "about": "About",
+    "contact": "Contact",
+    "email": "ba.eduverse@gmail.com",
+    "phone": "+963 982 068 157",
+    "whatsapp": "+963 932 912 082",
+    "privacy_policy": "Privacy Policy (coming soon)",
+    "terms_of_service": "Terms of Service (coming soon)",
+    "copyright": "EduVerse. All rights reserved."
   }
 } 
