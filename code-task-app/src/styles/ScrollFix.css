@@ -1,0 +1,543 @@
+/* ============================================
+   Global Scroll Fixes for EduVerse Project
+============================================ */
+
+/* Global Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Custom Scrollbar for all browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bfae9e;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a68a6d;
+}
+
+::-webkit-scrollbar-corner {
+  background: #f1f1f1;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #bfae9e #f1f1f1;
+}
+
+/* Container Scroll Fixes */
+.container, .main-container, .page-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Dashboard Scroll Fixes */
+.dashboard-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* HomeVideo Scroll Fixes */
+.home-video-container {
+  overflow: visible;
+  min-height: 100vh;
+}
+
+.course-category-section {
+  overflow: visible;
+}
+
+/* Profile Scroll Fixes */
+.profile-page-container {
+  overflow: visible;
+}
+
+.profile-header {
+  overflow: visible;
+}
+
+/* Subscription Plans Scroll Fixes */
+.modal-glass, .glassy, .checkout-form-container {
+  overflow: visible;
+}
+
+/* Subscription History Scroll Fixes */
+.subscription-history-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Playlist Sidebar Scroll Fixes */
+.playlist-sidebar {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.playlist-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.playlist-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.playlist-sidebar::-webkit-scrollbar-thumb {
+  background: #bfae9e;
+  border-radius: 3px;
+}
+
+.playlist-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a68a6d;
+}
+
+/* Course Cards Scroll Fixes */
+.course-card, .recommendation-card {
+  overflow: hidden;
+}
+
+/* Progress Bar Scroll Fixes */
+.progress-bar {
+  overflow: hidden;
+}
+
+.progress-fill {
+  overflow: visible;
+}
+
+/* Modal Scroll Fixes */
+.modal-content, .modal-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Navigation Scroll Fixes */
+.navbar, .navigation {
+  overflow: visible;
+}
+
+/* Form Scroll Fixes */
+.form-container, .form-card {
+  overflow: visible;
+}
+
+/* Chat Scroll Fixes */
+.chat-container, .messages-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Community Scroll Fixes */
+.community-container, .posts-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Admin Panel Scroll Fixes */
+.admin-container, .admin-panel {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Responsive Scroll Fixes */
+@media (max-width: 768px) {
+  .container, .main-container, .page-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  .dashboard-container,
+  .home-video-container,
+  .profile-page-container,
+  .subscription-history-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  /* Mobile scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Smaller scrollbar for mobile */
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* Print styles - disable scroll */
+@media print {
+  html, body {
+    overflow: visible !important;
+  }
+  
+  .container, .main-container, .page-container {
+    overflow: visible !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  ::-webkit-scrollbar-thumb {
+    background: #000;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #fff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  .container, .main-container, .page-container {
+    scroll-behavior: auto;
+  }
+}
+
+/* Dark mode scrollbar support */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #2d3748;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4a5568;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+  }
+}
+
+/* Focus styles for accessibility */
+.container:focus,
+.main-container:focus,
+.page-container:focus {
+  outline: 2px solid #bfae9e;
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-padding-top: 100px; /* Account for fixed navbar */
+}
+
+/* Prevent horizontal scroll on all elements */
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix for flexbox items causing overflow */
+.flex-container {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Fix for grid items causing overflow */
+.grid-container {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Fix for absolute positioned elements */
+.absolute-container {
+  overflow: visible;
+}
+
+/* Fix for fixed positioned elements */
+.fixed-container {
+  overflow: visible;
+}
+
+/* Fix for sticky positioned elements */
+.sticky-container {
+  overflow: visible;
+}
+
+/* Fix for transform causing overflow */
+.transformed-element {
+  overflow: visible;
+}
+
+/* Fix for animations causing overflow */
+.animated-element {
+  overflow: visible;
+}
+
+/* Fix for pseudo-elements causing overflow */
+.element-with-pseudo::before,
+.element-with-pseudo::after {
+  overflow: visible;
+}
+
+/* Fix for text overflow */
+.text-container {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Fix for long URLs and emails */
+.long-text {
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+/* Fix for code blocks */
+.code-block {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Fix for tables */
+.table-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Fix for images */
+.image-container {
+  overflow: hidden;
+}
+
+.image-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for videos */
+.video-container {
+  overflow: hidden;
+}
+
+.video-container video,
+.video-container iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for maps */
+.map-container {
+  overflow: hidden;
+}
+
+/* Fix for charts */
+.chart-container {
+  overflow: hidden;
+}
+
+/* Fix for sliders */
+.slider-container {
+  overflow: hidden;
+}
+
+/* Fix for carousels */
+.carousel-container {
+  overflow: hidden;
+}
+
+/* Fix for tooltips */
+.tooltip-container {
+  overflow: visible;
+}
+
+/* Fix for dropdowns */
+.dropdown-container {
+  overflow: visible;
+}
+
+/* Fix for modals */
+.modal-container {
+  overflow: hidden;
+}
+
+.modal-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Fix for sidebars */
+.sidebar-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Fix for headers */
+.header-container {
+  overflow: visible;
+}
+
+/* Fix for footers */
+.footer-container {
+  overflow: visible;
+}
+
+/* Fix for main content areas */
+.main-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Fix for sidebar content */
+.sidebar-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Fix for navigation menus */
+.nav-menu {
+  overflow: visible;
+}
+
+.nav-menu-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Fix for breadcrumbs */
+.breadcrumb-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Fix for pagination */
+.pagination-container {
+  overflow: visible;
+}
+
+/* Fix for search results */
+.search-results {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Fix for filters */
+.filter-container {
+  overflow: visible;
+}
+
+/* Fix for sorting */
+.sort-container {
+  overflow: visible;
+}
+
+/* Fix for forms */
+.form-section {
+  overflow: visible;
+}
+
+.form-group {
+  overflow: visible;
+}
+
+/* Fix for buttons */
+.button-container {
+  overflow: visible;
+}
+
+/* Fix for icons */
+.icon-container {
+  overflow: visible;
+}
+
+/* Fix for badges */
+.badge-container {
+  overflow: visible;
+}
+
+/* Fix for alerts */
+.alert-container {
+  overflow: visible;
+}
+
+/* Fix for notifications */
+.notification-container {
+  overflow: visible;
+}
+
+/* Fix for loading states */
+.loading-container {
+  overflow: visible;
+}
+
+/* Fix for error states */
+.error-container {
+  overflow: visible;
+}
+
+/* Fix for empty states */
+.empty-container {
+  overflow: visible;
+}
+
+/* Fix for success states */
+.success-container {
+  overflow: visible;
+}
+
+/* Fix for warning states */
+.warning-container {
+  overflow: visible;
+}
+
+/* Fix for info states */
+.info-container {
+  overflow: visible;
+}
+
+/* Fix for help text */
+.help-container {
+  overflow: visible;
+}
+
+/* Fix for validation messages */
+.validation-container {
+  overflow: visible;
+}
+
+/* Fix for accessibility elements */
+.accessibility-container {
+  overflow: visible;
+}
+
+/* Fix for screen reader only content */
+.sr-only {
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+} 
