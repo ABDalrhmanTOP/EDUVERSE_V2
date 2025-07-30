@@ -99,15 +99,17 @@
 .admin-logout-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1.25rem;
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 2rem;
   margin: 1rem;
+  width: calc(100% - 2rem);
   background: linear-gradient(135deg, #8B7355 0%, #A0522D 100%);
   color: white;
   border: none;
   border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: 700;
+  font-size: 1.3rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(139, 115, 85, 0.3);
